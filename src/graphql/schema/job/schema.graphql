@@ -1,0 +1,52 @@
+#schema.graphql
+extend type Query{
+    getJobPosts(input: JopPostFilterInput!):[JobPost!]!
+    sayHi: String
+}
+
+extend type Mutation {
+    createJobPost(input:CreateJobPostInput!):JobPost
+}
+
+input JopPostFilterInput{
+    company:String
+}
+
+input CreateJobPostInput{
+    title:String!
+    email:String!
+    description:String!
+    company:String!
+    salary:[Int]!
+    jobType:String!
+    jobCategory: [String]!
+    jobExperience: Int!
+    jobVacancy: Int!
+    jobDeadline: String!
+    compensation: String!
+    englishLevel: String
+    otherLanguages: [String]!
+    jobSkills: [String!]!
+    isVisible:Boolean!
+}
+
+type JobPost{
+    _id: String!
+    title:String!
+    description:String!
+    salary:[Int]!
+    jobType:String!
+    jobCategory: [String]!
+    jobExperience: Int!
+    jobVacancy: Int!
+    jobDeadline: DateTime!
+    compensation: String!
+    jobSkills: [String!]!
+    isVisible:Boolean!
+    englishLevel: String
+    otherLanguages: [String!]!
+}
+
+
+#type Subscription
+

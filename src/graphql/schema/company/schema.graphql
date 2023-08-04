@@ -1,0 +1,9 @@
+type Company {
+    id: String!
+    companyName: String!
+    logo: String!
+
+}
+
+#type Subscription
+

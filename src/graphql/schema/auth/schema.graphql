@@ -1,0 +1,52 @@
+extend type Mutation {
+    signUpCompany(input: SignUpCompanyInput!) : AuthPayload!
+    signUpFreelancer(input: SignUpFreelancerInput!) : AuthPayload!
+    logIn(input: LoginInput!) : AuthPayload!
+}
+
+
+type AuthPayload implements PayloadError {
+    errors: [Error!]!
+    account: AuthAccountPayload
+}
+
+type AuthAccountPayload implements IAccount{
+    id: ID!
+    email: String!
+    firstName: String!
+    lastName: String!
+    gender: String!
+    phone: String!
+    accountType: AccountRoles!
+
+    company: Company
+    user: Freelancer
+}
+
+# INPUT TYPES  ---------------------------------------------------------------
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+input SignUpCompanyInput {
+    email: String!
+    firstName: String!
+    lastName: String!
+    gender: Gender = OTHER
+    phone: String!
+    password: String!
+    companyName : String!
+    country : String!
+}
+
+input SignUpFreelancerInput {
+    email: String!
+    firstName: String!
+    lastName: String!
+    gender: Gender = OTHER
+    phone: String!
+    password: String!
+    country : String!
+}
+

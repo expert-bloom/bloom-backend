@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": [
+      "esnext"
+    ],
+    "strict": true,
+    "noImplicitAny": false,
+//    "module": "ESNext",
+//    "target": "ESNext",
+    //    "allowJs": true,
+//    "skipLibCheck": true,
+//    "forceConsistentCasingInFileNames": true,
+//    "noEmit": true,
+    "esModuleInterop": true,
+//    "resolveJsonModule": true,
+//    "isolatedModules": true,
+//    "incremental": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

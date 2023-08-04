@@ -1,0 +1,11 @@
+type Query
+type Mutation
+#type Subscription
+
+type Error {
+  message: String!
+}
+
+interface PayloadError {
+  errors: [Error!]!
+}

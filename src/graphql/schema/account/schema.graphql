@@ -1,0 +1,54 @@
+#schema.graphql
+extend type Query{
+    me: String
+}
+
+enum AccountRoles {
+    COMPANY
+    APPLICANT
+    PUBLIC
+}
+
+enum Gender {
+    MALE
+    FEMALE
+    OTHER
+}
+
+interface IAccount {
+    id: ID!
+    email: String!
+    firstName: String!
+    lastName: String!
+    gender: String!
+    phone: String!
+    accountType: AccountRoles!
+}
+
+type Account implements IAccount{
+    id: ID!
+    email: String!
+    firstName: String!
+    lastName: String!
+    gender: String!
+    phone: String!
+    accountType: AccountRoles!
+}
+
+
+# make it's own file
+type Freelancer{
+    id: String!
+    savedJobs: [String!]!
+    experienceYear: Int!
+    resume: String
+    #    jobApplication: TJobPost[];
+    #    introAudio: string;
+}
+
+
+
+scalar DateTime
+
+#type Subscription
+

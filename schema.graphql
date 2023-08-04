@@ -1,0 +1,2215 @@
+#type Query {
+#  fetchUsers: [IUser]
+#  fetchOneUserByID(_id: ID!): IUser
+#  fetchManyUsersByID(_ids: [ID!]!): [IUser]
+#  fetchUserInfoBySession: IUser
+#  fetchUserByServiceID(_id: ID!): IUser
+#
+#  fetchAccounts: [IAccount]
+#  fetchOneAccountByID(_id: ID!): IAccount
+#  fetchAccountInfoBySession: IAccount
+#  fetchManyAccountsByID(_ids: [ID!]!): [IAccount]
+#
+#  fetchSectors: [ISector]
+#  fetchOneSectorByID(_id: ID!): ISector
+#  fetchManySectorsByID(_ids: [ID!]!): [ISector]
+#  fetchSubSectors: [ISubSector]
+#  fetchOneSubSectorByID(_id: ID!): ISubSector
+#  fetchManySubSectorsByID(_ids: [ID!]!): [ISubSector]
+#
+#  fetchActivities: [IActivity]
+#  fetchOneActivityByID(_id: ID!): IActivity
+#  fetchManyActivitiesByID(_ids: [ID!]!): [IActivity]
+#  fetchInvestmentActivities: [IInvestmentActivity]
+#  fetchOneInvestmentActivityByID(_id: ID!): IInvestmentActivity
+#  fetchManyInvestmentActivitiesByID(_ids: [ID!]!): [IInvestmentActivity]
+#
+#  fetchManagers: [IManager]
+#  fetchOneManagerByID(_id: ID!): IManager
+#  fetchManyManagersByID(_ids: [ID!]!): [IManager]
+#
+#  fetchProducts: [IProduct]
+#  fetchOneProductByID(_id: ID!): IProduct
+#  fetchManyProductsByID(_ids: [ID!]!): [IProduct]
+#
+#  fetchProjects: [IProject]
+#  fetchOneProjectByID(_id: ID!): IProject
+#  fetchManyProjectsByID(_ids: [ID!]!): [IProject]
+#
+#  fetchWorkPermits: [IWorkPermit]
+#  fetchOneWorkPermitByID(_id: ID!): IWorkPermit
+#  fetchManyWorkPermitsByID(_ids: [ID!]!): [IWorkPermit]
+#
+#  fetchMessages: [IMessage]
+#  fetchOneMessageByID(_id: ID!): IMessage
+#  fetchManyMessagesByID(_ids: [ID!]!): [IMessage]
+#
+#  fetchInvestmentPermits: [IInvestmentPermit]
+#  fetchMyInvestmentPermits: [IInvestmentPermit]
+#  fetchOneInvestmentPermitByID(_id: ID!): IInvestmentPermit
+#  fetchManyInvestmentPermitsByID(_ids: [ID!]!): [IInvestmentPermit]
+#  fetchAdminInvestmentPermits: [IInvestmentPermit]
+#  fetchUnAssignedInvestmentPermits: [IInvestmentPermit]
+#  fetchAssignedInvestmentPermits: [IInvestmentPermit]
+#
+#
+#  fetchInvestmentPermitRenewals: [IInvestmentPermitRenewal]
+#  fetchOneInvestmentPermitRenewalByID(_id: ID!): IInvestmentPermitRenewal
+#  fetchManyInvestmentPermitRenewalsByID(_ids: [ID!]!): [IInvestmentPermitRenewal]
+#  fetchMyInvestmentPermitRenewals: [IInvestmentPermitRenewal]
+#
+#
+#  fetchInvestmentPermitExpansions: [IInvestmentPermitExpansion]
+#  fetchOneInvestmentPermitExpansionByID(_id: ID!): IInvestmentPermitExpansion
+#  fetchManyInvestmentPermitExpansionsByID(_ids: [ID!]!): [IInvestmentPermitExpansion]
+#  fetchMyInvestmentPermitExpansion: [IInvestmentPermitExpansion]
+#
+#  fetchInvestmentPermitCancellations: [IInvestmentPermitCancellation]
+#  fetchMyInvestmentPermitCancellations: [IInvestmentPermitCancellation]
+#  fetchOneInvestmentPermitCancellationByID(_id: ID!): IInvestmentPermitCancellation
+#  fetchManyInvestmentPermitCancellationsByID(_ids: [ID!]!): [IInvestmentPermitCancellation]
+#
+#
+#  fetchInvestmentPermitAmmendments: [IInvestmentPermitAmmendment]
+#  fetchMyInvestmentPermitAmmendments: [IInvestmentPermitAmmendment]
+#  fetchOneInvestmentPermitAmmendmentByID(_id: ID!): IInvestmentPermitAmmendment
+#  fetchManyInvestmentPermitAmmendmentsByID(
+#  _ids: [ID!]!
+#  ): [IInvestmentPermitAmmendment]
+#
+#
+#  fetchNotifications: [INotification]
+#  fetchOneNotificationByID(_id: ID!): INotification
+#  fetchManyNotificationsByID(_ids: [ID!]!): [INotification]
+#}
+#
+#type IUser {
+#  _id: ID
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  email: String
+#  gender: Gender
+#  role: String
+#  phone_number: String
+#  phone_number_type: String
+#  country: String
+#  city: String
+#  profile_picture: String
+#  business_profile: String
+#  service_id: String
+#  residence_form: ResidenceObject
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#enum Gender {
+#  MALE
+#  FEMALE
+#}
+#
+#type ResidenceObject {
+#  letter_of_support: String
+#  visa_type: String
+#  visa_image: String
+#  status: ResidenceStatus
+#}
+#
+#type ResidenceStatus {
+#  status: IResidenceStatus!
+#  message: String
+#  reapplied: Boolean
+#}
+#
+#enum IResidenceStatus {
+#  PENDING
+#  ACCEPTED
+#  DECLINED
+#}
+#
+## A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+#scalar DateTime
+#
+#type IAccount {
+#  _id: ID
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  email: String
+#  gender: Gender
+#  role: String
+#  phone_number: String
+#  business_profile: String
+#  service_id: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type ISector {
+#  _id: ID
+#  name: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type ISubSector {
+#  _id: ID
+#  name: String
+#  sector: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type IActivity {
+#  _id: ID
+#  name: String
+#  sub_sector: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type IInvestmentActivity {
+#  _id: ID
+#  name: String
+#  activity: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type IManager {
+#  _id: ID
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  address: IBusinessAddress
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type IBusinessAddress {
+#  country: String
+#  region: String
+#  region_amharic: String
+#  zone: String
+#  zone_amharic: String
+#  city: String
+#  city_amharic: String
+#  sub_city: String
+#  sub_city_amharic: String
+#  wereda: String
+#  wereda_amharic: String
+#  house_number: String
+#  email: String
+#  telephone_direct: String
+#  telephone_mobile: String
+#  fax: String
+#  po_box: String
+#  other_address: String
+#}
+#
+#type IProduct {
+#  _id: ID
+#  product_name: String
+#  is_service: Boolean
+#  quantity: Int
+#  unit: Unit
+#  domestic_market_share: Float
+#  export_market_share: Float
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#enum Unit {
+#  SQUARE_METERS
+#}
+#
+#type IProject {
+#  _id: ID
+#  title: String
+#  project_stage: ProjectStages
+#  environmental_impact: String
+#  project_summary: String
+#  address: IBusinessAddress
+#  category_sector: ID
+#  category_sub_sector: ID
+#  category_activity: ID
+#  category_investment_activity: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#enum ProjectStages {
+#  INITIAL
+#}
+#
+#type IWorkPermit {
+#  _id: ID
+#  project: ID
+#  start_date: DateTime
+#  end_date: DateTime
+#  previous_permit_number: String
+#  project_input: ProjectInput
+#  raw_materials: [IRawMaterial]
+#  project_cost: IProjectCost
+#  permanent_employee_count: IWorkEmployeeCount
+#  temporary_employee_count: IWorkEmployeeCount
+#  project_shares: [IProjectShare]
+#  products: [ID]
+#  permit_documents: IWorkPermitDocument
+#  selected_manager: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type IWorkPermitDocument {
+#  renewed_id_image: String
+#  passport_image: String
+#}
+#
+#type ProjectInput {
+#  electric_power: Float
+#  water_in_sqm: Float
+#  agricultural_land_in_sqm: Float
+#  land_service_in_sqm: Float
+#  rental_land_in_sqm: Float
+#  other_utility: Float
+#  own_land_in_sqm: Float
+#  land_industrial_in_sqm: Float
+#  lease_land_in_sqm: Float
+#  remarks: String
+#}
+#
+#type IRawMaterial {
+#  raw_material_name: String
+#  is_local: Boolean
+#  remarks: String
+#}
+#
+#type IProjectCost {
+#  building_cost_foreign: Float
+#  machine_cost_foreign: Float
+#  initial_working_capital_cost_foreign: Float
+#  other_capital_cost_foreign: Float
+#  transport_cost_foreign: Float
+#  office_equipment_cost_foreign: Float
+#  total_cost_foreign: Float
+#  building_cost_birr: Float
+#  machine_cost_birr: Float
+#  office_equipment_cost_birr: Float
+#  transport_cost_birr: Float
+#  other_capital_cost_birr: Float
+#  initial_working_capital_cost_birr: Float
+#  toal_cost_birr: Float
+#  equity_finance: Float
+#  loan_finance: Float
+#  other_source_finance: Float
+#  other_source_description: String
+#  currency_type: CurrencyTypes
+#  actual_cost_of_foreign: Float
+#  etb_exchange_rate: Float
+#  remarks: String
+#}
+#
+#enum CurrencyTypes {
+#  BIRR
+#  DOLLAR
+#}
+#
+#type IWorkEmployeeCount {
+#  local_female_amount: Int
+#  foreign_female_amount: Int
+#  local_male_amount: Int
+#  foreign_male_amount: Int
+#}
+#
+#type IProjectShare {
+#  share_holder_name: String
+#  nationality: String
+#  quantity: Int
+#  share_percent: Float
+#  description: String
+#}
+#
+#
+#type IMessage {
+#  _id: ID
+#  content: String
+#  from_user: ID
+#  to_user: ID
+#  sender_role: SenderRole
+#  chatID: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#enum SenderRole {
+#  ADMIN
+#  USER
+#}
+#
+#type IShareHolder {
+#  name: String
+#  nationality: String
+#  country_of_incorporation: String
+#  address: String
+#}
+#
+#type EachInvestmentPermitStatus {
+#  status: String
+#  message: String
+#  reapplied: Boolean
+#  state: InvestmentPermitStatus
+#  status_changed_by: IAccountSimple
+#}
+#
+#type IPermitDocument {
+#  power_of_attorney: String
+#  investment_visa_for_foreigners: String
+#  notarized_minutes_of_resolution: String
+#  passport: String
+#  project_proposal: String
+#  certificate_of_incorporation: String
+#  memorandum_and_articles_of_association: String
+#  business_background: String
+#}
+#
+#type IPermitProduct {
+#  name: String
+#  quantity: Float
+#  local_share_market: Float
+#  export_share_market: Float
+#  unit: String
+#}
+#
+#type IPermitRawMaterial {
+#  name: String
+#  quantity: Float
+#  local_source: Float
+#  import_source: Float
+#  unit: String
+#}
+#
+#
+#type IEmployeeCount {
+#  permanent_female_amount: Int
+#  temporary_female_amount: Int
+#  permanent_male_amount: Int
+#  temporary_male_amount: Int
+#}
+#
+#type IAssignAdmin {
+#  case_worker: String
+#  team_leader: String
+#  director: String
+#}
+#
+#type ICapitalRegistration {
+#  amount_in_birr: Float
+#  amount_in_dollar: Float
+#}
+#
+#type IInvestmentPermit {
+#  _id: ID
+#  ref_number: String
+#  registration_number: String
+#  tin_number: String
+#  company_name_amharic: String
+#  company_name: String
+#  trade_name: String
+#  trade_name_amharic: String
+#  investor_nationality: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  manager_full_name: String
+#  manager_full_name_amharic: String
+#
+#  shareholders: [IShareHolder]
+#  company_address: IBusinessAddress
+#  representative_address: IBusinessAddress
+#  investment_address: IBusinessAddress
+#  home_address: IBusinessAddress
+#
+#
+#  sector: String
+#  investment_activity: String
+#  investment_activity_amharic: String
+#  project_description: String
+#  land_size_sqm: Float
+#  land_acquisition_type: String
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#
+#  permit_status: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  permit_documents: IPermitDocument
+#  products: [IPermitProduct]
+#  raw_materials: [IPermitRawMaterial]
+#  employee_information: IEmployeeCount
+#  capital_registration: ICapitalRegistration  # this is going to be an array
+#  assignedTo: IAssignAdmin
+#
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#  representative_full_name: String
+#  investor_id: String
+#  company_registration_form: String
+#  company_registration_bank_slip_form: String
+#  memorandum_bank_slip_form: String
+#  credit_service_bank_slip_form: String
+#  memorandum_of_association: String
+#  service_fee_bank_slip_form: String
+#  edited_name: String
+#  edited_name_amharic: String
+#  edited_trade_name: String
+#  edited_trade_name_amharic: String
+#  selected_bank: String
+#  isAssigned: Boolean
+#  document_number: String
+#  draft_minutes: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#enum InvestmentPermitStatus {
+#  DRAFTED
+#  ACCEPTED
+#  REVIEWED
+#  VERIFIED
+#  APPROVED
+#  RENEWED
+#  CANCELLED
+#  SENT_COMPANY_NAME
+#  ACCEPTED_COMPANY_NAME
+#  SENT_NEW_COMPANY_NAME
+#  REGISTERED_TIN_NUMBER
+#  REGISTERED_COMPANY_NAME
+#  SENT_COMPANY_REGISTRATION_BANK_SLIP
+#  SENT_MEMORANDUM_BANK_SLIP
+#  SENT_MEMORANDUM_OF_ARTICLES
+#  SENT_CREDIT_SERVICE_BANK_SLIP
+#  SENT_SERVICE_FEE_BANK_SLIP
+#  ACCEPTED_MEMORANDUM_OF_ARTICLES
+#  ACCEPTED_COMPANY_REGISTRATION_BANK_SLIP
+#  ACCEPTED_MEMORANDUM_BANK_SLIP
+#  ACCEPTED_CREDIT_SERVICE_BANK_SLIP
+#  VERIFIED_SERVICE_FEE_BANK_SLIP
+#  ACCEPTED_SERVICE_FEE_BANK_SLIP
+#  CAPITAL_REGISTRATION
+#  ACCEPTED_CAPITAL_REGISTRATION
+#  VERIFIED_CAPITAL_REGISTRATION
+#  REVIEWED_CAPITAL_REGISTRATION
+#  NOTARIZED_MINUTES_OF_RESOLUTION
+#  ACCEPTED_NOTARIZED_MINUTES_OF_RESOLUTION
+#  VERIFIED_NOTARIZED_MINUTES_OF_RESOLUTION
+#  REVIEWED_NOTARIZED_MINUTES_OF_RESOLUTION
+#  AMENDMENT
+#}
+#
+#type IAccountSimple {
+#  _id: ID
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  email: String
+#  gender: Gender
+#  role: String
+#  phone_number: String
+#  business_profile: String
+#  service_id: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type IInvestmentPermitRenewal {
+#  _id: ID
+#  investment_id: ID
+#  project_status: [String]
+#  problems_encountered: String
+#  date_of_commencement: DateTime
+#  permit_status: InvestmentPermitStatus
+#  permit: IInvestmentPermit
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  service_id: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#
+#
+#
+### Investment Permit EXPANSION
+#
+#type IPublicUtilityAcquisition {
+#  electricity: String
+#  water: String
+#  telecom: String
+#  other: String
+#}
+#
+#
+#type IProjectImplementationPlan {
+#  project_devt_feasiblility_study: String
+#  land_acquisition: String
+#  building_civil_work: String
+#  public_utility_acquisition: IPublicUtilityAcquisition
+#  machinery_procurement_purchase: String
+#  reaching_of_machinery_at_project_site: String
+#  work_permit_for_technician: String
+#  machinery_erection_installation: String
+#  preparation_of_raw_material: String
+#  co_missing_machines_and_make_ready_for_operator: String
+#  common_cement_of_product_service: String
+#  other: String
+#}
+#
+#type IProjectUtility {
+#  size_of_land_sqm: Float
+#  electrical_power_kw: Float
+#  water_m3: Float
+#  telecom_services_needed: String
+#  other_services: String
+#}
+#
+#
+#type IAnticipatedProduct {
+#  name: String
+#  quantity: Float
+#  local_share_market: Float
+#  export_share_market: Float
+#  unit: String
+#  percentage_capacity_increased: Float
+#  percentage_unit_increased: Float
+#}
+#
+#type IExpectedEmployees {
+#  permanent_amount: Int
+#  temporary_amount: Int
+#}
+#
+#
+#type IInvestmentCost {
+#  land: Float
+#  building: Float
+#  working_capital: Float
+#  machinery: Float
+#  material: Float
+#  other_costs: Float
+#}
+#
+#type IExpansionDocuments {
+#  copy_of_business_license: String
+#  financial_statement: String
+#  feasibility_study: String
+#  list_of_capital_good_and_raw_materials: String
+#  land_lice_agreement: String
+#}
+#
+################################################### EXPANSION - start
+#
+#type IInvestmentPermitExpansion {
+#  _id: ID
+#  company_name: String
+#  investment_id: ID
+#  company_name_amharic: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  manager_full_name: String
+#
+#  shareholders: [IShareHolder]
+#  company_address: IBusinessAddress
+#  company_expansion_address: IBusinessAddress
+#  representative_address: IBusinessAddress
+#  investment_address: IBusinessAddress
+#  home_address: IBusinessAddress
+#
+#  permit_status: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  permit_documents: IPermitDocument
+#  products: [IPermitProduct]
+#  current_products: [IPermitProduct]
+#  anticipated_products: [IAnticipatedProduct]
+#  raw_materials: [IPermitRawMaterial]
+#
+#  sector: String
+#  investment_activity: String
+#  project_description: String
+#  land_size_sqm: Float
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#
+#  previous_employees: IEmployeeCount
+#  expected_employees: IExpectedEmployees
+#  project_impl_plan: IProjectImplementationPlan
+#  project_utilities: IProjectUtility
+#  investment_costs: IInvestmentCost
+#  expansion_documents: IExpansionDocuments
+#
+#  representative_full_name: String
+#  investor_id: String
+#  factors_influencing_plan: String
+#  how_to_avoid_problems: String
+#  support_needed_from_eic: String
+#  other_documents: String
+#  invesment_permit_id: String
+#  starting_date: DateTime
+#  ending_date: DateTime
+#  proposed_investment_capital: Float
+#  ref_number: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  permit: IInvestmentPermit
+#}
+################################################### EXPANSION - start
+#
+#
+#
+#type IInvestmentPermitCancellation {
+#  _id: ID
+#  investment_id: ID
+#  permit_status: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  service_id: String
+#  project_status: [String]
+#  problems_encountered: String
+#  cancellation_document: String
+#  has_duty_free: Boolean
+#  duty_free_content: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  permit: IInvestmentPermit
+#}
+#
+#type INotification {
+#  _id: ID
+#  title: String
+#  updated_service: String!
+#  description: String
+#  icon: NotificationIcon
+#  permit_id: String
+#  service_id: String
+#  status: String
+#  is_read: Boolean
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  investor_id: String
+#  updated_by: UpdatedBy
+#}
+#
+#enum NotificationIcon {
+#  SUCCESS
+#  WARNING
+#  ERROR
+#  INFO
+#}
+#
+#type UpdatedBy {
+#  user: ID
+#  role: String
+#}
+#
+#type IInvestmentPermitAmmendment {
+#  _id: ID
+#  investment_id: ID
+#  service_id: String
+#  permit_status: InvestmentPermitStatus
+#  company_name: String
+#  company_name_amharic: String
+#  trade_name: String
+#  trade_name_amharic: String
+#  investor_nationality: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [IShareHolder]
+#  manager_full_name: String
+#  manager_full_name_amharic: String
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  current_permit_status: [EachInvestmentPermitAmmendmentStatus]
+#  permit: IInvestmentPermit
+#}
+#
+#type EachInvestmentPermitAmmendmentStatus {
+#  status: String
+#  message: String
+#  reapplied: Boolean
+#  state: InvestmentPermitStatus
+#}
+#
+#type Mutation {
+#  _: Boolean
+#  signUpUser(input: IUserInput): IUserResponse
+#  updateUser(input: IUserEdit): IUserResponse
+#  removeOneUser(_id: ID!): IUser
+#  removeManyUsers(_ids: [ID!]!): [IUser]
+#  removeAllUsers: String
+#  loginUser(input: IUserSignin): IUserResponse
+#  logoutUser: ISignOutResponse
+#  changeUserEmail(input: IUserChangeEmail): IUserResponse
+#  changeUserPhoneNumber(input: IUserChangePhoneNumber): IUserResponse
+#  changeUserPassword(input: IUserChangePassword): IUserResponse
+#  updateResidenceUser(input: IResidenceUpdate): IUserResponse
+#  signUpAccount(input: IAccountInput): IAccountResponse
+#  updateAccount(input: IAccountEdit): IAccountResponse
+#  removeOneAccount(_id: ID!): IAccount
+#  removeManyAccounts(_ids: [ID!]!): [IAccount]
+#  removeAllAccounts: String
+#  loginAccount(input: IAccountSignin): IAccountResponse
+#  logoutAccount: ISignOutResponse
+#  createSector(input: ISectorInput): ISectorResponse
+#  updateSector(input: ISectorEdit): ISectorResponse
+#  removeOneSector(_id: ID!): ISector
+#  removeManySectors(_ids: [ID!]!): [ISector]
+#  removeAllSectors: String
+#  createSubSector(input: ISubSectorInput): ISubSectorResponse
+#  updateSubSector(input: ISubSectorEdit): ISubSectorResponse
+#  removeOneSubSector(_id: ID!): ISubSector
+#  removeManySubSectors(_ids: [ID!]!): [ISubSector]
+#  removeAllSubSectors: String
+#  createActivity(input: IActivityInput): IActivityResponse
+#  updateActivity(input: IActivityEdit): IActivityResponse
+#  removeOneActivity(_id: ID!): IActivity
+#  removeManyActivities(_ids: [ID!]!): [IActivity]
+#  removeAllActivities: String
+#  createInvestmentActivity(
+#    input: IInvestmentActivityInput
+#  ): IInvestmentActivityResponse
+#  updateInvestmentActivity(
+#    input: IInvestmentActivityEdit
+#  ): IInvestmentActivityResponse
+#  removeOneInvestmentActivity(_id: ID!): IInvestmentActivity
+#  removeManyInvestmentActivities(_ids: [ID!]!): [IInvestmentActivity]
+#  removeAllInvestmentActivities: String
+#  createManager(input: IManagerInput): IManagerResponse
+#  updateManager(input: IManagerEdit): IManagerResponse
+#  removeOneManager(_id: ID!): IManager
+#  removeManyManagers(_ids: [ID!]!): [IManager]
+#  removeAllManagers: String
+#  createProduct(input: IProductInput): IProductResponse
+#  createManyProducts(input: InputManyProducts): [IProduct]
+#  updateProduct(input: IProductEdit): IProductResponse
+#  removeOneProduct(_id: ID!): IProduct
+#  removeManyProducts(_ids: [ID!]!): [IProduct]
+#  removeAllProducts: String
+#  createProject(input: IProjectInput): IProjectResponse
+#  updateProject(input: IProjectEdit): IProjectResponse
+#  removeOneProject(_id: ID!): IProject
+#  removeManyProjects(_ids: [ID!]!): [IProject]
+#  removeAllProjects: String
+#  createWorkPermit(input: IWorkPermitInput): IWorkPermitResponse
+#  updateWorkPermit(input: IWorkPermitEdit): IWorkPermitResponse
+#  removeOneWorkPermit(_id: ID!): IWorkPermit
+#  removeManyWorkPermits(_ids: [ID!]!): [IWorkPermit]
+#  removeAllWorkPermits: String
+#  createMessage(input: IMessageInput): IMessageResponse
+#  updateMessage(input: IMessageEdit): IMessageResponse
+#  removeOneMessage(_id: ID!): IMessage
+#  removeManyMessages(_ids: [ID!]!): [IMessage]
+#  removeAllMessages: String
+#  createInvestmentPermit(
+#    input: IInvestmentPermitInput
+#  ): IInvestmentPermitResponse
+#  updateInvestmentPermit(
+#    input: IInvestmentPermitEdit
+#  ): IInvestmentPermitResponse
+#  removeOneInvestmentPermit(_id: ID!): IInvestmentPermit
+#  removeManyInvestmentPermits(_ids: [ID!]!): [IInvestmentPermit]
+#  removeAllInvestmentPermits: String
+#  assignInvestmentPermitToAdmins(
+#    input: IAssignWorkToAdmin
+#  ): IInvestmentPermitResponse
+#  createInvestmentPermitRenewal(
+#    input: IInvestmentPermitRenewalInput
+#  ): IInvestmentPermitRenewalResponse
+#  updateInvestmentPermitRenewal(
+#    input: IInvestmentPermitRenewalEdit
+#  ): IInvestmentPermitRenewalResponse
+#  removeOneInvestmentPermitRenewal(_id: ID!): IInvestmentPermitRenewal
+#  removeManyInvestmentPermitRenewals(_ids: [ID!]!): [IInvestmentPermitRenewal]
+#  removeAllInvestmentPermitRenewals: String
+#  createInvestmentPermitExpansion(
+#    input: IInvestmentPermitExpansionInput
+#  ): IInvestmentPermitExpansionResponse
+#  updateInvestmentPermitExpansion(
+#    input: IInvestmentPermitExpansionEdit
+#  ): IInvestmentPermitExpansionResponse
+#  removeOneInvestmentPermitExpansion(_id: ID!): IInvestmentPermitExpansion
+#  removeManyInvestmentPermitExpansions(
+#    _ids: [ID!]!
+#  ): [IInvestmentPermitExpansion]
+#  removeAllInvestmentPermitExpansions: String
+#  createInvestmentPermitCancellation(
+#    input: IInvestmentPermitCancellationInput
+#  ): IInvestmentPermitCancellationResponse
+#  updateInvestmentPermitCancellation(
+#    input: IInvestmentPermitCancellationEdit
+#  ): IInvestmentPermitCancellationResponse
+#  removeOneInvestmentPermitCancellation(_id: ID!): IInvestmentPermitCancellation
+#  removeManyInvestmentPermitCancellations(
+#    _ids: [ID!]!
+#  ): [IInvestmentPermitCancellation]
+#  removeAllInvestmentPermitCancellations: String
+#  createNotification(input: INotificationInput): INotificationResponse
+#  updateNotification(input: INotificationEdit): INotificationResponse
+#  removeOneNotification(_id: ID!): INotification
+#  removeManyNotifications(_ids: [ID!]!): [INotification]
+#  removeAllNotifications: String
+#  createInvestmentPermitAmmendment(
+#    input: IInvestmentPermitAmmendmentInput
+#  ): IInvestmentPermitAmmendmentResponse
+#  updateInvestmentPermitAmmendment(
+#    input: IInvestmentPermitAmmendmentEdit
+#  ): IInvestmentPermitAmmendmentResponse
+#  removeOneInvestmentPermitAmmendment(_id: ID!): IInvestmentPermitAmmendment
+#  removeManyInvestmentPermitAmmendments(
+#    _ids: [ID!]!
+#  ): [IInvestmentPermitAmmendment]
+#  removeAllInvestmentPermitAmmendments: String
+#  sendEmail(input: IEmailInput): IEmailSimple
+#}
+#
+#input IUserInput {
+#  first_name: String!
+#  middle_name: String!
+#  last_name: String!
+#  email: String!
+#  gender: Gender!
+#  role: IRole!
+#  phone_number: String!
+#  password: String!
+#}
+#
+#enum IRole {
+#  ADMIN
+#  USER
+#  TESTING
+#}
+#
+#union IUserResponse =
+#  IUserSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#  | Message
+#  | UnAuthenticatedError
+#  | IUser
+#
+#type IUserSimple {
+#  _id: ID
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  email: String
+#  gender: Gender
+#  role: String
+#  phone_number: String
+#  phone_number_type: String
+#  country: String
+#  city: String
+#  profile_picture: String
+#  business_profile: String
+#  service_id: String
+#  residence_form: ResidenceObject
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#type SystemError {
+#  error_code: Int
+#  error_message: String!
+#  error_resource: String
+#  error_source: String!
+#}
+#
+#type ValidationError {
+#  errors: [Error]
+#  error_path: String
+#}
+#
+#type Error {
+#  error_code: Int
+#  error_message: String!
+#}
+#
+#type ValidationErrors {
+#  validation_errors: [ValidationError!]
+#}
+#
+#type Message {
+#  message: String!
+#}
+#
+#type UnAuthenticatedError {
+#  error_message: String!
+#  status: Int
+#}
+#
+#input IUserEdit {
+#  _id: ID!
+#  first_name: String
+#  last_name: String
+#  email: String
+#  gender: Gender
+#  phone_number: String
+#  phone_number_type: String
+#  country: String
+#  city: String
+#  profile_picture: String
+#  service_id: ID
+#}
+#
+#input IUserSignin {
+#  email: String!
+#  password: String!
+#}
+#
+#union ISignOutResponse = Message | UnAuthenticatedError
+#
+#input IUserChangeEmail {
+#  _id: String!
+#  email: String!
+#  password: String!
+#}
+#
+#input IUserChangePhoneNumber {
+#  _id: String!
+#  phone_number: String!
+#  password: String!
+#}
+#
+#input IUserChangePassword {
+#  _id: String!
+#  old_password: String!
+#  new_password: String!
+#}
+#
+#input IResidenceUpdate {
+#  _id: ID!
+#  letter_of_support: String
+#  visa_type: String
+#  visa_image: String
+#  status: ResidenceStatusInput
+#}
+#
+#input ResidenceStatusInput {
+#  status: IResidenceStatus!
+#  message: String
+#  reapplied: Boolean
+#}
+#
+#input IAccountInput {
+#  first_name: String!
+#  middle_name: String!
+#  last_name: String!
+#  email: String!
+#  gender: Gender!
+#  role: IRoleAccount!
+#  phone_number: String!
+#  password: String!
+#}
+#
+#enum IRoleAccount {
+#  SUPER_ADMIN
+#  ADMIN
+#  TESTING
+#  INSPECTOR
+#  CASE_WORKER
+#  TEAM_LEADER
+#  DIRECTOR
+#}
+#
+#union IAccountResponse =
+#  IAccountSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#  | Message
+#  | UnAuthenticatedError
+#  | IAccount
+#
+#input IAccountEdit {
+#  _id: ID!
+#  first_name: String
+#  last_name: String
+#  email: String
+#  phone_number: String
+#  service_id: ID
+#  role: IRoleAccount
+#}
+#
+#input IAccountSignin {
+#  phone_number: String!
+#  password: String!
+#}
+#
+#input ISectorInput {
+#  name: String!
+#}
+#
+#union ISectorResponse =
+#  ISectorSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type ISectorSimple {
+#  _id: ID
+#  name: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input ISectorEdit {
+#  _id: ID!
+#  name: String!
+#}
+#
+#input ISubSectorInput {
+#  name: String!
+#  sector: ID!
+#}
+#
+#union ISubSectorResponse =
+#  ISubSectorSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type ISubSectorSimple {
+#  _id: ID
+#  name: String
+#  sector: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input ISubSectorEdit {
+#  _id: ID!
+#  name: String
+#  sector: ID
+#}
+#
+#input IActivityInput {
+#  name: String!
+#  sub_sector: ID!
+#}
+#
+#union IActivityResponse =
+#  IActivitySimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IActivitySimple {
+#  _id: ID
+#  name: String
+#  sub_sector: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IActivityEdit {
+#  _id: ID!
+#  name: String
+#  sub_sector: ID
+#}
+#
+#input IInvestmentActivityInput {
+#  name: String!
+#  activity: ID!
+#}
+#
+#union IInvestmentActivityResponse =
+#  IInvestmentActivitySimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IInvestmentActivitySimple {
+#  _id: ID
+#  name: String
+#  activity: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IInvestmentActivityEdit {
+#  _id: ID!
+#  name: String
+#  activity: ID
+#}
+#
+#input IManagerInput {
+#  first_name: String!
+#  middle_name: String!
+#  last_name: String!
+#  address: InputBusinessAddress!
+#}
+#
+#input InputBusinessAddress {
+#  country: String
+#  region: String
+#  region_amharic: String
+#  zone: String
+#  zone_amharic: String
+#  city: String
+#  city_amharic: String
+#  sub_city: String
+#  sub_city_amharic: String
+#  wereda: String
+#  wereda_amharic: String
+#  house_number: String
+#  email: String
+#  telephone_direct: String
+#  telephone_mobile: String
+#  fax: String
+#  po_box: String
+#  other_address: String
+#}
+#
+#union IManagerResponse =
+#  IManagerSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IManagerSimple {
+#  _id: ID
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  address: IBusinessAddress
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IManagerEdit {
+#  _id: ID!
+#  first_name: String
+#  middle_name: String
+#  last_name: String
+#  address: InputBusinessAddress
+#}
+#
+#input IProductInput {
+#  product_name: String!
+#  is_service: Boolean!
+#  quantity: Int!
+#  unit: Unit!
+#  domestic_market_share: Float!
+#  export_market_share: Float!
+#}
+#
+#union IProductResponse =
+#  IProductSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IProductSimple {
+#  _id: ID
+#  product_name: String
+#  is_service: Boolean
+#  quantity: Int
+#  unit: Unit
+#  domestic_market_share: Float
+#  export_market_share: Float
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input InputManyProducts {
+#  products: [IProductInput]
+#}
+#
+#input IProductEdit {
+#  _id: ID!
+#  product_name: String
+#  is_service: Boolean
+#  quantity: Int
+#  unit: Unit
+#  domestic_market_share: Float
+#  export_market_share: Float
+#}
+#
+#input IProjectInput {
+#  title: String!
+#  project_stage: ProjectStages!
+#  environmental_impact: String!
+#  project_summary: String!
+#  address: InputBusinessAddress!
+#  category_sector: ID!
+#  category_sub_sector: ID!
+#  category_activity: ID!
+#  category_investment_activity: ID!
+#}
+#
+#union IProjectResponse =
+#  IProjectSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IProjectSimple {
+#  _id: ID
+#  title: String
+#  project_stage: ProjectStages
+#  environmental_impact: String
+#  project_summary: String
+#  address: IBusinessAddress
+#  category_sector: ID
+#  category_sub_sector: ID
+#  category_activity: ID
+#  category_investment_activity: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IProjectEdit {
+#  _id: ID!
+#  title: String
+#  project_stage: ProjectStages
+#  environmental_impact: String
+#  project_summary: String
+#  address: InputBusinessAddress
+#  category_sector: ID
+#  category_sub_sector: ID
+#  category_activity: ID
+#  category_investment_activity: ID
+#}
+#
+#input IWorkPermitInput {
+#  project: ID!
+#  start_date: DateTime!
+#  end_date: DateTime!
+#  previous_permit_number: String!
+#  project_input: InputProjectInput!
+#  raw_materials: [InputRawMaterial]!
+#  project_cost: InputProjectCost!
+#  permanent_employee_count: InputWorkEmployeeCount!
+#  temporary_employee_count: InputWorkEmployeeCount!
+#  project_shares: [InputProjectShare]!
+#  products: [ID]!
+#  permit_documents: InputWorkPermitDocument!
+#  selected_manager: ID!
+#}
+#
+#input InputProjectInput {
+#  electric_power: Float!
+#  water_in_sqm: Float!
+#  agricultural_land_in_sqm: Float!
+#  land_service_in_sqm: Float!
+#  rental_land_in_sqm: Float!
+#  other_utility: Float!
+#  own_land_in_sqm: Float!
+#  land_industrial_in_sqm: Float!
+#  lease_land_in_sqm: Float!
+#  remarks: String
+#}
+#
+#input InputRawMaterial {
+#  raw_material_name: String!
+#  is_local: Boolean!
+#  remarks: String
+#}
+#
+#input InputProjectCost {
+#  building_cost_foreign: Float!
+#  machine_cost_foreign: Float!
+#  initial_working_capital_cost_foreign: Float!
+#  other_capital_cost_foreign: Float!
+#  transport_cost_foreign: Float!
+#  office_equipment_cost_foreign: Float!
+#  total_cost_foreign: Float!
+#  building_cost_birr: Float!
+#  machine_cost_birr: Float!
+#  office_equipment_cost_birr: Float!
+#  transport_cost_birr: Float!
+#  other_capital_cost_birr: Float!
+#  initial_working_capital_cost_birr: Float!
+#  toal_cost_birr: Float!
+#  equity_finance: Float!
+#  loan_finance: Float!
+#  other_source_finance: Float!
+#  other_source_description: String!
+#  currency_type: CurrencyTypes!
+#  actual_cost_of_foreign: Float!
+#  etb_exchange_rate: Float!
+#  remarks: String
+#}
+#
+#input InputWorkEmployeeCount {
+#  local_female_amount: Int!
+#  foreign_female_amount: Int!
+#  local_male_amount: Int!
+#  foreign_male_amount: Int!
+#}
+#
+#input InputProjectShare {
+#  share_holder_name: String!
+#  nationality: String!
+#  quantity: Int!
+#  share_percent: Float!
+#  description: String
+#}
+#
+#input InputWorkPermitDocument {
+#  renewed_id_image: String!
+#  passport_image: String!
+#}
+#
+#union IWorkPermitResponse =
+#  IWorkPermitSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IWorkPermitSimple {
+#  _id: ID
+#  project: ID
+#  start_date: DateTime
+#  end_date: DateTime
+#  previous_permit_number: String
+#  project_input: ProjectInput
+#  raw_materials: [IRawMaterial]
+#  project_cost: IProjectCost
+#  permanent_employee_count: IWorkEmployeeCount
+#  temporary_employee_count: IWorkEmployeeCount
+#  project_shares: [IProjectShare]
+#  products: [ID]
+#  permit_documents: IWorkPermitDocument
+#  selected_manager: ID
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IWorkPermitEdit {
+#  _id: ID!
+#  project: ID
+#  start_date: DateTime
+#  end_date: DateTime
+#  previous_permit_number: String
+#  project_input: InputProjectInput
+#  raw_materials: [InputRawMaterial]
+#  project_cost: InputProjectCost
+#  permanent_employee_count: InputWorkEmployeeCount
+#  temporary_employee_count: InputWorkEmployeeCount
+#  project_shares: [InputProjectShare]
+#  products: [ID]
+#  permit_documents: InputWorkPermitDocument
+#  selected_manager: ID
+#}
+#
+#input IMessageInput {
+#  content: String!
+#  from_user: ID!
+#  to_user: ID!
+#  sender_role: SenderRole!
+#}
+#
+#union IMessageResponse =
+#  IMessageSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IMessageSimple {
+#  _id: ID
+#  content: String
+#  from_user: ID
+#  to_user: ID
+#  sender_role: SenderRole
+#  chatID: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IMessageEdit {
+#  _id: ID!
+#  content: String
+#  from_user: ID
+#  to_user: ID
+#  sender_role: SenderRole
+#}
+#
+#input IInvestmentPermitInput {
+#  permit_status: InvestmentPermitStatus
+#  company_name: String!
+#  company_name_amharic: String!
+#  trade_name: String!
+#  trade_name_amharic: String!
+#  investor_nationality: String!
+#  type_of_business: String!
+#  type_of_ownership: String!
+#  shareholders: [InputShareHolder]!
+#  manager_full_name: String!
+#  manager_full_name_amharic: String!
+#  company_address: InputBusinessAddress!
+#  representative_address: InputBusinessAddress!
+#  sector: String!
+#  investment_activity: String!
+#  investment_activity_amharic: String!
+#  project_description: String!
+#  investment_address: InputBusinessAddress!
+#  land_size_sqm: Float!
+#  land_acquisition_type: String!
+#  investment_capital_usd: Float!
+#  investment_capital_birr: Float!
+#  permit_documents: InputPermitDocument!
+#  products: [InputPermitProduct]!
+#  raw_materials: [InputPermitRawMaterial]!
+#  heard_from: String!
+#  enviromental_impact: String!
+#  market_destination_local_amount: Float!
+#  market_destination_export_amount: Float!
+#  equity: Float!
+#  loan: Float!
+#  number_of_employees: Float!
+#  home_address: InputBusinessAddress!
+#  representative_full_name: String!
+#  investor_id: String!
+#  employee_information: InputEmployeeCount!
+#}
+#
+#input InputShareHolder {
+#  name: String
+#  nationality: String
+#  country_of_incorporation: String
+#  address: String
+#}
+#
+#input InputPermitDocument {
+#  power_of_attorney: String!
+#  investment_visa_for_foreigners: String!
+#  notarized_minutes_of_resolution: String!
+#  passport: String!
+#  project_proposal: String!
+#  certificate_of_incorporation: String!
+#  memorandum_and_articles_of_association: String!
+#  business_background: String!
+#}
+#
+#input InputPermitProduct {
+#  name: String!
+#  quantity: Float!
+#  local_share_market: Float!
+#  export_share_market: Float!
+#  unit: String!
+#}
+#
+#input InputPermitRawMaterial {
+#  name: String!
+#  quantity: Float!
+#  local_source: Float!
+#  import_source: Float!
+#  unit: String!
+#}
+#
+#input InputEmployeeCount {
+#  permanent_female_amount: Int!
+#  temporary_female_amount: Int!
+#  permanent_male_amount: Int!
+#  temporary_male_amount: Int!
+#}
+#
+#union IInvestmentPermitResponse =
+#  IInvestmentPermit
+#  | IInvestmentPermitSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IInvestmentPermitSimple {
+#  _id: ID
+#  company_name: String
+#  ref_number: String
+#  registration_number: String
+#  tin_number: String
+#  company_name_amharic: String
+#  trade_name: String
+#  trade_name_amharic: String
+#  investor_nationality: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [IShareHolder]
+#  manager_full_name: String
+#  manager_full_name_amharic: String
+#  company_address: IBusinessAddress
+#  representative_address: IBusinessAddress
+#  sector: String
+#  investment_activity: String
+#  investment_activity_amharic: String
+#  project_description: String
+#  investment_address: IBusinessAddress
+#  land_size_sqm: Float
+#  land_acquisition_type: String
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  permit_status: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  permit_documents: IPermitDocument
+#  products: [IPermitProduct]
+#  raw_materials: [IPermitRawMaterial]
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#  home_address: IBusinessAddress
+#  representative_full_name: String
+#  investor_id: String
+#  company_registration_form: String
+#  company_registration_bank_slip_form: String
+#  memorandum_bank_slip_form: String
+#  credit_service_bank_slip_form: String
+#  memorandum_of_association: String
+#  service_fee_bank_slip_form: String
+#  edited_name: String
+#  edited_name_amharic: String
+#  edited_trade_name: String
+#  edited_trade_name_amharic: String
+#  employee_information: IEmployeeCount
+#  selected_bank: String
+#  isAssigned: Boolean
+#  assignedTo: IAssignAdmin
+#  document_number: String
+#  capital_registration: ICapitalRegistration
+#  draft_minutes: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IInvestmentPermitEdit {
+#  _id: ID!
+#  current_step: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatusInput!]
+#  registration_number: String
+#  message: String
+#  accepted: Boolean
+#  reapplied: Boolean
+#  tin_number: String
+#  trade_name: String
+#  trade_name_amharic: String
+#  company_name: String
+#  company_name_amharic: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [InputShareHolder]
+#  manager_full_name: String
+#  manager_full_name_amharic: String
+#  company_address: InputBusinessAddress
+#  representative_address: InputBusinessAddress
+#  sector: String
+#  investment_activity: String
+#  project_description: String
+#  investment_address: InputBusinessAddress
+#  land_size_sqm: Float
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  permit_status: InvestmentPermitStatus
+#  permit_documents: InputPermitDocument
+#  products: [InputPermitProduct]
+#  raw_materials: [InputPermitRawMaterial]
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#  home_address: InputBusinessAddress
+#  representative_full_name: String
+#  investor_id: String
+#  company_registration_form: String
+#  company_registration_bank_slip_form: String
+#  memorandum_bank_slip_form: String
+#  credit_service_bank_slip_form: String
+#  memorandum_of_association: String
+#  service_fee_bank_slip_form: String
+#  edited_name: String
+#  edited_name_amharic: String
+#  edited_trade_name: String
+#  edited_trade_name_amharic: String
+#  employee_information: InputEmployeeCount
+#  selected_bank: String
+#  investor_nationality: String
+#  investment_activity_amharic: String
+#  land_acquisition_type: String
+#  isAssigned: Boolean
+#  assignedTo: InputAssignAdmin
+#  document_number: String
+#  capital_registration: InputCapitalRegistration
+#  draft_minutes: String
+#}
+#
+#input EachInvestmentPermitStatusInput {
+#  status: String
+#  message: String
+#  reapplied: Boolean
+#  state: InvestmentPermitStatus
+#  status_changed_by: ID
+#}
+#
+#input InputAssignAdmin {
+#  case_worker: String!
+#  team_leader: String!
+#  director: String!
+#}
+#
+#input InputCapitalRegistration {
+#  amount_in_birr: Float!
+#  amount_in_dollar: Float!
+#}
+#
+#input IAssignWorkToAdmin {
+#  _id: ID!
+#  assignedTo: InputAssignAdmin!
+#  isAssigned: Boolean!
+#}
+#
+#input IInvestmentPermitRenewalInput {
+#  investment_id: ID!
+#  project_status: [String]!
+#  problems_encountered: String!
+#  date_of_commencement: DateTime!
+#  service_id: String!
+#}
+#
+#union IInvestmentPermitRenewalResponse =
+#  IInvestmentPermitRenewalSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IInvestmentPermitRenewalSimple {
+#  _id: ID
+#  investment_id: ID
+#  project_status: [String]
+#  problems_encountered: String
+#  date_of_commencement: DateTime
+#  permit_status: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  service_id: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  permit: IInvestmentPermit
+#}
+#
+#input IInvestmentPermitRenewalEdit {
+#  _id: ID!
+#  investment_id: ID
+#  project_status: [String]
+#  problems_encountered: String
+#  date_of_commencement: DateTime
+#  permit_status: InvestmentPermitStatus
+#  current_permit_status: [EachInvestmentPermitStatusInput!]
+#  service_id: String
+#  message: String
+#  accepted: Boolean
+#  reapplied: Boolean
+#}
+#
+#input IInvestmentPermitExpansionInput {
+#  investment_id: ID
+#  company_name: String
+#  company_name_amharic: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [InputShareHolder]
+#  manager_full_name: String
+#  company_address: InputBusinessAddress
+#  company_expansion_address: InputBusinessAddress
+#  representative_address: InputBusinessAddress
+#  sector: String
+#  investment_activity: String
+#  project_description: String
+#  investment_address: InputBusinessAddress
+#  land_size_sqm: Float
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  permit_status: InvestmentPermitStatus
+#  permit_documents: InputPermitDocument
+#  products: [InputPermitProduct]
+#  current_products: [InputPermitProduct]
+#  anticipated_products: [InputAnticipatedProduct]
+#  raw_materials: [InputPermitRawMaterial]
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#  previous_employees: InputEmployeeCount
+#  expected_employees: InputExpectedEmployees
+#  home_address: InputBusinessAddress
+#  representative_full_name: String
+#  investor_id: String
+#  project_impl_plan: InputProjectImplementationPlan
+#  project_utilities: InputProjectUtility
+#  investment_costs: InputInvestmentCost
+#  expansion_documents: InputExpansionDocuments
+#  factors_influencing_plan: String
+#  how_to_avoid_problems: String
+#  support_needed_from_eic: String
+#  other_documents: String
+#  invesment_permit_id: String
+#  starting_date: DateTime
+#  ending_date: DateTime
+#  proposed_investment_capital: Float
+#}
+#
+#input InputAnticipatedProduct {
+#  name: String
+#  quantity: Float
+#  local_share_market: Float
+#  export_share_market: Float
+#  unit: String
+#  percentage_capacity_increased: Float
+#  percentage_unit_increased: Float
+#}
+#
+#input InputExpectedEmployees {
+#  permanent_amount: Int!
+#  temporary_amount: Int!
+#}
+#
+#input InputProjectImplementationPlan {
+#  project_devt_feasiblility_study: String
+#  land_acquisition: String
+#  building_civil_work: String
+#  public_utility_acquisition: InputPublicUtilityAcquisition
+#  machinery_procurement_purchase: String
+#  reaching_of_machinery_at_project_site: String
+#  work_permit_for_technician: String
+#  machinery_erection_installation: String
+#  preparation_of_raw_material: String
+#  co_missing_machines_and_make_ready_for_operator: String
+#  common_cement_of_product_service: String
+#  other: String
+#}
+#
+#input InputPublicUtilityAcquisition {
+#  electricity: String
+#  water: String
+#  telecom: String
+#  other: String
+#}
+#
+#input InputProjectUtility {
+#  size_of_land_sqm: Float
+#  electrical_power_kw: Float
+#  water_m3: Float
+#  telecom_services_needed: String
+#  other_services: String
+#}
+#
+#input InputInvestmentCost {
+#  land: Float
+#  building: Float
+#  working_capital: Float
+#  machinery: Float
+#  material: Float
+#  other_costs: Float
+#}
+#
+#input InputExpansionDocuments {
+#  copy_of_business_license: String!
+#  financial_statement: String!
+#  feasibility_study: String!
+#  list_of_capital_good_and_raw_materials: String!
+#  land_lice_agreement: String!
+#}
+#
+#union IInvestmentPermitExpansionResponse =
+#  IInvestmentPermitExpansionSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IInvestmentPermitExpansionSimple {
+#  _id: ID
+#  company_name: String
+#  company_name_amharic: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [IShareHolder]
+#  manager_full_name: String
+#  company_address: IBusinessAddress
+#  company_expansion_address: IBusinessAddress
+#  representative_address: IBusinessAddress
+#  sector: String
+#  investment_activity: String
+#  project_description: String
+#  investment_address: IBusinessAddress
+#  land_size_sqm: Float
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  permit_status: InvestmentPermitStatus
+#  permit_documents: IPermitDocument
+#  products: [IPermitProduct]
+#  current_products: [IPermitProduct]
+#  current_permit_status: [EachInvestmentPermitStatus]
+#  anticipated_products: [IAnticipatedProduct]
+#  raw_materials: [IPermitRawMaterial]
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#  previous_employees: IEmployeeCount
+#  expected_employees: IExpectedEmployees
+#  home_address: IBusinessAddress
+#  representative_full_name: String
+#  investor_id: String
+#  project_impl_plan: IProjectImplementationPlan
+#  project_utilities: IProjectUtility
+#  investment_costs: IInvestmentCost
+#  expansion_documents: IExpansionDocuments
+#  factors_influencing_plan: String
+#  how_to_avoid_problems: String
+#  support_needed_from_eic: String
+#  other_documents: String
+#  invesment_permit_id: String
+#  starting_date: DateTime
+#  ending_date: DateTime
+#  proposed_investment_capital: Float
+#  ref_number: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#}
+#
+#input IInvestmentPermitExpansionEdit {
+#  _id: ID!
+#  message: String
+#  accepted: Boolean
+#  reapplied: Boolean
+#  company_name: String
+#  company_name_amharic: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [InputShareHolder]
+#  manager_full_name: String
+#  company_address: InputBusinessAddress
+#  company_expansion_address: InputBusinessAddress
+#  representative_address: InputBusinessAddress
+#  sector: String
+#  investment_activity: String
+#  project_description: String
+#  investment_address: InputBusinessAddress
+#  land_size_sqm: Float
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  permit_status: InvestmentPermitStatus
+#  permit_documents: InputPermitDocument
+#  products: [InputPermitProduct]
+#  current_products: [InputPermitProduct]
+#  anticipated_products: [InputAnticipatedProduct]
+#  raw_materials: [InputPermitRawMaterial]
+#  heard_from: String
+#  enviromental_impact: String
+#  market_destination_local_amount: Float
+#  market_destination_export_amount: Float
+#  equity: Float
+#  loan: Float
+#  number_of_employees: Float
+#  previous_employees: InputEmployeeCount
+#  expected_employees: InputExpectedEmployees
+#  home_address: InputBusinessAddress
+#  representative_full_name: String
+#  investor_id: String
+#  project_impl_plan: InputProjectImplementationPlan
+#  project_utilities: InputProjectUtility
+#  investment_costs: InputInvestmentCost
+#  expansion_documents: InputExpansionDocuments
+#  factors_influencing_plan: String
+#  how_to_avoid_problems: String
+#  support_needed_from_eic: String
+#  other_documents: String
+#  invesment_permit_id: String
+#  starting_date: DateTime
+#  ending_date: DateTime
+#  proposed_investment_capital: Float
+#  current_permit_status: [EachInvestmentPermitStatusInput!]
+#}
+#
+#input IInvestmentPermitCancellationInput {
+#  investment_id: ID!
+#  service_id: String!
+#  project_status: [String]!
+#  problems_encountered: String!
+#  cancellation_document: String!
+#  has_duty_free: Boolean!
+#  duty_free_content: String!
+#}
+#
+#union IInvestmentPermitCancellationResponse =
+#  IInvestmentPermitCancellationSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IInvestmentPermitCancellationSimple {
+#  _id: ID
+#  investment_id: ID
+#  permit_status: InvestmentPermitStatus
+#  service_id: String
+#  project_status: [String]
+#  problems_encountered: String
+#  cancellation_document: String
+#  has_duty_free: Boolean
+#  duty_free_content: String
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  current_permit_status: [EachInvestmentPermitStatus]
+#}
+#
+#input IInvestmentPermitCancellationEdit {
+#  _id: ID!
+#  investment_id: ID
+#  permit_status: InvestmentPermitStatus
+#  service_id: String
+#  project_status: [String]
+#  problems_encountered: String
+#  cancellation_document: String
+#  has_duty_free: Boolean
+#  duty_free_content: String
+#  message: String
+#  accepted: Boolean
+#  reapplied: Boolean
+#  current_permit_status: [EachInvestmentPermitStatusInput!]
+#}
+#
+#input INotificationInput {
+#  title: String!
+#  updated_service: String!
+#  description: String!
+#  icon: NotificationIcon!
+#  service_id: String!
+#  investor_id: String
+#  updated_by: UpdatedByInput!
+#}
+#
+#input UpdatedByInput {
+#  user: ID!
+#  role: String!
+#}
+#
+#union INotificationResponse =
+#  INotification
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#input INotificationEdit {
+#  _id: ID!
+#  title: String
+#  updated_service: String!
+#  description: String
+#  icon: NotificationIcon
+#  service_id: String
+#  is_read: Boolean
+#  investor_id: String
+#  updated_by: UpdatedByInput
+#}
+#
+#input IInvestmentPermitAmmendmentInput {
+#  investment_id: ID!
+#  service_id: String!
+#  company_name: String!
+#  company_name_amharic: String!
+#  trade_name: String!
+#  trade_name_amharic: String!
+#  investor_nationality: String!
+#  type_of_business: String!
+#  type_of_ownership: String!
+#  shareholders: [InputShareHolder!]!
+#  manager_full_name: String!
+#  manager_full_name_amharic: String!
+#  investment_capital_usd: Float!
+#  investment_capital_birr: Float!
+#}
+#
+#union IInvestmentPermitAmmendmentResponse =
+#  IInvestmentPermitAmmendmentSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IInvestmentPermitAmmendmentSimple {
+#  _id: ID
+#  investment_id: ID
+#  service_id: String
+#  permit_status: InvestmentPermitStatus
+#  company_name: String
+#  company_name_amharic: String
+#  trade_name: String
+#  trade_name_amharic: String
+#  investor_nationality: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [IShareHolder]
+#  manager_full_name: String
+#  manager_full_name_amharic: String
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  createdAt: DateTime
+#  updatedAt: DateTime
+#  current_permit_status: [EachInvestmentPermitAmmendmentStatus]
+#}
+#
+#input IInvestmentPermitAmmendmentEdit {
+#  _id: ID!
+#  investment_id: ID
+#  service_id: String
+#  permit_status: InvestmentPermitStatus
+#  company_name: String
+#  company_name_amharic: String
+#  trade_name: String
+#  trade_name_amharic: String
+#  investor_nationality: String
+#  type_of_business: String
+#  type_of_ownership: String
+#  shareholders: [InputShareHolder]
+#  manager_full_name: String
+#  manager_full_name_amharic: String
+#  investment_capital_usd: Float
+#  investment_capital_birr: Float
+#  message: String
+#  accepted: Boolean
+#  reapplied: Boolean
+#  current_permit_status: [EachInvestmentPermitStatusInput!]
+#}
+#
+#input IEmailInput {
+#  emailAddress: String
+#  subject: String
+#  html: String
+#}
+#
+#type IEmailSimple {
+#  accepted: [String]
+#  rejected: [String]
+#  envelopeTime: Float
+#  messageTime: Float
+#  messageSize: Float
+#  response: String
+#  messageId: String
+#}
+#
+#type Subscription {
+#  _: Boolean
+#  subscribeToMessages(_id: String!): IMessage
+#  subscribeInvestmentPermitUpdate: IInvestmentPermit
+#  subscribeInvestmentPermitRenewalUpdate: IInvestmentPermitRenewal
+#  subscribeInvestmentPermitExpansionUpdate: IInvestmentPermitExpansion
+#  subscribeInvestmentPermitCancellationUpdate: IInvestmentPermitCancellation
+#  subscribeNotificationUpdate: INotificationSubscriptionResponse
+#  subscribeInvestmentPermitAmmendmentUpdate: IInvestmentPermitAmmendment
+#}
+#
+#union INotificationSubscriptionResponse =
+#  INotification
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type SessionError {
+#  error_message: String
+#}
+#
+#type UnAuthorizationError {
+#  error_message: String!
+#  status: Int
+#}
+#
+#input AddressInput {
+#  sub_city: String!
+#  city: String!
+#  kebele: String!
+#}
+#
+#input AddressEdit {
+#  sub_city: String
+#  city: String
+#  kebele: String
+#}
+#
+#type IAddress {
+#  sub_city: String
+#  city: String
+#  kebele: String
+#}
+#
+#type Count {
+#  amount: Int
+#}
+#
+#input InputFilter {
+#  pagination: IPaginationInput!
+#}
+#
+#input IPaginationInput {
+#  limit: Int!
+#  offset: Int!
+#}
+#
+#type IPagination {
+#  limit: Int
+#  offset: Int
+#}
+#
+#input IResidenceStatusUpdate {
+#  message: String
+#  reapplied: Boolean
+#  accepted: Boolean
+#}
+#
+#input InputAdminWorks {
+#  _id: ID!
+#  role: IRoleAccount
+#}
+#
+#input FilterType {
+#  _id: ID
+#  role: String
+#  is_read: Boolean
+#}
+#
+#enum IInvestmentPermitAmmendmentStatus {
+#  AMENDMENT
+#}
+#
+#union IEmailResponse =
+#  IEmailSimple
+#  | SystemError
+#  | ValidationError
+#  | ValidationErrors
+#
+#type IEmail {
+#  accepted: [String]
+#  rejected: [String]
+#  envelopeTime: Float
+#  messageTime: Float
+#  messageSize: Float
+#  response: String
+#  messageId: String
+#}
