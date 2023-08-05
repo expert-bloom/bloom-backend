@@ -1,16 +1,24 @@
-version: '3'
+version: "3"
 
 volumes:
-  bloom-mongo-data:
+  bloom-pg-data:
+
 
 services:
-  mongo:
-    container_name: expertbloom-mongo
-    image: mongo
-    #    volumes:
-    #      - bloom-mongo-data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+
+  postgres:
+    container_name: bloom-pg
+    image: postgres:12.2-alpine
+    volumes:
+      - bloom-pg-data:/var/lib/postgresql/data
+    expose:
+      - 5432
     ports:
-      - '27017:27017'
+      - '5431:5432'
+    environment:
+      - POSTGRES_PASSWORD=password
+      # database name with mydb
+      - POSTGRES_DB=bloom
+
+
+

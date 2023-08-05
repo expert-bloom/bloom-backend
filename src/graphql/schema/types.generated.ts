@@ -20,7 +20,6 @@ export type Account = IAccount & {
   accountType: AccountRoles;
   email: Scalars['String'];
   firstName: Scalars['String'];
-  gender: Scalars['String'];
   id: Scalars['ID'];
   lastName: Scalars['String'];
   phone: Scalars['String'];
@@ -36,7 +35,6 @@ export type AuthAccountPayload = IAccount & {
   company?: Maybe<Company>;
   email: Scalars['String'];
   firstName: Scalars['String'];
-  gender: Scalars['String'];
   id: Scalars['ID'];
   lastName: Scalars['String'];
   phone: Scalars['String'];
@@ -51,7 +49,7 @@ export type AuthPayload = PayloadError & {
 export type Company = {
   companyName: Scalars['String'];
   id: Scalars['String'];
-  logo: Scalars['String'];
+  logo?: Maybe<Scalars['String']>;
 };
 
 export type CreateJobPostInput = {
@@ -78,9 +76,9 @@ export type Error = {
 
 export type Freelancer = {
   experienceYear: Scalars['Int'];
+  gender: Scalars['String'];
   id: Scalars['String'];
   resume?: Maybe<Scalars['String']>;
-  savedJobs: Array<Scalars['String']>;
 };
 
 export type Gender =
@@ -92,7 +90,6 @@ export type IAccount = {
   accountType: AccountRoles;
   email: Scalars['String'];
   firstName: Scalars['String'];
-  gender: Scalars['String'];
   id: Scalars['ID'];
   lastName: Scalars['String'];
   phone: Scalars['String'];
@@ -171,7 +168,6 @@ export type SignUpCompanyInput = {
   country: Scalars['String'];
   email: Scalars['String'];
   firstName: Scalars['String'];
-  gender?: InputMaybe<Gender>;
   lastName: Scalars['String'];
   password: Scalars['String'];
   phone: Scalars['String'];
@@ -181,7 +177,7 @@ export type SignUpFreelancerInput = {
   country: Scalars['String'];
   email: Scalars['String'];
   firstName: Scalars['String'];
-  gender?: InputMaybe<Gender>;
+  gender: Gender;
   lastName: Scalars['String'];
   password: Scalars['String'];
   phone: Scalars['String'];
@@ -312,7 +308,6 @@ export type AccountResolvers<ContextType = GraphqlContext, ParentType extends Re
   accountType?: Resolver<ResolversTypes['AccountRoles'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -324,7 +319,6 @@ export type AuthAccountPayloadResolvers<ContextType = GraphqlContext, ParentType
   company?: Resolver<Maybe<ResolversTypes['Company']>, ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -341,7 +335,7 @@ export type AuthPayloadResolvers<ContextType = GraphqlContext, ParentType extend
 export type CompanyResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Company'] = ResolversParentTypes['Company']> = {
   companyName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  logo?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  logo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -356,9 +350,9 @@ export type ErrorResolvers<ContextType = GraphqlContext, ParentType extends Reso
 
 export type FreelancerResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Freelancer'] = ResolversParentTypes['Freelancer']> = {
   experienceYear?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   resume?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  savedJobs?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -367,7 +361,6 @@ export type IAccountResolvers<ContextType = GraphqlContext, ParentType extends R
   accountType?: Resolver<ResolversTypes['AccountRoles'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

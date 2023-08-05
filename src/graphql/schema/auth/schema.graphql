@@ -15,7 +15,6 @@ type AuthAccountPayload implements IAccount{
     email: String!
     firstName: String!
     lastName: String!
-    gender: String!
     phone: String!
     accountType: AccountRoles!
 
@@ -33,7 +32,6 @@ input SignUpCompanyInput {
     email: String!
     firstName: String!
     lastName: String!
-    gender: Gender = OTHER
     phone: String!
     password: String!
     companyName : String!
@@ -44,7 +42,7 @@ input SignUpFreelancerInput {
     email: String!
     firstName: String!
     lastName: String!
-    gender: Gender = OTHER
+    gender: Gender!
     phone: String!
     password: String!
     country : String!

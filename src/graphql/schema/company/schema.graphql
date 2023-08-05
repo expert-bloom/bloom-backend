@@ -1,7 +1,7 @@
 type Company {
     id: String!
     companyName: String!
-    logo: String!
+    logo: String
 
 }
 

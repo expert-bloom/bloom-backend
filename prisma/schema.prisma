@@ -1,0 +1,140 @@
+generator client {
+  provider     = "prisma-client-js"
+  sdlGenerator = "sdl"
+  // engineType    = "library"
+  // binaryTargets = ["debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  email       String      @unique
+  firstName   String
+  lastName    String
+  userName    String      @unique
+  password    String
+  phone       String
+  isVerified  Boolean     @default(false)
+  accountType AccountType @default(PUBLIC)
+  country     String
+
+  company   Company?
+  applicant Applicant?
+}
+
+model Applicant {
+  id             String           @id @default(cuid())
+  savedJobs      JobPost[]        @relation("SavedBy")
+  applications   JobApplication[]
+  workExperience WorkExperience[]
+  experienceYear Int
+  education      String?
+  resume         String?
+  skills         String[]
+  languages      String[]
+  certificates   String[]
+  gender         String
+
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String  @unique
+}
+
+model Company {
+  id          String    @id @default(cuid())
+  companyName String    @unique
+  logo        String?
+  jopPosts    JobPost[]
+
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String  @unique
+}
+
+model WorkExperience {
+  id             String   @id @default(cuid())
+  companyName    String
+  position       String
+  startDate      DateTime
+  endDate        DateTime
+  accomplishment String
+
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId String
+}
+
+model JobApplication {
+  id      String            @id @default(cuid())
+  status  ApplicationStatus
+  message String
+
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId String
+
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  jobPostId String
+}
+
+model JobPost {
+  id                  String       @id @default(cuid())
+  title               String
+  description         String
+  email               String
+  category            String[]
+  jobType             JobType
+  vacancy             Int
+  applicationDeadline DateTime
+  jobExperience       Int
+  isVisible           Boolean
+  compensation        Compensation
+  otherLanguages      String[]
+  englishLevel        EnglishLevel
+  jobSkills           String[]
+  salary              Int[]
+  status              PostStatus
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String  @unique
+
+  applications JobApplication[]
+  savedBy      Applicant[]      @relation("SavedBy")
+}
+
+enum AccountType {
+  APPLICANT
+  COMPANY
+  PUBLIC
+}
+
+enum PostStatus {
+  ACTIVE
+  DRAFT
+  INACTIVE
+}
+
+enum EnglishLevel {
+  BASIC
+  CONVERSATIONAL
+  FLUENT
+  NATIVE
+}
+
+enum Compensation {
+  FRELANCER
+  COMPANY
+  PUBLIC
+}
+
+enum JobType {
+  ONSITE
+  REMOTE
+  HYBRID
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}

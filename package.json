@@ -1,5 +1,5 @@
 {
-  "name": "tv-guide",
+  "name": "bloom-server",
   "scripts": {
     "dev": "env-cmd -f .env ts-node-dev --debug --exit-child --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
     "start": "env-cmd -f .env ts-node src/main.ts",
@@ -10,8 +10,8 @@
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write"
   },
   "dependencies": {
-    "@prisma/client": "5.0.0",
-    "bcryptjs": "^2.4.3",
+    "@prisma/client": "^5.1.1",
+    "bcrypt": "^5.1.0",
     "everify": "0.0.8",
     "graphql": "16.7.1",
     "graphql-middleware": "^6.1.35",
@@ -30,6 +30,7 @@
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
     "@graphql-codegen/typescript-resolvers": "^3.2.1",
     "@prisma-korea/graphql-schema-generator": "^0.3.0",
+    "@types/bcryptjs": "^2.4.2",
     "@types/node": "20.2.1",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.59.6",
@@ -44,7 +45,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "prettier": "3.0.0",
-    "prisma": "^5.0.0",
+    "prisma": "^5.1.1",
     "prisma-sdl": "^0.3.7",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",

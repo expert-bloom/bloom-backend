@@ -20,7 +20,6 @@ interface IAccount {
     email: String!
     firstName: String!
     lastName: String!
-    gender: String!
     phone: String!
     accountType: AccountRoles!
 }
@@ -30,7 +29,6 @@ type Account implements IAccount{
     email: String!
     firstName: String!
     lastName: String!
-    gender: String!
     phone: String!
     accountType: AccountRoles!
 }
@@ -39,9 +37,10 @@ type Account implements IAccount{
 # make it's own file
 type Freelancer{
     id: String!
-    savedJobs: [String!]!
     experienceYear: Int!
     resume: String
+    gender: String!
+
     #    jobApplication: TJobPost[];
     #    introAudio: string;
 }
