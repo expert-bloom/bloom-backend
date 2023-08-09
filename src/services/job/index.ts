@@ -1,21 +1,14 @@
-import JobPosts, { type IJobPost } from '@/models/JobPost';
 import type {
   CreateJobPostInput,
   JopPostFilterInput,
 } from '@/graphql/schema/types.generated';
 
 async function getPostedJobs({ filter }: { filter: JopPostFilterInput }) {
-  return JobPosts.find(filter).select(['email']);
+  return {};
 }
 
 async function createJobPost(job: CreateJobPostInput) {
-  const newJobPost = await JobPosts.create(job);
-
-  const pjo: IJobPost & { _id: string } = newJobPost.toObject({
-    flattenObjectIds: true,
-  });
-
-  return pjo;
+  return {};
 }
 
 const jobPost = {
