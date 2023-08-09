@@ -1,0 +1,19 @@
+type Affiliate implements IAccount{
+    id: String!
+    email: String!
+    firstName: String!
+    lastName: String!
+    createdAt: DateTime!
+    accountType: AccountType!
+    phone: String
+    image: String
+
+    #    jobApplication: TJobPost[];
+    #    introAudio: string;
+}
+
+
+type AffiliateLight {
+    id: String!
+
+}

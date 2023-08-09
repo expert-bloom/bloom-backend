@@ -1,0 +1,25 @@
+type Applicant implements IAccount{
+    id: String!
+    email: String!
+    firstName: String!
+    lastName: String!
+    createdAt: DateTime!
+    phone: String
+    image: String
+    accountType: AccountType!
+
+    experienceYear: Int
+    resume: String
+    gender: String
+
+    #    jobApplication: TJobPost[];
+    #    introAudio: string;
+}
+
+type ApplicantLight {
+    id: String!
+    experienceYear: Int
+    resume: String
+    gender: String
+}
+

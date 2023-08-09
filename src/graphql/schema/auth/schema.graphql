@@ -1,7 +1,9 @@
 extend type Mutation {
-    signUpCompany(input: SignUpCompanyInput!) : AuthPayload!
-    signUpFreelancer(input: SignUpFreelancerInput!) : AuthPayload!
+    signUp(input: SignUpInput!) : AuthPayload!
     logIn(input: LoginInput!) : AuthPayload!
+
+    logInOAuth(input: LoginInput!) : AuthPayload!
+    signUpOAuth(input: OAuthSignUpInput!) : AuthPayload!
 }
 
 
@@ -11,15 +13,18 @@ type AuthPayload implements PayloadError {
 }
 
 type AuthAccountPayload implements IAccount{
-    id: ID!
+    id: String!
     email: String!
     firstName: String!
     lastName: String!
-    phone: String!
-    accountType: AccountRoles!
+    createdAt: DateTime!
+    phone: String
+    image: String
+    accountType: AccountType!
 
-    company: Company
-    user: Freelancer
+    company: CompanyLight
+    applicant: ApplicantLight
+    affiliate: AffiliateLight
 }
 
 # INPUT TYPES  ---------------------------------------------------------------
@@ -28,23 +33,46 @@ input LoginInput {
     password: String!
 }
 
-input SignUpCompanyInput {
+
+
+input SignUpInput {
     email: String!
     firstName: String!
     lastName: String!
-    phone: String!
     password: String!
-    companyName : String!
+    accountType: AccountType!
     country : String!
+
+    image: String
+    name: String
 }
 
-input SignUpFreelancerInput {
+input OAuthInput  {
+    provider          : String!
+    providerAccountId : String!
+    accessToken       : String!
+    refreshToken      : String
+    expires           : DateTime!
+    tokenType         : String!
+}
+
+input OAuthAccountInput {
     email: String!
     firstName: String!
     lastName: String!
-    gender: Gender!
-    phone: String!
-    password: String!
-    country : String!
+    accountType: AccountType!
+    image: String
+    userName: String
+}
+
+input OAuthSignUpInput {
+    OAuth: OAuthInput!
+    account: OAuthAccountInput!
+}
+
+
+input OAuthLoginInput {
+    OAuth: OAuthInput!
+    account: SignUpInput!
 }
 

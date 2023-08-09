@@ -11,19 +11,52 @@ datasource db {
 }
 
 model Account {
-  id          String      @id @default(cuid())
-  email       String      @unique
-  firstName   String
-  lastName    String
-  userName    String      @unique
-  password    String
-  phone       String
-  isVerified  Boolean     @default(false)
-  accountType AccountType @default(PUBLIC)
-  country     String
+  id            String        @id @default(cuid())
+  email         String        @unique
+  firstName     String
+  lastName      String
+  userName      String?       @unique
+  password      String
+  phone         String?       @unique
+  isVerified    Boolean       @default(false)
+  accountType   AccountType
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  country       String?
+  JobPost       JobPost[]
+  OAuthClient   OAuthClient[]
 
   company   Company?
   applicant Applicant?
+  affiliate Affiliate?
+}
+
+model OAuthClient {
+  id                String   @id @default(cuid())
+  provider          String
+  providerAccountId String
+  accessToken       String
+  refreshToken      String?
+  expires           DateTime
+  tokenType         String
+
+  Account   Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String   @unique
+}
+
+model Partnership {
+  id        Int            @id @default(autoincrement())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  status    RelationStatus
+
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  affiliateId String
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
 }
 
 model Applicant {
@@ -31,26 +64,68 @@ model Applicant {
   savedJobs      JobPost[]        @relation("SavedBy")
   applications   JobApplication[]
   workExperience WorkExperience[]
-  experienceYear Int
+  experienceYear Int?
   education      String?
   resume         String?
   skills         String[]
   languages      String[]
   certificates   String[]
-  gender         String
+  gender         String?
 
-  account   Account @relation(fields: [accountId], references: [id])
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
 }
 
 model Company {
   id          String    @id @default(cuid())
-  companyName String    @unique
+  companyName String?   @unique
   logo        String?
   jopPosts    JobPost[]
 
-  account   Account @relation(fields: [accountId], references: [id])
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
+
+  affiliates Partnership[]
+}
+
+model Affiliate {
+  id       String    @id @default(cuid())
+  jopPosts JobPost[]
+
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String  @unique
+
+  companies Partnership[]
+}
+
+model JobPost {
+  id                  String       @id @default(cuid())
+  title               String
+  description         String
+  email               String
+  category            String[]
+  jobType             JobType
+  vacancy             Int
+  applicationDeadline DateTime
+  jobExperience       Int
+  isVisible           Boolean
+  compensation        Compensation
+  otherLanguages      String[]
+  englishLevel        EnglishLevel
+  jobSkills           String[]
+  salary              Int[]
+  status              PostStatus
+  postedBy            Account      @relation(fields: [accountId], references: [id])
+  accountId           String
+
+  applications JobApplication[]
+  savedBy      Applicant[]      @relation("SavedBy")
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+
+  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id])
+  affiliateId String?
 }
 
 model WorkExperience {
@@ -77,35 +152,23 @@ model JobApplication {
   jobPostId String
 }
 
-model JobPost {
-  id                  String       @id @default(cuid())
-  title               String
-  description         String
-  email               String
-  category            String[]
-  jobType             JobType
-  vacancy             Int
-  applicationDeadline DateTime
-  jobExperience       Int
-  isVisible           Boolean
-  compensation        Compensation
-  otherLanguages      String[]
-  englishLevel        EnglishLevel
-  jobSkills           String[]
-  salary              Int[]
-  status              PostStatus
+// enum Declarations -----------------------------
 
-  company   Company @relation(fields: [companyId], references: [id])
-  companyId String  @unique
+enum RelationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
 
-  applications JobApplication[]
-  savedBy      Applicant[]      @relation("SavedBy")
+enum JobPoster {
+  Company
+  Affiliate
 }
 
 enum AccountType {
   APPLICANT
   COMPANY
-  PUBLIC
+  AFFILIATE
 }
 
 enum PostStatus {

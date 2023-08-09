@@ -1,15 +1,14 @@
 import {
   type AuthPayload,
   type LoginInput,
-  type SignUpCompanyInput,
-  type SignUpFreelancerInput,
+  type OAuthSignUpInput,
+  type SignUpInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
 import { comparePassword, hashPassword } from '@/util/helper';
 
-async function signUpCompany(input: SignUpCompanyInput): Promise<AuthPayload> {
-  const { firstName, lastName, companyName, country, password, email, phone } =
-    input;
+async function signUp(input: SignUpInput): Promise<AuthPayload> {
+  const { firstName, lastName, country, password, email, accountType } = input;
 
   const ifExist = await prisma.account.findUnique({
     where: {
@@ -32,24 +31,86 @@ async function signUpCompany(input: SignUpCompanyInput): Promise<AuthPayload> {
   const newCompany = await prisma.account.create({
     data: {
       email,
-      phone,
       firstName,
       lastName,
       password: hashedPassword,
       country,
-      accountType: 'COMPANY',
+      accountType,
       isVerified: true,
-      userName: companyName,
 
-      company: {
-        create: {
-          companyName,
-          logo: '',
-        },
-      },
+      ...(accountType === 'COMPANY'
+        ? {
+            company: {
+              create: {},
+            },
+          }
+        : accountType === 'APPLICANT'
+        ? {
+            applicant: {
+              create: {},
+            },
+          }
+        : accountType === 'AFFILIATE'
+        ? {
+            affiliate: {
+              create: {},
+            },
+          }
+        : {}),
     },
     include: {
       company: true,
+      applicant: true,
+      affiliate: true,
+    },
+  });
+
+  // console.log('createdUser with ---> ', newCompany);
+
+  return {
+    errors: [],
+    account: newCompany,
+  };
+}
+
+async function signUpOAuth(input: OAuthSignUpInput): Promise<AuthPayload> {
+  const { accountType } = input.account;
+
+  const newCompany = await prisma.account.create({
+    data: {
+      ...input.account,
+      accountType,
+      password: '-',
+      isVerified: true,
+      OAuthClient: {
+        create: {
+          ...input.OAuth,
+        },
+      },
+      ...(accountType === 'COMPANY'
+        ? {
+            company: {
+              create: {},
+            },
+          }
+        : accountType === 'APPLICANT'
+        ? {
+            applicant: {
+              create: {},
+            },
+          }
+        : accountType === 'AFFILIATE'
+        ? {
+            affiliate: {
+              create: {},
+            },
+          }
+        : {}),
+    },
+    include: {
+      company: true,
+      applicant: true,
+      affiliate: true,
     },
   });
 
@@ -61,62 +122,6 @@ async function signUpCompany(input: SignUpCompanyInput): Promise<AuthPayload> {
   };
 }
 
-async function signUpFreelancer(
-  input: SignUpFreelancerInput,
-): Promise<AuthPayload> {
-  const { firstName, lastName, country, password, email, phone, gender } =
-    input;
-
-  const ifExist = await prisma.account.findUnique({
-    where: {
-      email,
-    },
-  });
-
-  if (ifExist != null) {
-    return {
-      errors: [
-        {
-          message: 'Account already exist',
-        },
-      ],
-      account: null,
-    };
-  }
-
-  const hashedPassword = await hashPassword(password);
-  const newApplicant = await prisma.account.create({
-    data: {
-      email,
-      phone,
-      firstName,
-      lastName,
-      password: hashedPassword,
-      country,
-      accountType: 'APPLICANT',
-      isVerified: true,
-      userName: firstName,
-
-      applicant: {
-        create: {
-          experienceYear: 0,
-          gender,
-        },
-      },
-    },
-    include: {
-      applicant: true,
-    },
-  });
-
-  console.log('createdApplicant with ---> ', newApplicant);
-
-  return {
-    errors: [],
-    account: newApplicant,
-  };
-}
-
 async function logIn(input: LoginInput): Promise<AuthPayload> {
   const { email, password } = input;
 
@@ -125,6 +130,8 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
     include: {
       applicant: true,
       company: true,
+      affiliate: true,
+      OAuthClient: true,
     },
   });
 
@@ -138,8 +145,20 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
       account: null,
     };
   }
-  const isMatch = await comparePassword(password, account.password);
 
+  if (account.OAuthClient.length > 0) {
+    return {
+      errors: [
+        {
+          message:
+            'This account created with social link, please login with your social link',
+        },
+      ],
+      account: null,
+    };
+  }
+
+  const isMatch = await comparePassword(password, account.password);
   if (!isMatch) {
     return {
       errors: [
@@ -157,13 +176,12 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
     errors: [],
     account: {
       ...account,
-      user: account.applicant,
     },
   };
 }
 
 export default {
-  signUpCompany,
-  signUpFreelancer,
+  signUp,
+  signUpOAuth,
   logIn,
 };

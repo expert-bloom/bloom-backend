@@ -1,12 +1,20 @@
 #schema.graphql
 extend type Query{
     me: String
+    findAccount(input: AccountInput!): AuthPayload
 }
 
-enum AccountRoles {
+
+input AccountInput {
+    id: ID
+    email: String
+    phone: String
+}
+
+enum AccountType {
     COMPANY
     APPLICANT
-    PUBLIC
+    AFFILIATE
 }
 
 enum Gender {
@@ -16,34 +24,28 @@ enum Gender {
 }
 
 interface IAccount {
-    id: ID!
+    id: String!
     email: String!
     firstName: String!
     lastName: String!
-    phone: String!
-    accountType: AccountRoles!
+    accountType: AccountType!
+    createdAt: DateTime!
+    phone: String
+    image: String
 }
 
 type Account implements IAccount{
-    id: ID!
+    id: String!
     email: String!
     firstName: String!
     lastName: String!
-    phone: String!
-    accountType: AccountRoles!
+    accountType: AccountType!
+    createdAt: DateTime!
+    phone: String
+    image: String
 }
 
 
-# make it's own file
-type Freelancer{
-    id: String!
-    experienceYear: Int!
-    resume: String
-    gender: String!
-
-    #    jobApplication: TJobPost[];
-    #    introAudio: string;
-}
 
 
 

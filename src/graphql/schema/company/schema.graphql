@@ -1,9 +1,20 @@
-type Company {
+type Company implements IAccount{
     id: String!
-    companyName: String!
+    email: String!
+    firstName: String!
+    lastName: String!
+    createdAt: DateTime!
+    phone: String
+    image: String
+    accountType: AccountType!
+
+    companyName: String
     logo: String
 
 }
 
-#type Subscription
-
+type CompanyLight {
+    id: String!
+    companyName: String
+    logo: String
+}
