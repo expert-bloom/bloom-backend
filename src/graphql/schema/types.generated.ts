@@ -112,23 +112,33 @@ export type CompanyLight = {
   logo?: Maybe<Scalars['String']>;
 };
 
+export type Compensation =
+  | 'HOURLY'
+  | 'MONTHLY';
+
 export type CreateJobPostInput = {
-  company: Scalars['String'];
-  compensation: Scalars['String'];
+  companyId: Scalars['String'];
+  compensation: Compensation;
   description: Scalars['String'];
   email: Scalars['String'];
-  englishLevel?: InputMaybe<Scalars['String']>;
+  englishLevel: EnglishLevel;
   isVisible: Scalars['Boolean'];
-  jobCategory: Array<InputMaybe<Scalars['String']>>;
+  jobCategory: Array<Scalars['String']>;
   jobDeadline: Scalars['String'];
   jobExperience: Scalars['Int'];
   jobSkills: Array<Scalars['String']>;
   jobType: Scalars['String'];
   jobVacancy: Scalars['Int'];
-  otherLanguages: Array<InputMaybe<Scalars['String']>>;
+  otherLanguages: Array<Scalars['String']>;
   salary: Array<InputMaybe<Scalars['Int']>>;
   title: Scalars['String'];
 };
+
+export type EnglishLevel =
+  | 'BASIC'
+  | 'CONVERSATIONAL'
+  | 'FLUENT'
+  | 'NATIVE';
 
 export type Error = {
   message: Scalars['String'];
@@ -354,9 +364,11 @@ export type ResolversTypes = {
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
   Company: ResolverTypeWrapper<Company>;
   CompanyLight: ResolverTypeWrapper<CompanyLight>;
+  Compensation: Compensation;
   CreateJobPostInput: CreateJobPostInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
+  EnglishLevel: EnglishLevel;
   Error: ResolverTypeWrapper<Error>;
   Gender: Gender;
   IAccount: ResolversTypes['Account'] | ResolversTypes['Affiliate'] | ResolversTypes['Applicant'] | ResolversTypes['AuthAccountPayload'] | ResolversTypes['Company'];

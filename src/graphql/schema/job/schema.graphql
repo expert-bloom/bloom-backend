@@ -16,18 +16,30 @@ input CreateJobPostInput{
     title:String!
     email:String!
     description:String!
-    company:String!
+    companyId:String!
     salary:[Int]!
     jobType:String!
-    jobCategory: [String]!
+    jobCategory: [String!]!
     jobExperience: Int!
     jobVacancy: Int!
     jobDeadline: String!
-    compensation: String!
-    englishLevel: String
-    otherLanguages: [String]!
+    compensation: Compensation!
+    englishLevel: EnglishLevel!
+    otherLanguages: [String!]!
     jobSkills: [String!]!
     isVisible:Boolean!
+}
+
+enum Compensation {
+    HOURLY
+    MONTHLY
+}
+
+enum EnglishLevel {
+    BASIC
+    CONVERSATIONAL
+    FLUENT
+    NATIVE
 }
 
 type JobPost{

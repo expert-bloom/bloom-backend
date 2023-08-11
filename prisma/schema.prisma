@@ -185,9 +185,8 @@ enum EnglishLevel {
 }
 
 enum Compensation {
-  FRELANCER
-  COMPANY
-  PUBLIC
+  HOURLY
+  MONTHLY
 }
 
 enum JobType {
