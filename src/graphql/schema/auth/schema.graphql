@@ -9,22 +9,22 @@ extend type Mutation {
 
 type AuthPayload implements PayloadError {
     errors: [Error!]!
-    account: AuthAccountPayload
+    account: AccountPayload
 }
 
-type AuthAccountPayload implements IAccount{
-    id: String!
-    email: String!
-    firstName: String!
-    lastName: String!
-    createdAt: DateTime!
-    phone: String
-    image: String
-    accountType: AccountType!
+type FindOnePayload implements PayloadError {
+    errors: [Error!]!
+    account: AccountPayload
+}
 
-    company: CompanyLight
-    applicant: ApplicantLight
-    affiliate: AffiliateLight
+type OAuth {
+    id: String!
+    provider: String!
+    providerAccountId: String!
+    accessToken: String!
+    refreshToken: String
+    expires: DateTime!
+    tokenType: String!
 }
 
 # INPUT TYPES  ---------------------------------------------------------------

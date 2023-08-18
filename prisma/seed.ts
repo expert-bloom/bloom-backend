@@ -1,1 +1,1 @@
-console.log('no seeding for now')
+console.log('no seeding for now');

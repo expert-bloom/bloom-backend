@@ -1,3 +1,9 @@
+#schema.graphql
+extend type Query {
+    getCompanies: [Company!]!
+
+}
+
 type Company implements IAccount{
     id: String!
     email: String!

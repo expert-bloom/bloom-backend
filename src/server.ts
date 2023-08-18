@@ -5,8 +5,6 @@ import { createContext } from './graphql/context';
 import { typeDefs } from '@/graphql/schema/typeDefs.generated';
 import { resolvers } from '@/graphql/schema/resolvers.generated';
 import { applyMiddleware } from 'graphql-middleware';
-import mongoose from '@/lib/mongoose';
-import process from 'process';
 import prisma from '@/lib/prisma';
 
 export const schema = createSchema<GraphqlContext>({
@@ -22,7 +20,7 @@ prisma
     console.log('  🥁 prisma connected');
   })
   .catch((err) => {
-    console.log('🔻 prisma error', err);
+    console.log('  🔻 prisma error', err);
     process.exit(1);
     throw err;
   });
@@ -31,7 +29,6 @@ const yoga = createYoga({
   graphqlEndpoint: '/graphql',
   schema: schemaWithMiddleWare,
   context: async (initialContext) => createContext(initialContext),
-  logging: true,
 });
 
 const server = createServer(yoga);

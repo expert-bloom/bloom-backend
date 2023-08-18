@@ -3,7 +3,7 @@ import type { QueryResolvers } from './../../../types.generated';
 export const me: NonNullable<QueryResolvers['me']> = async (
   _parent,
   _arg,
-  { service },
+  _ctx,
 ) => {
-  return 'John Doe';
+  return await _ctx.service.Auth.getMe(_arg.input);
 };

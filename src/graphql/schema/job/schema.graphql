@@ -1,38 +1,86 @@
 #schema.graphql
-extend type Query{
-    getJobPosts(input: JopPostFilterInput!):[JobPost!]!
+extend type Query {
+    getJobPosts(input: JopPostFilterInput): [JobPost!]!
     sayHi: String
 }
 
 extend type Mutation {
-    createJobPost(input:CreateJobPostInput!):JobPost
+    createJobPost(input: CreateJobPostInput!): JobPostPayload!
+    sayHi: String!
 }
 
-input JopPostFilterInput{
-    company:String
+type JobPostPayload{
+    errors: [Error!]!
+    jobPost: JobPost
 }
 
-input CreateJobPostInput{
-    title:String!
-    email:String!
-    description:String!
-    companyId:String!
-    salary:[Int]!
-    jobType:String!
-    jobCategory: [String!]!
+type JobPost{
+    id: String!
+    title: String!
+    description: String!
+    jobType: JobType!
+    salaryType: SalaryType!
+    salary: [Int!]!
+    category: [String!]!
+    vacancy: Int!
+    location: String!
+    email: String!
+    jobSite: JobSite!
+    applicationDeadline: DateTime!
+    isVisible: Boolean!
+    experienceLevel: ExperienceLevel!
+
     jobExperience: Int!
-    jobVacancy: Int!
-    jobDeadline: String!
-    compensation: Compensation!
     englishLevel: EnglishLevel!
     otherLanguages: [String!]!
-    jobSkills: [String!]!
-    isVisible:Boolean!
+    skills: [String!]!
+    qualifications :[String!]!
+    interviewQuestions :[String!]!
+
+
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 
-enum Compensation {
+input JopPostFilterInput {
+    companyId: String
+}
+
+
+
+input CreateJobPostInput {
+    title: String!
+    description: String!
+    jobType: JobType!
+    salary: [Int!]!
+    category: [String!]!
+    vacancy: Int!
+    email: String!
+    jobSite: JobSite!
+    applicationDeadline: DateTime!
+    salaryType: SalaryType!
+    isVisible: Boolean!
+    location: String!
+
+    jobExperience: Int!
+    englishLevel: EnglishLevel!
+    otherLanguages: [String!]!
+    skills: [String!]!
+    qualifications :[String!]!
+    interviewQuestions :[String!]!
+    experienceLevel: ExperienceLevel!
+
+
+    postedBy: String!
+    companyId: String!
+    affiliateId: String
+}
+
+enum SalaryType {
     HOURLY
     MONTHLY
+    YEARLY
+    ONE_TIME
 }
 
 enum EnglishLevel {
@@ -42,23 +90,24 @@ enum EnglishLevel {
     NATIVE
 }
 
-type JobPost{
-    _id: String!
-    title:String!
-    description:String!
-    salary:[Int]!
-    jobType:String!
-    jobCategory: [String]!
-    jobExperience: Int!
-    jobVacancy: Int!
-    jobDeadline: DateTime!
-    compensation: String!
-    jobSkills: [String!]!
-    isVisible:Boolean!
-    englishLevel: String
-    otherLanguages: [String!]!
+enum JobSite {
+    ONSITE
+    REMOTE
+    HYBRID
 }
 
+enum JobType {
+    CONTRACTUAL
+    INTERNSHIP
+    FULL_TIME
+    PART_TIME
+}
 
-#type Subscription
+enum ExperienceLevel {
+    Beginner
+    Intermediate
+    Expert
+    Junior
+    Senior
+}
 

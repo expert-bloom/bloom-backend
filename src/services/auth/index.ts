@@ -1,6 +1,7 @@
 import {
   type AuthPayload,
   type LoginInput,
+  type MeInput,
   type OAuthSignUpInput,
   type SignUpInput,
 } from '@/graphql/schema/types.generated';
@@ -36,7 +37,8 @@ async function signUp(input: SignUpInput): Promise<AuthPayload> {
       password: hashedPassword,
       country,
       accountType,
-      isVerified: true,
+      isVerified: false,
+      userName: firstName,
 
       ...(accountType === 'COMPANY'
         ? {
@@ -62,6 +64,7 @@ async function signUp(input: SignUpInput): Promise<AuthPayload> {
       company: true,
       applicant: true,
       affiliate: true,
+      oAuthClient: true,
     },
   });
 
@@ -80,9 +83,10 @@ async function signUpOAuth(input: OAuthSignUpInput): Promise<AuthPayload> {
     data: {
       ...input.account,
       accountType,
+      emailVerified: new Date(),
       password: '-',
       isVerified: true,
-      OAuthClient: {
+      oAuthClient: {
         create: {
           ...input.OAuth,
         },
@@ -111,6 +115,7 @@ async function signUpOAuth(input: OAuthSignUpInput): Promise<AuthPayload> {
       company: true,
       applicant: true,
       affiliate: true,
+      oAuthClient: true,
     },
   });
 
@@ -131,7 +136,7 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
       applicant: true,
       company: true,
       affiliate: true,
-      OAuthClient: true,
+      oAuthClient: true,
     },
   });
 
@@ -146,7 +151,7 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
     };
   }
 
-  if (account.OAuthClient.length > 0) {
+  if (account.oAuthClient.length > 0) {
     return {
       errors: [
         {
@@ -180,8 +185,23 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
   };
 }
 
+async function getMe(input: MeInput) {
+  const account = await prisma.account.findUnique({
+    where: { id: input.accountId },
+    include: {
+      applicant: true,
+      company: true,
+      affiliate: true,
+      oAuthClient: true,
+    },
+  });
+
+  return account;
+}
+
 export default {
   signUp,
   signUpOAuth,
   logIn,
+  getMe,
 };

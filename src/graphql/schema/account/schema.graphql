@@ -1,11 +1,43 @@
 #schema.graphql
 extend type Query{
-    me: String
-    findAccount(input: AccountInput!): AuthPayload
+    me (input: MeInput!): AccountPayload
+    findAccount(input: AccountInput!): FindOnePayload
+}
+
+
+type AccountPayload implements IAccount{
+    id: String!
+    email: String!
+    emailVerified: DateTime
+    firstName: String!
+    lastName: String!
+    createdAt: DateTime!
+    phone: String
+    image: String
+    accountType: AccountType!
+
+    oAuthClient: [OAuth!]!
+    company: CompanyLight
+    applicant: ApplicantLight
+    affiliate: AffiliateLight
+}
+
+input MeInput {
+    accountId: String!
 }
 
 
 input AccountInput {
+    id: ID
+    email: String
+    phone: String
+}
+
+input OAuthAccount {
+    provider: String
+}
+
+input AccountFilterInput {
     id: ID
     email: String
     phone: String

@@ -11,26 +11,28 @@ datasource db {
 }
 
 model Account {
-  id            String        @id @default(cuid())
-  email         String        @unique
+  id            String      @id @default(cuid())
+  email         String      @unique
   firstName     String
   lastName      String
-  userName      String?       @unique
+  userName      String?     @unique
   password      String
-  phone         String?       @unique
-  isVerified    Boolean       @default(false)
+  phone         String?     @unique
+  isVerified    Boolean     @default(false)
   accountType   AccountType
   emailVerified DateTime?
   image         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   country       String?
   JobPost       JobPost[]
-  OAuthClient   OAuthClient[]
 
-  company   Company?
-  applicant Applicant?
-  affiliate Affiliate?
+  oAuthClient OAuthClient[]
+
+  company       Company?
+  applicant     Applicant?
+  affiliate     Affiliate?
+  Notifications Notification[]
 }
 
 model OAuthClient {
@@ -98,25 +100,46 @@ model Affiliate {
   companies Partnership[]
 }
 
+model Notification {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  message   String
+  isRead    Boolean  @default(false)
+
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String  @unique
+}
+
 model JobPost {
-  id                  String       @id @default(cuid())
+  id                  String     @id @default(cuid())
   title               String
   description         String
-  email               String
-  category            String[]
   jobType             JobType
+  category            String[]
   vacancy             Int
   applicationDeadline DateTime
-  jobExperience       Int
-  isVisible           Boolean
-  compensation        Compensation
-  otherLanguages      String[]
-  englishLevel        EnglishLevel
-  jobSkills           String[]
+  salaryType          SalaryType
+  jobSite             JobSite
   salary              Int[]
-  status              PostStatus
-  postedBy            Account      @relation(fields: [accountId], references: [id])
-  accountId           String
+  email               String
+  location            String     @default("United States")
+
+  skills             String[]
+  jobExperience      Int
+  experienceLevel    ExperienceLevel @default(Beginner)
+  qualifications     String[]
+  englishLevel       EnglishLevel
+  otherLanguages     String[]
+  interviewQuestions String[]
+
+  isVisible Boolean
+  status    PostStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  postedBy        Account @relation(fields: [posterAccountId], references: [id])
+  posterAccountId String
 
   applications JobApplication[]
   savedBy      Applicant[]      @relation("SavedBy")
@@ -184,15 +207,32 @@ enum EnglishLevel {
   NATIVE
 }
 
-enum Compensation {
+enum SalaryType {
   HOURLY
   MONTHLY
+  YEARLY
+  ONE_TIME
 }
 
-enum JobType {
+enum JobSite {
   ONSITE
   REMOTE
   HYBRID
+}
+
+enum ExperienceLevel {
+  Beginner
+  Intermediate
+  Expert
+  Junior
+  Senior
+}
+
+enum JobType {
+  CONTRACTUAL
+  INTERNSHIP
+  FULL_TIME
+  PART_TIME
 }
 
 enum ApplicationStatus {

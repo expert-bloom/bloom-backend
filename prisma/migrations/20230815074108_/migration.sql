@@ -14,10 +14,13 @@ CREATE TYPE "PostStatus" AS ENUM ('ACTIVE', 'DRAFT', 'INACTIVE');
 CREATE TYPE "EnglishLevel" AS ENUM ('BASIC', 'CONVERSATIONAL', 'FLUENT', 'NATIVE');
 
 -- CreateEnum
-CREATE TYPE "Compensation" AS ENUM ('FRELANCER', 'COMPANY', 'PUBLIC');
+CREATE TYPE "SalaryType" AS ENUM ('HOURLY', 'MONTHLY', 'YEARLY', 'ONE_TIME');
 
 -- CreateEnum
-CREATE TYPE "JobType" AS ENUM ('ONSITE', 'REMOTE', 'HYBRID');
+CREATE TYPE "JobSite" AS ENUM ('ONSITE', 'REMOTE', 'HYBRID');
+
+-- CreateEnum
+CREATE TYPE "JobType" AS ENUM ('CONTRACT', 'INTERNSHIP', 'FULL_TIME', 'PART_TIME');
 
 -- CreateEnum
 CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
@@ -102,24 +105,40 @@ CREATE TABLE "Affiliate" (
 );
 
 -- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "message" TEXT NOT NULL,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "accountId" TEXT NOT NULL,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "JobPost" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "category" TEXT[],
     "jobType" "JobType" NOT NULL,
+    "category" TEXT[],
     "vacancy" INTEGER NOT NULL,
     "applicationDeadline" TIMESTAMP(3) NOT NULL,
-    "jobExperience" INTEGER NOT NULL,
-    "isVisible" BOOLEAN NOT NULL,
-    "compensation" "Compensation" NOT NULL,
-    "otherLanguages" TEXT[],
-    "englishLevel" "EnglishLevel" NOT NULL,
-    "jobSkills" TEXT[],
+    "salaryType" "SalaryType" NOT NULL,
+    "jobSite" "JobSite" NOT NULL,
     "salary" INTEGER[],
-    "status" "PostStatus" NOT NULL,
-    "accountId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "skills" TEXT[],
+    "jobExperience" INTEGER NOT NULL,
+    "qualifications" TEXT[],
+    "englishLevel" "EnglishLevel" NOT NULL,
+    "otherLanguages" TEXT[],
+    "isVisible" BOOLEAN NOT NULL,
+    "status" "PostStatus" NOT NULL DEFAULT 'ACTIVE',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "posterAccountId" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "affiliateId" TEXT,
 
@@ -181,6 +200,9 @@ CREATE UNIQUE INDEX "Company_accountId_key" ON "Company"("accountId");
 CREATE UNIQUE INDEX "Affiliate_accountId_key" ON "Affiliate"("accountId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Notification_accountId_key" ON "Notification"("accountId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_SavedBy_AB_unique" ON "_SavedBy"("A", "B");
 
 -- CreateIndex
@@ -205,7 +227,10 @@ ALTER TABLE "Company" ADD CONSTRAINT "Company_accountId_fkey" FOREIGN KEY ("acco
 ALTER TABLE "Affiliate" ADD CONSTRAINT "Affiliate_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "JobPost" ADD CONSTRAINT "JobPost_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "JobPost" ADD CONSTRAINT "JobPost_posterAccountId_fkey" FOREIGN KEY ("posterAccountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "JobPost" ADD CONSTRAINT "JobPost_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
