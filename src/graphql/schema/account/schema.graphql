@@ -4,23 +4,73 @@ extend type Query{
     findAccount(input: AccountInput!): FindOnePayload
 }
 
+extend type Mutation {
+    updateProfile(input: UpdateProfileInput!): AccountUpdatePayload!
+}
 
-type AccountPayload implements IAccount{
+type AccountUpdatePayload implements PayloadError{
+    errors: [Error!]!
+    account: AccountPayload
+}
+
+input UpdateProfileInput {
+    accountId: String!
+    account: AccountUpdateInput
+    applicant: ApplicantUpdateInput
+}
+
+input AccountUpdateInput {
+    firstName: String
+    lastName: String
+    phone: String
+    image: String
+    email: String
+}
+
+input ApplicantUpdateInput {
+    experienceYear: Int
+    resume: String
+    gender: String
+
+    about:               String
+    jobPosition:         String
+    salaryExpectation:   Int
+    WorkExperienceYears: Int
+    location :           String
+    experience:          Int
+    skillLevel :         ExperienceLevel
+    englishLevel:        EnglishLevel
+    otherLanguages :     [String]
+    accomplishment :     String
+
+    github:         String
+    linkedin:       String
+    portfolio:      String
+
+    education:      String
+    skills:         [String!]
+    languages:      [String]
+}
+
+
+type AccountPayload {
     id: String!
     email: String!
     emailVerified: DateTime
     firstName: String!
     lastName: String!
     createdAt: DateTime!
+    accountType: AccountType!
     phone: String
     image: String
-    accountType: AccountType!
 
     oAuthClient: [OAuth!]!
     company: CompanyLight
     applicant: ApplicantLight
     affiliate: AffiliateLight
 }
+
+
 
 input MeInput {
     accountId: String!

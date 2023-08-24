@@ -2,19 +2,43 @@ extend type Mutation {
     signUp(input: SignUpInput!) : AuthPayload!
     logIn(input: LoginInput!) : AuthPayload!
 
-    logInOAuth(input: LoginInput!) : AuthPayload!
     signUpOAuth(input: OAuthSignUpInput!) : AuthPayload!
 }
 
 
 type AuthPayload implements PayloadError {
     errors: [Error!]!
-    account: AccountPayload
+    account: AuthAccountPayload
 }
 
 type FindOnePayload implements PayloadError {
     errors: [Error!]!
     account: AccountPayload
+}
+
+type AuthApplicant {
+    id: String!
+    experienceYear: Int
+    resume: String
+    gender: String
+}
+
+
+type AuthAccountPayload {
+    id: String!
+    email: String!
+    emailVerified: DateTime
+    firstName: String!
+    lastName: String!
+    createdAt: DateTime!
+    accountType: AccountType!
+    phone: String
+    image: String
+
+    oAuthClient: [OAuth!]!
+#    company: CompanyLight
+#    applicant: ApplicantLight
+#    affiliate: AffiliateLight
 }
 
 type OAuth {

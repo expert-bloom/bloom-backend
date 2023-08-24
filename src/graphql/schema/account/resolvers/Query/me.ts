@@ -5,5 +5,5 @@ export const me: NonNullable<QueryResolvers['me']> = async (
   _arg,
   _ctx,
 ) => {
-  return await _ctx.service.Auth.getMe(_arg.input);
+  return await _ctx.service.Account.getMe(_arg.input);
 };

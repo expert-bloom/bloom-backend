@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   type AuthPayload,
   type LoginInput,
-  type MeInput,
   type OAuthSignUpInput,
   type SignUpInput,
 } from '@/graphql/schema/types.generated';
@@ -33,12 +33,14 @@ async function signUp(input: SignUpInput): Promise<AuthPayload> {
     data: {
       email,
       firstName,
+      fullName: firstName + ' ' + lastName,
       lastName,
       password: hashedPassword,
       country,
       accountType,
       isVerified: false,
       userName: firstName,
+      image: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/logo.png`,
 
       ...(accountType === 'COMPANY'
         ? {
@@ -82,7 +84,11 @@ async function signUpOAuth(input: OAuthSignUpInput): Promise<AuthPayload> {
   const newCompany = await prisma.account.create({
     data: {
       ...input.account,
+      image:
+        input.account.image ??
+        `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/logo.png`,
       accountType,
+      fullName: input.account.firstName + ' ' + input.account.lastName,
       emailVerified: new Date(),
       password: '-',
       isVerified: true,
@@ -127,7 +133,7 @@ async function signUpOAuth(input: OAuthSignUpInput): Promise<AuthPayload> {
   };
 }
 
-async function logIn(input: LoginInput): Promise<AuthPayload> {
+async function logIn(input: LoginInput) {
   const { email, password } = input;
 
   const account = await prisma.account.findUnique({
@@ -185,23 +191,8 @@ async function logIn(input: LoginInput): Promise<AuthPayload> {
   };
 }
 
-async function getMe(input: MeInput) {
-  const account = await prisma.account.findUnique({
-    where: { id: input.accountId },
-    include: {
-      applicant: true,
-      company: true,
-      affiliate: true,
-      oAuthClient: true,
-    },
-  });
-
-  return account;
-}
-
 export default {
   signUp,
   signUpOAuth,
   logIn,
-  getMe,
 };

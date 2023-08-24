@@ -16,23 +16,23 @@ model Account {
   firstName     String
   lastName      String
   userName      String?     @unique
+  fullName      String
   password      String
   phone         String?     @unique
   isVerified    Boolean     @default(false)
   accountType   AccountType
   emailVerified DateTime?
-  image         String?
+  image         String
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   country       String?
-  JobPost       JobPost[]
 
-  oAuthClient OAuthClient[]
-
-  company       Company?
-  applicant     Applicant?
-  affiliate     Affiliate?
+  oAuthClient   OAuthClient[]
   Notifications Notification[]
+
+  company   Company?
+  applicant Applicant?
+  affiliate Affiliate?
 }
 
 model OAuthClient {
@@ -66,13 +66,30 @@ model Applicant {
   savedJobs      JobPost[]        @relation("SavedBy")
   applications   JobApplication[]
   workExperience WorkExperience[]
-  experienceYear Int?
+  experienceYear Int?             @default(0)
   education      String?
-  resume         String?
-  skills         String[]
-  languages      String[]
-  certificates   String[]
-  gender         String?
+
+  skills       String[]
+  languages    String[]
+  certificates String[]
+  gender       String?
+
+  // links
+  resume    String?
+  github    String?
+  linkedin  String?
+  portfolio String?
+
+  about               String?
+  jobPosition         String?
+  salaryExpectation   Int?
+  WorkExperienceYears Int?
+  location            String?
+  experience          Int?
+  skillLevel          ExperienceLevel?
+  englishLevel        EnglishLevel?
+  otherLanguages      String[]
+  accomplishment      String?
 
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
@@ -137,9 +154,6 @@ model JobPost {
   status    PostStatus @default(ACTIVE)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-
-  postedBy        Account @relation(fields: [posterAccountId], references: [id])
-  posterAccountId String
 
   applications JobApplication[]
   savedBy      Applicant[]      @relation("SavedBy")

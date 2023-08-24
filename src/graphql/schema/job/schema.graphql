@@ -1,11 +1,13 @@
 #schema.graphql
 extend type Query {
     getJobPosts(input: JopPostFilterInput): [JobPost!]!
+    getSavedJobPosts(input: SavedJobPostsInput!): [JobPost!]!
     sayHi: String
 }
 
 extend type Mutation {
     createJobPost(input: CreateJobPostInput!): JobPostPayload!
+    saveJobPost(input: SaveJobPostInput!): JobPost
     sayHi: String!
 }
 
@@ -43,7 +45,17 @@ type JobPost{
 }
 
 input JopPostFilterInput {
-    companyId: String
+    companyId: String!
+}
+
+input SavedJobPostsInput {
+    accountId: String!
+}
+
+input SaveJobPostInput {
+    jobPostId: String!
+    accountId: String!
+    save: Boolean!
 }
 
 
