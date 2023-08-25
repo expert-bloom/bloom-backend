@@ -36,9 +36,6 @@ type AuthAccountPayload {
     image: String
 
     oAuthClient: [OAuth!]!
-#    company: CompanyLight
-#    applicant: ApplicantLight
-#    affiliate: AffiliateLight
 }
 
 type OAuth {

@@ -1,30 +1,30 @@
-type Applicant implements IAccount{
+type Applicant{
     id: String!
-    email: String!
-    firstName: String!
-    lastName: String!
-    createdAt: DateTime!
-    phone: String
-    image: String
-    accountType: AccountType!
+    experienceYear: Int
+    resume: String
+    gender: String
 
     about:               String
     jobPosition:         String
     salaryExpectation:   Int
     WorkExperienceYears: Int
     location :           String
-    experience:          Int
     skillLevel :         ExperienceLevel
     englishLevel:        EnglishLevel
     otherLanguages :     [String]
     accomplishment :     String
 
-    experienceYear: Int
-    resume: String
-    gender: String
+    workExperience: [WorkExperience!]!
+    skills:         [String!]
+    languages:      [String]
+    education:      String
 
-    #    jobApplication: TJobPost[];
-    #    introAudio: string;
+    github:      String
+    linkedin:      String
+    portfolio:      String
+
+
+    savedJobs: [JobPost!]!
 }
 
 type ApplicantLight {
@@ -38,13 +38,11 @@ type ApplicantLight {
     salaryExpectation:   Int
     WorkExperienceYears: Int
     location :           String
-    experience:          Int
     skillLevel :         ExperienceLevel
     englishLevel:        EnglishLevel
     otherLanguages :     [String]
     accomplishment :     String
 
-#    workExperience WorkExperience[]
     skills:         [String!]
     languages:      [String]
     education:      String
@@ -52,8 +50,17 @@ type ApplicantLight {
     github:      String
     linkedin:      String
     portfolio:      String
-
-
-    savedJobs: [JobPost!]!
 }
+
+
+type WorkExperience {
+    companyName: String!
+    companyWebsite: String
+    position: String!
+    startDate: DateTime!
+    endDate: DateTime!
+    accomplishment: String!
+    skills  :       [String!]!
+}
+
 

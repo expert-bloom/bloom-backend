@@ -16,6 +16,7 @@ import    { Error } from './base/resolvers/Error';
 import    { FindOnePayload } from './auth/resolvers/FindOnePayload';
 import    { JobPost } from './job/resolvers/JobPost';
 import    { JobPostPayload } from './job/resolvers/JobPostPayload';
+import    { MeAccountPayload } from './account/resolvers/MeAccountPayload';
 import    { createJobPost as Mutation_createJobPost } from './job/resolvers/Mutation/createJobPost';
 import    { logIn as Mutation_logIn } from './auth/resolvers/Mutation/logIn';
 import    { saveJobPost as Mutation_saveJobPost } from './job/resolvers/Mutation/saveJobPost';
@@ -30,6 +31,7 @@ import    { getJobPosts as Query_getJobPosts } from './job/resolvers/Query/getJo
 import    { getSavedJobPosts as Query_getSavedJobPosts } from './job/resolvers/Query/getSavedJobPosts';
 import    { me as Query_me } from './account/resolvers/Query/me';
 import    { sayHi as Query_sayHi } from './job/resolvers/Query/sayHi';
+import    { WorkExperience } from './applicant/resolvers/WorkExperience';
 import    { DateTimeResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
       Query: { findAccount: Query_findAccount,getCompanies: Query_getCompanies,getJobPosts: Query_getJobPosts,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
@@ -51,6 +53,8 @@ Error: Error,
 FindOnePayload: FindOnePayload,
 JobPost: JobPost,
 JobPostPayload: JobPostPayload,
+MeAccountPayload: MeAccountPayload,
 OAuth: OAuth,
+WorkExperience: WorkExperience,
 DateTime: DateTimeResolver
     }

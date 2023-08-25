@@ -5,6 +5,8 @@ import type {
   UpdateProfileInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
+import { Prisma } from '.prisma/client';
+import WorkExperienceUncheckedUpdateManyWithoutApplicantNestedInput = Prisma.WorkExperienceUncheckedUpdateManyWithoutApplicantNestedInput;
 
 async function findOne(input: AccountInput): Promise<FindOnePayload> {
   // filter out the undefined values
@@ -47,6 +49,7 @@ async function getMe(input: MeInput) {
       applicant: {
         include: {
           savedJobs: true,
+          workExperience: true,
         },
       },
       company: true,
@@ -76,6 +79,31 @@ async function updateProfile(input: UpdateProfileInput) {
   const nonNullAccountInput: any = clearUndefined(accountInput);
   const nonNullApplicantInput: any = clearUndefined(applicantInput);
 
+  const workExperience  =
+    Boolean(nonNullApplicantInput?.workExperience) &&
+    Array.isArray(nonNullApplicantInput.workExperience)
+      ? {
+          workExperience: {
+            deleteMany: {},
+            createMany: {
+              // where: {},
+              data: nonNullApplicantInput.workExperience,
+            },
+          },
+        }
+      : {};
+
+  console.log('workExperience -- : ', JSON.stringify(workExperience, null, 2));
+
+  if (Array.isArray(nonNullApplicantInput?.workExperience)) {
+    delete nonNullApplicantInput.workExperience;
+  }
+
+  console.log(
+    'nonNullApplicantInput : ',
+    JSON.stringify(nonNullApplicantInput, null, 2),
+  );
+
   const account = await prisma.account.update({
     where: { id: input.accountId },
     data: {
@@ -84,6 +112,7 @@ async function updateProfile(input: UpdateProfileInput) {
         update: {
           data: {
             ...nonNullApplicantInput,
+            ...workExperience,
           },
         },
       },
