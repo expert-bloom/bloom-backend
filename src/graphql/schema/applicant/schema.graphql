@@ -1,5 +1,88 @@
-type Applicant{
+extend type Query{
+    getApplicants(input: GetApplicantsInput!): ApplicantConnection
+    getApplicant(input: GetApplicantInput!): Applicant
+}
+
+
+input GetApplicantsInput {
+    filter: ApplicantFilter
+    first: Int
+    last: Int
+    after: String
+    before: String
+
+    orderBy: [ApplicantOrdering!]
+}
+
+
+input ApplicantOrdering {
+    field: AccountSortField!
+    direction: OrderDirection!
+}
+
+input ApplicantFilter {
+    ids: [String!]
+}
+
+input GetApplicantInput {
     id: String!
+}
+
+type ApplicantConnection {
+    edges: [ApplicantEdge!]!
+    "Pagination data for this connection."
+    pageInfo: PageInfo!
+    "A total count of items in the collection."
+    totalCount: Int
+}
+
+type ApplicantEdge {
+    "A cursor for use in pagination."
+    cursor: String!
+    "The item at the end of the edge."
+    node: Applicant!
+}
+
+
+
+type ApplicantAccountEdge {
+    cursor: String!
+    node: Account!
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+}
+
+
+type ApplicantAccountConnections {
+    edges: [ApplicantAccountEdge!]!
+    pageInfo: PageInfo!
+}
+
+
+type ApplicantSavedJobPostEdge {
+    cursor: String!
+    node: JobPost!
+}
+
+type ApplicantAppliedJobPostEdge {
+    cursor: String!
+    node: JobPost!
+}
+
+
+type ApplicantSavedJobPostConnections {
+    edges: [ApplicantSavedJobPostEdge!]!
+    pageInfo: PageInfo!
+}
+
+
+type Applicant implements Node{
+    id: ID!
     experienceYear: Int
     resume: String
     gender: String
@@ -23,33 +106,15 @@ type Applicant{
     linkedin:      String
     portfolio:      String
 
+    account: Account!
+    savedJobs(
+        first: Int
+        after: String
+        last: Int
+        before: String
+    ):  ApplicantSavedJobPostConnections!
+    #    savedJobs: [JobPost!]!
 
-    savedJobs: [JobPost!]!
-}
-
-type ApplicantLight {
-    id: String!
-    experienceYear: Int
-    resume: String
-    gender: String
-
-    about:               String
-    jobPosition:         String
-    salaryExpectation:   Int
-    WorkExperienceYears: Int
-    location :           String
-    skillLevel :         ExperienceLevel
-    englishLevel:        EnglishLevel
-    otherLanguages :     [String]
-    accomplishment :     String
-
-    skills:         [String!]
-    languages:      [String]
-    education:      String
-
-    github:      String
-    linkedin:      String
-    portfolio:      String
 }
 
 
@@ -57,8 +122,9 @@ type WorkExperience {
     companyName: String!
     companyWebsite: String
     position: String!
+    ongoing: Boolean!
     startDate: DateTime!
-    endDate: DateTime!
+    endDate: DateTime
     accomplishment: String!
     skills  :       [String!]!
 }

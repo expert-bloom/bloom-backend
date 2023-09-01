@@ -4,7 +4,7 @@
     "dev": "env-cmd -f .env ts-node-dev --debug --exit-child --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
     "start": "env-cmd -f .env ts-node src/main.ts",
     "codegen": "graphql-codegen  --config src/lib/codegen.ts",
-    "codegen:watch": "graphql-codegen -d true --profile true -v --watch --config src/lib/codegen.ts",
+    "codegen:watch": "graphql-codegen --profile true --watch --config src/lib/codegen.ts",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "lint-fix": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --quiet --fix",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write"

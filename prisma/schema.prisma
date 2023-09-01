@@ -62,17 +62,13 @@ model Partnership {
 }
 
 model Applicant {
-  id             String           @id @default(cuid())
-  savedJobs      JobPost[]        @relation("SavedBy")
-  applications   JobApplication[]
-  workExperience WorkExperience[]
-  experienceYear Int?             @default(0)
+  id             String   @id @default(cuid())
+  experienceYear Int?     @default(0)
   education      String?
-
-  skills       String[]
-  languages    String[]
-  certificates String[]
-  gender       String?
+  skills         String[]
+  languages      String[]
+  certificates   String[]
+  gender         String?
 
   // links
   resume    String?
@@ -89,6 +85,11 @@ model Applicant {
   englishLevel        EnglishLevel?
   otherLanguages      String[]
   accomplishment      String?
+
+  // external 
+  savedJobs      JobPost[]        @relation("SavedBy")
+  applications   JobApplication[]
+  workExperience WorkExperience[]
 
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
@@ -165,12 +166,13 @@ model JobPost {
 }
 
 model WorkExperience {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   companyName    String
   position       String
   companyWebsite String?
   startDate      DateTime
-  endDate        DateTime
+  endDate        DateTime?
+  ongoing        Boolean   @default(false)
   accomplishment String
   skills         String[]
   // projects       String[]

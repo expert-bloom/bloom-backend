@@ -1,10 +1,12 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import { ApplicantMapper } from './applicant/schema.mappers';
 import { GraphqlContext } from 'src/graphql/context';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
+export type Maybe<T> = T | null | undefined;
+export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -21,8 +23,9 @@ export type Account = IAccount & {
   createdAt: Scalars['DateTime'];
   email: Scalars['String'];
   firstName: Scalars['String'];
+  fullName: Scalars['String'];
   id: Scalars['String'];
-  image?: Maybe<Scalars['String']>;
+  image: Scalars['String'];
   lastName: Scalars['String'];
   phone?: Maybe<Scalars['String']>;
 };
@@ -42,7 +45,7 @@ export type AccountInput = {
 export type AccountPayload = {
   accountType: AccountType;
   affiliate?: Maybe<AffiliateLight>;
-  applicant?: Maybe<ApplicantLight>;
+  applicant?: Maybe<Applicant>;
   company?: Maybe<CompanyLight>;
   createdAt: Scalars['DateTime'];
   email: Scalars['String'];
@@ -54,6 +57,18 @@ export type AccountPayload = {
   oAuthClient: Array<OAuth>;
   phone?: Maybe<Scalars['String']>;
 };
+
+export type AccountSortField =
+  /** Sort users by created at. */
+  | 'CREATED_AT'
+  /** Sort users by email. */
+  | 'EMAIL'
+  /** Sort users by first name. */
+  | 'FIRST_NAME'
+  /** Sort users by last modified at. */
+  | 'LAST_MODIFIED_AT'
+  /** Sort users by last name. */
+  | 'LAST_NAME';
 
 export type AccountType =
   | 'AFFILIATE'
@@ -88,16 +103,17 @@ export type AffiliateLight = {
   id: Scalars['String'];
 };
 
-export type Applicant = {
+export type Applicant = Node & {
   WorkExperienceYears?: Maybe<Scalars['Int']>;
   about?: Maybe<Scalars['String']>;
   accomplishment?: Maybe<Scalars['String']>;
+  account: Account;
   education?: Maybe<Scalars['String']>;
   englishLevel?: Maybe<EnglishLevel>;
   experienceYear?: Maybe<Scalars['Int']>;
   gender?: Maybe<Scalars['String']>;
   github?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['ID'];
   jobPosition?: Maybe<Scalars['String']>;
   languages?: Maybe<Array<Maybe<Scalars['String']>>>;
   linkedin?: Maybe<Scalars['String']>;
@@ -106,32 +122,67 @@ export type Applicant = {
   portfolio?: Maybe<Scalars['String']>;
   resume?: Maybe<Scalars['String']>;
   salaryExpectation?: Maybe<Scalars['Int']>;
-  savedJobs: Array<JobPost>;
+  savedJobs: ApplicantSavedJobPostConnections;
   skillLevel?: Maybe<ExperienceLevel>;
   skills?: Maybe<Array<Scalars['String']>>;
   workExperience: Array<WorkExperience>;
 };
 
-export type ApplicantLight = {
-  WorkExperienceYears?: Maybe<Scalars['Int']>;
-  about?: Maybe<Scalars['String']>;
-  accomplishment?: Maybe<Scalars['String']>;
-  education?: Maybe<Scalars['String']>;
-  englishLevel?: Maybe<EnglishLevel>;
-  experienceYear?: Maybe<Scalars['Int']>;
-  gender?: Maybe<Scalars['String']>;
-  github?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
-  jobPosition?: Maybe<Scalars['String']>;
-  languages?: Maybe<Array<Maybe<Scalars['String']>>>;
-  linkedin?: Maybe<Scalars['String']>;
-  location?: Maybe<Scalars['String']>;
-  otherLanguages?: Maybe<Array<Maybe<Scalars['String']>>>;
-  portfolio?: Maybe<Scalars['String']>;
-  resume?: Maybe<Scalars['String']>;
-  salaryExpectation?: Maybe<Scalars['Int']>;
-  skillLevel?: Maybe<ExperienceLevel>;
-  skills?: Maybe<Array<Scalars['String']>>;
+
+export type ApplicantSavedJobsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+};
+
+export type ApplicantAccountConnections = {
+  edges: Array<ApplicantAccountEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ApplicantAccountEdge = {
+  cursor: Scalars['String'];
+  node: Account;
+};
+
+export type ApplicantAppliedJobPostEdge = {
+  cursor: Scalars['String'];
+  node: JobPost;
+};
+
+export type ApplicantConnection = {
+  edges: Array<ApplicantEdge>;
+  /** Pagination data for this connection. */
+  pageInfo: PageInfo;
+  /** A total count of items in the collection. */
+  totalCount?: Maybe<Scalars['Int']>;
+};
+
+export type ApplicantEdge = {
+  /** A cursor for use in pagination. */
+  cursor: Scalars['String'];
+  /** The item at the end of the edge. */
+  node: Applicant;
+};
+
+export type ApplicantFilter = {
+  ids?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ApplicantOrdering = {
+  direction: OrderDirection;
+  field: AccountSortField;
+};
+
+export type ApplicantSavedJobPostConnections = {
+  edges: Array<ApplicantSavedJobPostEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ApplicantSavedJobPostEdge = {
+  cursor: Scalars['String'];
+  node: JobPost;
 };
 
 export type ApplicantUpdateInput = {
@@ -148,7 +199,7 @@ export type ApplicantUpdateInput = {
   salaryExpectation?: InputMaybe<Scalars['Int']>;
   skillLevel?: InputMaybe<ExperienceLevel>;
   skills?: InputMaybe<Array<Scalars['String']>>;
-  workExperience: Array<WorkExperienceInput>;
+  workExperience?: InputMaybe<Array<WorkExperienceInput>>;
 };
 
 export type AuthAccountPayload = {
@@ -247,6 +298,23 @@ export type Gender =
   | 'MALE'
   | 'OTHER';
 
+export type GetApplicantInput = {
+  id: Scalars['String'];
+};
+
+export type GetApplicantsInput = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  filter?: InputMaybe<ApplicantFilter>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  orderBy?: InputMaybe<Array<ApplicantOrdering>>;
+};
+
+export type GetJobPostInput = {
+  id: Scalars['String'];
+};
+
 export type IAccount = {
   accountType: AccountType;
   createdAt: Scalars['DateTime'];
@@ -258,7 +326,7 @@ export type IAccount = {
   phone?: Maybe<Scalars['String']>;
 };
 
-export type JobPost = {
+export type JobPost = Node & {
   applicationDeadline: Scalars['DateTime'];
   category: Array<Scalars['String']>;
   createdAt: Scalars['DateTime'];
@@ -266,7 +334,7 @@ export type JobPost = {
   email: Scalars['String'];
   englishLevel: EnglishLevel;
   experienceLevel: ExperienceLevel;
-  id: Scalars['String'];
+  id: Scalars['ID'];
   interviewQuestions: Array<Scalars['String']>;
   isVisible: Scalars['Boolean'];
   jobExperience: Scalars['Int'];
@@ -283,7 +351,7 @@ export type JobPost = {
   vacancy: Scalars['Int'];
 };
 
-export type JobPostPayload = {
+export type JobPostCreate = {
   errors: Array<Error>;
   jobPost?: Maybe<JobPost>;
 };
@@ -329,7 +397,7 @@ export type MeInput = {
 };
 
 export type Mutation = {
-  createJobPost: JobPostPayload;
+  createJobPost: JobPostCreate;
   logIn: AuthPayload;
   saveJobPost?: Maybe<JobPost>;
   sayHi: Scalars['String'];
@@ -366,6 +434,12 @@ export type MutationSignUpOAuthArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: UpdateProfileInput;
+};
+
+/** An object with an ID */
+export type Node = {
+  /** The ID of the object. */
+  id: Scalars['ID'];
 };
 
 export type OAuth = {
@@ -410,13 +484,29 @@ export type OAuthSignUpInput = {
   account: OAuthAccountInput;
 };
 
+export type OrderDirection =
+  /** Specifies an ascending sort order. */
+  | 'ASC'
+  /** Specifies a descending sort order. */
+  | 'DESC';
+
+export type PageInfo = {
+  endCursor?: Maybe<Scalars['String']>;
+  hasNextPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean'];
+  startCursor?: Maybe<Scalars['String']>;
+};
+
 export type PayloadError = {
   errors: Array<Error>;
 };
 
 export type Query = {
   findAccount?: Maybe<FindOnePayload>;
+  getApplicant?: Maybe<Applicant>;
+  getApplicants?: Maybe<ApplicantConnection>;
   getCompanies: Array<Company>;
+  getJobPost?: Maybe<JobPost>;
   getJobPosts: Array<JobPost>;
   getSavedJobPosts: Array<JobPost>;
   me?: Maybe<MeAccountPayload>;
@@ -426,6 +516,21 @@ export type Query = {
 
 export type QueryFindAccountArgs = {
   input: AccountInput;
+};
+
+
+export type QueryGetApplicantArgs = {
+  input: GetApplicantInput;
+};
+
+
+export type QueryGetApplicantsArgs = {
+  input: GetApplicantsInput;
+};
+
+
+export type QueryGetJobPostArgs = {
+  input: GetJobPostInput;
 };
 
 
@@ -480,7 +585,8 @@ export type WorkExperience = {
   accomplishment: Scalars['String'];
   companyName: Scalars['String'];
   companyWebsite?: Maybe<Scalars['String']>;
-  endDate: Scalars['DateTime'];
+  endDate?: Maybe<Scalars['DateTime']>;
+  ongoing: Scalars['Boolean'];
   position: Scalars['String'];
   skills: Array<Scalars['String']>;
   startDate: Scalars['DateTime'];
@@ -490,7 +596,8 @@ export type WorkExperienceInput = {
   accomplishment: Scalars['String'];
   companyName: Scalars['String'];
   companyWebsite?: InputMaybe<Scalars['String']>;
-  endDate: Scalars['DateTime'];
+  endDate?: InputMaybe<Scalars['DateTime']>;
+  ongoing: Scalars['Boolean'];
   position: Scalars['String'];
   skills: Array<Scalars['String']>;
   startDate: Scalars['DateTime'];
@@ -572,15 +679,24 @@ export type ResolversTypes = {
   AccountFilterInput: AccountFilterInput;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   AccountInput: AccountInput;
-  AccountPayload: ResolverTypeWrapper<AccountPayload>;
+  AccountPayload: ResolverTypeWrapper<Omit<AccountPayload, 'applicant'> & { applicant: Maybe<ResolversTypes['Applicant']> }>;
+  AccountSortField: AccountSortField;
   AccountType: AccountType;
   AccountUpdateInput: AccountUpdateInput;
-  AccountUpdatePayload: ResolverTypeWrapper<AccountUpdatePayload>;
+  AccountUpdatePayload: ResolverTypeWrapper<Omit<AccountUpdatePayload, 'account'> & { account: Maybe<ResolversTypes['AccountPayload']> }>;
   Affiliate: ResolverTypeWrapper<Affiliate>;
   AffiliateLight: ResolverTypeWrapper<AffiliateLight>;
-  Applicant: ResolverTypeWrapper<Applicant>;
+  Applicant: ResolverTypeWrapper<ApplicantMapper>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
-  ApplicantLight: ResolverTypeWrapper<ApplicantLight>;
+  ApplicantAccountConnections: ResolverTypeWrapper<ApplicantAccountConnections>;
+  ApplicantAccountEdge: ResolverTypeWrapper<ApplicantAccountEdge>;
+  ApplicantAppliedJobPostEdge: ResolverTypeWrapper<ApplicantAppliedJobPostEdge>;
+  ApplicantConnection: ResolverTypeWrapper<Omit<ApplicantConnection, 'edges'> & { edges: Array<ResolversTypes['ApplicantEdge']> }>;
+  ApplicantEdge: ResolverTypeWrapper<Omit<ApplicantEdge, 'node'> & { node: ResolversTypes['Applicant'] }>;
+  ApplicantFilter: ApplicantFilter;
+  ApplicantOrdering: ApplicantOrdering;
+  ApplicantSavedJobPostConnections: ResolverTypeWrapper<ApplicantSavedJobPostConnections>;
+  ApplicantSavedJobPostEdge: ResolverTypeWrapper<ApplicantSavedJobPostEdge>;
   ApplicantUpdateInput: ApplicantUpdateInput;
   AuthAccountPayload: ResolverTypeWrapper<AuthAccountPayload>;
   AuthApplicant: ResolverTypeWrapper<AuthApplicant>;
@@ -593,24 +709,30 @@ export type ResolversTypes = {
   EnglishLevel: EnglishLevel;
   Error: ResolverTypeWrapper<Error>;
   ExperienceLevel: ExperienceLevel;
-  FindOnePayload: ResolverTypeWrapper<FindOnePayload>;
+  FindOnePayload: ResolverTypeWrapper<Omit<FindOnePayload, 'account'> & { account: Maybe<ResolversTypes['AccountPayload']> }>;
   Gender: Gender;
+  GetApplicantInput: GetApplicantInput;
+  GetApplicantsInput: GetApplicantsInput;
+  GetJobPostInput: GetJobPostInput;
   IAccount: ResolversTypes['Account'] | ResolversTypes['Affiliate'] | ResolversTypes['Company'];
   JobPost: ResolverTypeWrapper<JobPost>;
-  JobPostPayload: ResolverTypeWrapper<JobPostPayload>;
+  JobPostCreate: ResolverTypeWrapper<JobPostCreate>;
   JobSite: JobSite;
   JobType: JobType;
   JopPostFilterInput: JopPostFilterInput;
   LoginInput: LoginInput;
-  MeAccountPayload: ResolverTypeWrapper<MeAccountPayload>;
+  MeAccountPayload: ResolverTypeWrapper<Omit<MeAccountPayload, 'applicant'> & { applicant: Maybe<ResolversTypes['Applicant']> }>;
   MeInput: MeInput;
   Mutation: ResolverTypeWrapper<{}>;
+  Node: ResolversTypes['Applicant'] | ResolversTypes['JobPost'];
   OAuth: ResolverTypeWrapper<OAuth>;
   OAuthAccount: OAuthAccount;
   OAuthAccountInput: OAuthAccountInput;
   OAuthInput: OAuthInput;
   OAuthLoginInput: OAuthLoginInput;
   OAuthSignUpInput: OAuthSignUpInput;
+  OrderDirection: OrderDirection;
+  PageInfo: ResolverTypeWrapper<PageInfo>;
   PayloadError: ResolversTypes['AccountUpdatePayload'] | ResolversTypes['AuthPayload'] | ResolversTypes['FindOnePayload'];
   Query: ResolverTypeWrapper<{}>;
   SalaryType: SalaryType;
@@ -629,14 +751,22 @@ export type ResolversParentTypes = {
   AccountFilterInput: AccountFilterInput;
   ID: Scalars['ID'];
   AccountInput: AccountInput;
-  AccountPayload: AccountPayload;
+  AccountPayload: Omit<AccountPayload, 'applicant'> & { applicant: Maybe<ResolversParentTypes['Applicant']> };
   AccountUpdateInput: AccountUpdateInput;
-  AccountUpdatePayload: AccountUpdatePayload;
+  AccountUpdatePayload: Omit<AccountUpdatePayload, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
   Affiliate: Affiliate;
   AffiliateLight: AffiliateLight;
-  Applicant: Applicant;
+  Applicant: ApplicantMapper;
   Int: Scalars['Int'];
-  ApplicantLight: ApplicantLight;
+  ApplicantAccountConnections: ApplicantAccountConnections;
+  ApplicantAccountEdge: ApplicantAccountEdge;
+  ApplicantAppliedJobPostEdge: ApplicantAppliedJobPostEdge;
+  ApplicantConnection: Omit<ApplicantConnection, 'edges'> & { edges: Array<ResolversParentTypes['ApplicantEdge']> };
+  ApplicantEdge: Omit<ApplicantEdge, 'node'> & { node: ResolversParentTypes['Applicant'] };
+  ApplicantFilter: ApplicantFilter;
+  ApplicantOrdering: ApplicantOrdering;
+  ApplicantSavedJobPostConnections: ApplicantSavedJobPostConnections;
+  ApplicantSavedJobPostEdge: ApplicantSavedJobPostEdge;
   ApplicantUpdateInput: ApplicantUpdateInput;
   AuthAccountPayload: AuthAccountPayload;
   AuthApplicant: AuthApplicant;
@@ -647,21 +777,26 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean'];
   DateTime: Scalars['DateTime'];
   Error: Error;
-  FindOnePayload: FindOnePayload;
+  FindOnePayload: Omit<FindOnePayload, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
+  GetApplicantInput: GetApplicantInput;
+  GetApplicantsInput: GetApplicantsInput;
+  GetJobPostInput: GetJobPostInput;
   IAccount: ResolversParentTypes['Account'] | ResolversParentTypes['Affiliate'] | ResolversParentTypes['Company'];
   JobPost: JobPost;
-  JobPostPayload: JobPostPayload;
+  JobPostCreate: JobPostCreate;
   JopPostFilterInput: JopPostFilterInput;
   LoginInput: LoginInput;
-  MeAccountPayload: MeAccountPayload;
+  MeAccountPayload: Omit<MeAccountPayload, 'applicant'> & { applicant: Maybe<ResolversParentTypes['Applicant']> };
   MeInput: MeInput;
   Mutation: {};
+  Node: ResolversParentTypes['Applicant'] | ResolversParentTypes['JobPost'];
   OAuth: OAuth;
   OAuthAccount: OAuthAccount;
   OAuthAccountInput: OAuthAccountInput;
   OAuthInput: OAuthInput;
   OAuthLoginInput: OAuthLoginInput;
   OAuthSignUpInput: OAuthSignUpInput;
+  PageInfo: PageInfo;
   PayloadError: ResolversParentTypes['AccountUpdatePayload'] | ResolversParentTypes['AuthPayload'] | ResolversParentTypes['FindOnePayload'];
   Query: {};
   SaveJobPostInput: SaveJobPostInput;
@@ -677,8 +812,9 @@ export type AccountResolvers<ContextType = GraphqlContext, ParentType extends Re
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fullName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  image?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  image?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -687,7 +823,7 @@ export type AccountResolvers<ContextType = GraphqlContext, ParentType extends Re
 export type AccountPayloadResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['AccountPayload'] = ResolversParentTypes['AccountPayload']> = {
   accountType?: Resolver<ResolversTypes['AccountType'], ParentType, ContextType>;
   affiliate?: Resolver<Maybe<ResolversTypes['AffiliateLight']>, ParentType, ContextType>;
-  applicant?: Resolver<Maybe<ResolversTypes['ApplicantLight']>, ParentType, ContextType>;
+  applicant?: Resolver<Maybe<ResolversTypes['Applicant']>, ParentType, ContextType>;
   company?: Resolver<Maybe<ResolversTypes['CompanyLight']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -728,12 +864,13 @@ export type ApplicantResolvers<ContextType = GraphqlContext, ParentType extends 
   WorkExperienceYears?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   about?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   accomplishment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  account?: Resolver<ResolversTypes['Account'], ParentType, ContextType>;
   education?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   englishLevel?: Resolver<Maybe<ResolversTypes['EnglishLevel']>, ParentType, ContextType>;
   experienceYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   gender?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   github?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   jobPosition?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   languages?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   linkedin?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -742,33 +879,53 @@ export type ApplicantResolvers<ContextType = GraphqlContext, ParentType extends 
   portfolio?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   resume?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   salaryExpectation?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  savedJobs?: Resolver<Array<ResolversTypes['JobPost']>, ParentType, ContextType>;
+  savedJobs?: Resolver<ResolversTypes['ApplicantSavedJobPostConnections'], ParentType, ContextType, Partial<ApplicantSavedJobsArgs>>;
   skillLevel?: Resolver<Maybe<ResolversTypes['ExperienceLevel']>, ParentType, ContextType>;
   skills?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   workExperience?: Resolver<Array<ResolversTypes['WorkExperience']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ApplicantLightResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantLight'] = ResolversParentTypes['ApplicantLight']> = {
-  WorkExperienceYears?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  about?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  accomplishment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  education?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  englishLevel?: Resolver<Maybe<ResolversTypes['EnglishLevel']>, ParentType, ContextType>;
-  experienceYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  gender?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  github?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  jobPosition?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  languages?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
-  linkedin?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  otherLanguages?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
-  portfolio?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  resume?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  salaryExpectation?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  skillLevel?: Resolver<Maybe<ResolversTypes['ExperienceLevel']>, ParentType, ContextType>;
-  skills?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+export type ApplicantAccountConnectionsResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantAccountConnections'] = ResolversParentTypes['ApplicantAccountConnections']> = {
+  edges?: Resolver<Array<ResolversTypes['ApplicantAccountEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ApplicantAccountEdgeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantAccountEdge'] = ResolversParentTypes['ApplicantAccountEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Account'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ApplicantAppliedJobPostEdgeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantAppliedJobPostEdge'] = ResolversParentTypes['ApplicantAppliedJobPostEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['JobPost'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ApplicantConnectionResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantConnection'] = ResolversParentTypes['ApplicantConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['ApplicantEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ApplicantEdgeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantEdge'] = ResolversParentTypes['ApplicantEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Applicant'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ApplicantSavedJobPostConnectionsResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantSavedJobPostConnections'] = ResolversParentTypes['ApplicantSavedJobPostConnections']> = {
+  edges?: Resolver<Array<ResolversTypes['ApplicantSavedJobPostEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ApplicantSavedJobPostEdgeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['ApplicantSavedJobPostEdge'] = ResolversParentTypes['ApplicantSavedJobPostEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['JobPost'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -856,7 +1013,7 @@ export type JobPostResolvers<ContextType = GraphqlContext, ParentType extends Re
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   englishLevel?: Resolver<ResolversTypes['EnglishLevel'], ParentType, ContextType>;
   experienceLevel?: Resolver<ResolversTypes['ExperienceLevel'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interviewQuestions?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   isVisible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   jobExperience?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -874,7 +1031,7 @@ export type JobPostResolvers<ContextType = GraphqlContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type JobPostPayloadResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['JobPostPayload'] = ResolversParentTypes['JobPostPayload']> = {
+export type JobPostCreateResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['JobPostCreate'] = ResolversParentTypes['JobPostCreate']> = {
   errors?: Resolver<Array<ResolversTypes['Error']>, ParentType, ContextType>;
   jobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -898,13 +1055,18 @@ export type MeAccountPayloadResolvers<ContextType = GraphqlContext, ParentType e
 };
 
 export type MutationResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  createJobPost?: Resolver<ResolversTypes['JobPostPayload'], ParentType, ContextType, RequireFields<MutationCreateJobPostArgs, 'input'>>;
+  createJobPost?: Resolver<ResolversTypes['JobPostCreate'], ParentType, ContextType, RequireFields<MutationCreateJobPostArgs, 'input'>>;
   logIn?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationLogInArgs, 'input'>>;
   saveJobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<MutationSaveJobPostArgs, 'input'>>;
   sayHi?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   signUp?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignUpArgs, 'input'>>;
   signUpOAuth?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationSignUpOAuthArgs, 'input'>>;
   updateProfile?: Resolver<ResolversTypes['AccountUpdatePayload'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
+};
+
+export type NodeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = {
+  __resolveType: TypeResolveFn<'Applicant' | 'JobPost', ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 };
 
 export type OAuthResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['OAuth'] = ResolversParentTypes['OAuth']> = {
@@ -918,6 +1080,14 @@ export type OAuthResolvers<ContextType = GraphqlContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PageInfoResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+  endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PayloadErrorResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['PayloadError'] = ResolversParentTypes['PayloadError']> = {
   __resolveType: TypeResolveFn<'AccountUpdatePayload' | 'AuthPayload' | 'FindOnePayload', ParentType, ContextType>;
   errors?: Resolver<Array<ResolversTypes['Error']>, ParentType, ContextType>;
@@ -925,7 +1095,10 @@ export type PayloadErrorResolvers<ContextType = GraphqlContext, ParentType exten
 
 export type QueryResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   findAccount?: Resolver<Maybe<ResolversTypes['FindOnePayload']>, ParentType, ContextType, RequireFields<QueryFindAccountArgs, 'input'>>;
+  getApplicant?: Resolver<Maybe<ResolversTypes['Applicant']>, ParentType, ContextType, RequireFields<QueryGetApplicantArgs, 'input'>>;
+  getApplicants?: Resolver<Maybe<ResolversTypes['ApplicantConnection']>, ParentType, ContextType, RequireFields<QueryGetApplicantsArgs, 'input'>>;
   getCompanies?: Resolver<Array<ResolversTypes['Company']>, ParentType, ContextType>;
+  getJobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<QueryGetJobPostArgs, 'input'>>;
   getJobPosts?: Resolver<Array<ResolversTypes['JobPost']>, ParentType, ContextType, Partial<QueryGetJobPostsArgs>>;
   getSavedJobPosts?: Resolver<Array<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<QueryGetSavedJobPostsArgs, 'input'>>;
   me?: Resolver<Maybe<ResolversTypes['MeAccountPayload']>, ParentType, ContextType, RequireFields<QueryMeArgs, 'input'>>;
@@ -936,7 +1109,8 @@ export type WorkExperienceResolvers<ContextType = GraphqlContext, ParentType ext
   accomplishment?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   companyName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   companyWebsite?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  endDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  endDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  ongoing?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   position?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   skills?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   startDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -950,7 +1124,13 @@ export type Resolvers<ContextType = GraphqlContext> = {
   Affiliate?: AffiliateResolvers<ContextType>;
   AffiliateLight?: AffiliateLightResolvers<ContextType>;
   Applicant?: ApplicantResolvers<ContextType>;
-  ApplicantLight?: ApplicantLightResolvers<ContextType>;
+  ApplicantAccountConnections?: ApplicantAccountConnectionsResolvers<ContextType>;
+  ApplicantAccountEdge?: ApplicantAccountEdgeResolvers<ContextType>;
+  ApplicantAppliedJobPostEdge?: ApplicantAppliedJobPostEdgeResolvers<ContextType>;
+  ApplicantConnection?: ApplicantConnectionResolvers<ContextType>;
+  ApplicantEdge?: ApplicantEdgeResolvers<ContextType>;
+  ApplicantSavedJobPostConnections?: ApplicantSavedJobPostConnectionsResolvers<ContextType>;
+  ApplicantSavedJobPostEdge?: ApplicantSavedJobPostEdgeResolvers<ContextType>;
   AuthAccountPayload?: AuthAccountPayloadResolvers<ContextType>;
   AuthApplicant?: AuthApplicantResolvers<ContextType>;
   AuthPayload?: AuthPayloadResolvers<ContextType>;
@@ -961,10 +1141,12 @@ export type Resolvers<ContextType = GraphqlContext> = {
   FindOnePayload?: FindOnePayloadResolvers<ContextType>;
   IAccount?: IAccountResolvers<ContextType>;
   JobPost?: JobPostResolvers<ContextType>;
-  JobPostPayload?: JobPostPayloadResolvers<ContextType>;
+  JobPostCreate?: JobPostCreateResolvers<ContextType>;
   MeAccountPayload?: MeAccountPayloadResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Node?: NodeResolvers<ContextType>;
   OAuth?: OAuthResolvers<ContextType>;
+  PageInfo?: PageInfoResolvers<ContextType>;
   PayloadError?: PayloadErrorResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   WorkExperience?: WorkExperienceResolvers<ContextType>;

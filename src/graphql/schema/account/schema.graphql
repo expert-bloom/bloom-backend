@@ -32,10 +32,12 @@ input WorkExperienceInput {
     companyWebsite: String
     position: String!
     startDate: DateTime!
-    endDate: DateTime!
+    endDate: DateTime
+    ongoing: Boolean!
     accomplishment: String!
     skills  :       [String!]!
 }
+
 
 input ApplicantUpdateInput {
     experienceYear: Int
@@ -51,7 +53,7 @@ input ApplicantUpdateInput {
 #    otherLanguages :     [String]
     accomplishment :     String
 
-    workExperience: [WorkExperienceInput!]!
+    workExperience: [WorkExperienceInput!]
 
 
     github:         String
@@ -76,7 +78,7 @@ type AccountPayload {
 
     oAuthClient: [OAuth!]!
     company: CompanyLight
-    applicant: ApplicantLight
+    applicant: Applicant
     affiliate: AffiliateLight
 }
 
@@ -147,13 +149,27 @@ type Account implements IAccount{
     id: String!
     email: String!
     firstName: String!
+    fullName: String!
     lastName: String!
     accountType: AccountType!
     createdAt: DateTime!
     phone: String
-    image: String
+    image: String!
 }
 
+
+enum AccountSortField {
+    "Sort users by created at."
+    CREATED_AT
+    "Sort users by email."
+    EMAIL
+    "Sort users by first name."
+    FIRST_NAME
+    "Sort users by last modified at."
+    LAST_MODIFIED_AT
+    "Sort users by last name."
+    LAST_NAME
+}
 
 
 

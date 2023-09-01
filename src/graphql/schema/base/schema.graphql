@@ -9,3 +9,17 @@ type Error {
 interface PayloadError {
   errors: [Error!]!
 }
+
+"An object with an ID"
+interface Node {
+  "The ID of the object."
+  id: ID!
+}
+
+
+enum OrderDirection {
+  "Specifies an ascending sort order."
+  ASC
+  "Specifies a descending sort order."
+  DESC
+}

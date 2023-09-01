@@ -1,14 +1,11 @@
 import type {
   AccountInput,
-  FindOnePayload,
   MeInput,
   UpdateProfileInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
-import { Prisma } from '.prisma/client';
-import WorkExperienceUncheckedUpdateManyWithoutApplicantNestedInput = Prisma.WorkExperienceUncheckedUpdateManyWithoutApplicantNestedInput;
 
-async function findOne(input: AccountInput): Promise<FindOnePayload> {
+async function findOne(input: AccountInput) {
   // filter out the undefined values
   const filteredInput: any = Object.keys(input).reduce((acc, key) => {
     if (input[key] !== undefined) {
@@ -79,7 +76,7 @@ async function updateProfile(input: UpdateProfileInput) {
   const nonNullAccountInput: any = clearUndefined(accountInput);
   const nonNullApplicantInput: any = clearUndefined(applicantInput);
 
-  const workExperience  =
+  const workExperience =
     Boolean(nonNullApplicantInput?.workExperience) &&
     Array.isArray(nonNullApplicantInput.workExperience)
       ? {
@@ -142,10 +139,36 @@ async function updateProfile(input: UpdateProfileInput) {
   };
 }
 
+type GetAccountArg = {
+  id: string;
+  email?: string;
+};
+
+async function getAccount(input: AccountInput) {
+  // filter out the undefined values
+  const filteredInput: any = Object.keys(input).reduce((acc, key) => {
+    if (input[key] !== undefined) {
+      acc[key] = input[key];
+    }
+    return acc;
+  }, {});
+
+  const account = await prisma.account.findUnique({
+    where: {
+      ...filteredInput,
+    },
+  });
+
+  console.log('find one  :  ', account, input);
+
+  return account;
+}
+
 const account = {
   findOne,
   getMe,
   updateProfile,
+  getAccount,
 };
 
 export default account;

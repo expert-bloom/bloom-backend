@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import type {
   CreateJobPostInput,
+  GetJobPostInput,
   JobPost,
-  JobPostPayload,
   JopPostFilterInput,
   SavedJobPostsInput,
   SaveJobPostInput,
@@ -24,10 +24,14 @@ async function getPostedJobs(input?: JopPostFilterInput): Promise<JobPost[]> {
     include: {
       affiliate: true,
       company: true,
-    },
+    }, // take: 5,
+    // skip: 1, // Skip the cursor
+    // cursor: {
+    //   id: myCursor,
+    // },
   });
 
-  console.log('get Posts', input, jobPosts);
+  // console.log('get Posts', input, jobPosts);
 
   return jobPosts;
 }
@@ -48,7 +52,7 @@ async function getSavedJobs(input: SavedJobPostsInput): Promise<JobPost[]> {
     },
   });
 
-  console.log('get saved Posts', input, jobPosts);
+  // console.log('get saved Posts', input, jobPosts);
 
   return jobPosts;
 }
@@ -116,11 +120,29 @@ async function saveJobPost(input: SaveJobPostInput) {
   return jobPost.savedJobs.find((p) => p.id === input.jobPostId) ?? null;
 }
 
+async function getJobPost(input: GetJobPostInput) {
+  const jobPost = await prisma.jobPost.findUnique({
+    where: {
+      id: input.id,
+    },
+    include: {
+      company: true,
+      affiliate: true,
+      savedBy: true,
+    },
+  });
+
+  // console.log('get jobPost', input, jobPost);
+
+  return jobPost;
+}
+
 const jobPost = {
   getPostedJobs,
   createJobPost,
   getSavedJobs,
   saveJobPost,
+  getJobPost,
 };
 
 export default jobPost;
