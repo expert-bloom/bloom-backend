@@ -3,6 +3,42 @@ extend type Query{
     getApplicant(input: GetApplicantInput!): Applicant
 }
 
+extend type Mutation {
+    applicantProfileUpdate(input: ApplicantProfileUpdateInput!): AccountUpdate!
+}
+
+input ApplicantProfileUpdateInput {
+    accountId: String!
+    account: AccountUpdateInput
+    applicant: ApplicantUpdateInput
+}
+
+input ApplicantUpdateInput {
+    experienceYear: Int
+    resume: String
+    #    gender: String
+
+    about:               String
+    jobPosition:         String
+    salaryExpectation:   Int
+    location :           String
+    skillLevel :         ExperienceLevel
+    englishLevel:        EnglishLevel
+    #    otherLanguages :     [String]
+    accomplishment :     String
+
+    workExperience: [WorkExperienceInput!]
+
+
+    github:         String
+    linkedin:       String
+    portfolio:      String
+
+    #    education:      String
+    skills:         [String!]
+}
+
+
 
 input GetApplicantsInput {
     filter: ApplicantFilter

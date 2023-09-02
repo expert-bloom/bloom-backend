@@ -25,16 +25,18 @@ export const Applicant: ApplicantResolvers = {
   },
 
   account: async (parent, args, context) => {
-    const account = await context.service.Account.getAccount({
+    console.log('account resolver parent : ', parent);
+
+    const applicant = await context.service.Applicant.getApplicantAccount({
       id: parent.id,
     });
 
-    if (account === null) {
+    if (applicant === null) {
       throw new GraphQLError(
         `account cant be null for a given applicant : ${parent.id}`,
       );
     }
 
-    return account;
-  }
+    return applicant;
+  },
 };

@@ -4,23 +4,12 @@ extend type Query {
 
 }
 
-type Company implements IAccount{
-    id: String!
-    email: String!
-    firstName: String!
-    lastName: String!
-    createdAt: DateTime!
-    phone: String
-    image: String
-    accountType: AccountType!
+type Company implements Node{
+    id: ID!
 
     companyName: String
     logo: String
 
-}
+    account: Account!
 
-type CompanyLight {
-    id: String!
-    companyName: String
-    logo: String
 }

@@ -1,9 +1,9 @@
 import prisma from '@/lib/prisma';
-import {
+import type {
   GetApplicantInput,
-  GetApplicantPayload,
   GetApplicantsInput,
 } from '@/graphql/schema/types.generated';
+import { GraphQLError } from 'graphql/error';
 
 async function getAllApplicants(input: GetApplicantsInput) {
   const applicant = await prisma.applicant.findMany({
@@ -15,10 +15,11 @@ async function getAllApplicants(input: GetApplicantsInput) {
 
     take: input.first ?? undefined,
     skip: input.after != null ? 1 : 0,
-    cursor: {
-      id: input.after ?? undefined,
-    },
-
+    ...(input.after != null
+      ? {
+          cursor: { id: input.after },
+        }
+      : {}),
   });
 
   // console.log('applicant : ', applicant);
@@ -39,6 +40,19 @@ async function getApplicant(input: GetApplicantInput) {
   });
 
   return applicant;
+}
+
+async function getApplicantAccount(input: GetApplicantInput) {
+  const applicant = await prisma.applicant.findUnique({
+    where: {
+      id: input.id,
+    },
+    include: {
+      account: true,
+    },
+  });
+
+  return applicant?.account ?? null;
 }
 
 async function getSavedJobs(input: GetApplicantInput) {
@@ -73,6 +87,7 @@ const account = {
   getAllApplicants,
   getSavedJobs,
   getWorkExperience,
+  getApplicantAccount,
 };
 
 export default account;

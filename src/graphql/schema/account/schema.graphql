@@ -1,14 +1,14 @@
 #schema.graphql
 extend type Query{
-    me (input: MeInput!): MeAccountPayload
+    me (input: MeInput!): AccountPayload
     findAccount(input: AccountInput!): FindOnePayload
 }
 
 extend type Mutation {
-    updateProfile(input: UpdateProfileInput!): AccountUpdatePayload!
+    profileUpdate(input: UpdateProfileInput!): AccountUpdate!
 }
 
-type AccountUpdatePayload implements PayloadError{
+type AccountUpdate implements PayloadError{
     errors: [Error!]!
     account: AccountPayload
 }
@@ -39,32 +39,6 @@ input WorkExperienceInput {
 }
 
 
-input ApplicantUpdateInput {
-    experienceYear: Int
-    resume: String
-#    gender: String
-
-    about:               String
-    jobPosition:         String
-    salaryExpectation:   Int
-    location :           String
-    skillLevel :         ExperienceLevel
-    englishLevel:        EnglishLevel
-#    otherLanguages :     [String]
-    accomplishment :     String
-
-    workExperience: [WorkExperienceInput!]
-
-
-    github:         String
-    linkedin:       String
-    portfolio:      String
-
-#    education:      String
-    skills:         [String!]
-}
-
-
 type AccountPayload {
     id: String!
     email: String!
@@ -77,29 +51,10 @@ type AccountPayload {
     image: String
 
     oAuthClient: [OAuth!]!
-    company: CompanyLight
+    company: Company
     applicant: Applicant
     affiliate: AffiliateLight
 }
-
-type MeAccountPayload {
-    id: String!
-    email: String!
-    emailVerified: DateTime
-    firstName: String!
-    lastName: String!
-    createdAt: DateTime!
-    accountType: AccountType!
-    phone: String
-    image: String
-
-    oAuthClient: [OAuth!]!
-    company: CompanyLight
-    applicant: Applicant
-    affiliate: AffiliateLight
-}
-
-
 
 input MeInput {
     accountId: String!
@@ -137,6 +92,7 @@ enum Gender {
 interface IAccount {
     id: String!
     email: String!
+    emailVerified: DateTime
     firstName: String!
     lastName: String!
     accountType: AccountType!
@@ -148,9 +104,10 @@ interface IAccount {
 type Account implements IAccount{
     id: String!
     email: String!
+    emailVerified: DateTime
     firstName: String!
-    fullName: String!
     lastName: String!
+    fullName: String!
     accountType: AccountType!
     createdAt: DateTime!
     phone: String

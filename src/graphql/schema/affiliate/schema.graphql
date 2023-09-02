@@ -1,6 +1,7 @@
 type Affiliate implements IAccount{
     id: String!
     email: String!
+    emailVerified: DateTime
     firstName: String!
     lastName: String!
     createdAt: DateTime!

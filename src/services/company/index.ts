@@ -1,18 +1,14 @@
-import type { Company } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
 
-async function getCompanies(): Promise<Company[]> {
+async function getCompanies() {
   const companies = await prisma.company.findMany({
     where: {},
     include: {
-      account: true,
+      // account: true,
     },
   });
 
-  return companies.map((company) => ({
-    ...company,
-    ...company.account,
-  }));
+  return companies;
 }
 
 const account = {
