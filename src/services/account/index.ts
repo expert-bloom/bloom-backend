@@ -4,8 +4,6 @@ import type {
   MeInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
-import { Prisma } from '.prisma/client';
-import AccountWhereUniqueInput = Prisma.AccountWhereUniqueInput;
 
 async function findOne(input: AccountInput) {
   // filter out the undefined values
@@ -47,7 +45,7 @@ async function getMe(input: MeInput) {
     include: {
       applicant: {
         include: {
-          savedJobs: true,
+          // savedJobs: true,
           workExperience: true,
         },
       },
@@ -92,7 +90,7 @@ async function updateProfile(input: ApplicantProfileUpdateInput) {
         }
       : {};
 
-  console.log('workExperience -- : ', JSON.stringify(workExperience, null, 2));
+  // console.log('workExperience -- : ', JSON.stringify(workExperience, null, 2));
 
   if (Array.isArray(nonNullApplicantInput?.workExperience)) {
     delete nonNullApplicantInput.workExperience;
@@ -141,7 +139,6 @@ async function updateProfile(input: ApplicantProfileUpdateInput) {
   };
 }
 
-
 async function getAccount(input: AccountInput) {
   // filter out the undefined values
   const filteredInput: any = Object.keys(input).reduce((acc, key) => {
@@ -161,6 +158,7 @@ async function getAccount(input: AccountInput) {
 
   return account;
 }
+
 async function getApplicantAccount(input: AccountInput) {
   // filter out the undefined values
   const filteredInput: any = Object.keys(input).reduce((acc, key) => {

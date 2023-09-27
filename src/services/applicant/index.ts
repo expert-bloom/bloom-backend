@@ -69,6 +69,16 @@ async function getSavedJobs(input: GetApplicantInput) {
   return savedJobs;
 }
 
+async function getJobApplications(input: GetApplicantInput) {
+  const applications = await prisma.jobApplication.findMany({
+    where: {
+      applicantId: input.id,
+    },
+  });
+
+  return applications;
+}
+
 async function getWorkExperience(input: GetApplicantInput) {
   const workExperience = await prisma.workExperience.findMany({
     where: {
@@ -88,6 +98,7 @@ const account = {
   getSavedJobs,
   getWorkExperience,
   getApplicantAccount,
+  getJobApplications,
 };
 
 export default account;

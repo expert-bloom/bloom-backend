@@ -45,6 +45,28 @@ type JobPost implements Node{
     updatedAt: DateTime!
 }
 
+enum ApplicationStatus {
+    PENDING
+    INTERVIEW
+    ACCEPTED
+    REJECTED
+}
+
+
+type Application implements Node{
+    id: ID!
+    status:  ApplicationStatus!
+    coverLetter: String!
+    resume: String!
+    attachment: String
+
+    applicantId: String!
+    jobPostId: String!
+
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
 input JopPostFilterInput {
     companyId: String!
 }

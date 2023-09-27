@@ -25,7 +25,7 @@ export const Applicant: ApplicantResolvers = {
   },
 
   account: async (parent, args, context) => {
-    console.log('account resolver parent : ', parent);
+    // console.log('account resolver parent : ', parent);
 
     const applicant = await context.service.Applicant.getApplicantAccount({
       id: parent.id,
@@ -38,5 +38,19 @@ export const Applicant: ApplicantResolvers = {
     }
 
     return applicant;
+  },
+
+  applications: async (parent, args, context) => {
+    const jobApplications = await context.service.Applicant.getJobApplications({
+      id: parent.id,
+    });
+
+    return {
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+      edges: jobApplications.map((job) => ({ node: job, cursor: job.id })),
+    };
   },
 };

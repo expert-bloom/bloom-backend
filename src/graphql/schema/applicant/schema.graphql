@@ -143,14 +143,31 @@ type Applicant implements Node{
     portfolio:      String
 
     account: Account!
+
     savedJobs(
         first: Int
         after: String
         last: Int
         before: String
     ):  ApplicantSavedJobPostConnections!
-    #    savedJobs: [JobPost!]!
 
+    applications(
+        first: Int
+        after: String
+        last: Int
+        before: String
+    ):  ApplicationConnections!
+
+}
+
+type ApplicationEdge {
+    cursor: String!
+    node: Application!
+}
+
+type ApplicationConnections {
+    edges: [ApplicationEdge!]!
+    pageInfo: PageInfo!
 }
 
 

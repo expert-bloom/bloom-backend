@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import type { QueryResolvers } from './../../../types.generated';
 
 export const getApplicants: NonNullable<

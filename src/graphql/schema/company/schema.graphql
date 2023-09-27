@@ -1,7 +1,21 @@
 #schema.graphql
 extend type Query {
     getCompanies: [Company!]!
+    getSavedApplicant(input: GetSavedApplicantInput!): [Applicant!]!
+}
 
+extend type Mutation {
+    saveApplicant(input: SaveApplicantInput!): Boolean
+}
+
+input GetSavedApplicantInput {
+    companyId: String!
+}
+
+input SaveApplicantInput {
+    applicantId: String!
+    companyId: String!
+    save: Boolean! = true
 }
 
 type Company implements Node{
@@ -11,5 +25,8 @@ type Company implements Node{
     logo: String
 
     account: Account!
+
+    savedApplicants: [Applicant!]!
+
 
 }

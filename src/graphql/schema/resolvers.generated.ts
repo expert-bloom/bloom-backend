@@ -13,6 +13,9 @@ import    { ApplicantConnection } from './applicant/resolvers/ApplicantConnectio
 import    { ApplicantEdge } from './applicant/resolvers/ApplicantEdge';
 import    { ApplicantSavedJobPostConnections } from './applicant/resolvers/ApplicantSavedJobPostConnections';
 import    { ApplicantSavedJobPostEdge } from './applicant/resolvers/ApplicantSavedJobPostEdge';
+import    { Application } from './job/resolvers/Application';
+import    { ApplicationConnections } from './applicant/resolvers/ApplicationConnections';
+import    { ApplicationEdge } from './applicant/resolvers/ApplicationEdge';
 import    { AuthAccountPayload } from './auth/resolvers/AuthAccountPayload';
 import    { AuthApplicant } from './auth/resolvers/AuthApplicant';
 import    { AuthPayload } from './auth/resolvers/AuthPayload';
@@ -25,6 +28,7 @@ import    { applicantProfileUpdate as Mutation_applicantProfileUpdate } from './
 import    { createJobPost as Mutation_createJobPost } from './job/resolvers/Mutation/createJobPost';
 import    { logIn as Mutation_logIn } from './auth/resolvers/Mutation/logIn';
 import    { profileUpdate as Mutation_profileUpdate } from './account/resolvers/Mutation/profileUpdate';
+import    { saveApplicant as Mutation_saveApplicant } from './company/resolvers/Mutation/saveApplicant';
 import    { saveJobPost as Mutation_saveJobPost } from './job/resolvers/Mutation/saveJobPost';
 import    { sayHi as Mutation_sayHi } from './job/resolvers/Mutation/sayHi';
 import    { signUp as Mutation_signUp } from './auth/resolvers/Mutation/signUp';
@@ -37,14 +41,15 @@ import    { getApplicants as Query_getApplicants } from './applicant/resolvers/Q
 import    { getCompanies as Query_getCompanies } from './company/resolvers/Query/getCompanies';
 import    { getJobPost as Query_getJobPost } from './job/resolvers/Query/getJobPost';
 import    { getJobPosts as Query_getJobPosts } from './job/resolvers/Query/getJobPosts';
+import    { getSavedApplicant as Query_getSavedApplicant } from './company/resolvers/Query/getSavedApplicant';
 import    { getSavedJobPosts as Query_getSavedJobPosts } from './job/resolvers/Query/getSavedJobPosts';
 import    { me as Query_me } from './account/resolvers/Query/me';
 import    { sayHi as Query_sayHi } from './job/resolvers/Query/sayHi';
 import    { WorkExperience } from './applicant/resolvers/WorkExperience';
 import    { DateTimeResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
-      Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
-      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createJobPost: Mutation_createJobPost,logIn: Mutation_logIn,profileUpdate: Mutation_profileUpdate,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth },
+      Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedApplicant: Query_getSavedApplicant,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
+      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createJobPost: Mutation_createJobPost,logIn: Mutation_logIn,profileUpdate: Mutation_profileUpdate,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth },
       
       Account: Account,
 AccountPayload: AccountPayload,
@@ -59,6 +64,9 @@ ApplicantConnection: ApplicantConnection,
 ApplicantEdge: ApplicantEdge,
 ApplicantSavedJobPostConnections: ApplicantSavedJobPostConnections,
 ApplicantSavedJobPostEdge: ApplicantSavedJobPostEdge,
+Application: Application,
+ApplicationConnections: ApplicationConnections,
+ApplicationEdge: ApplicationEdge,
 AuthAccountPayload: AuthAccountPayload,
 AuthApplicant: AuthApplicant,
 AuthPayload: AuthPayload,
