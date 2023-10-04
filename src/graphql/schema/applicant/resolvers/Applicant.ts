@@ -38,19 +38,5 @@ export const Applicant: ApplicantResolvers = {
     }
 
     return applicant;
-  },
-
-  applications: async (parent, args, context) => {
-    const jobApplications = await context.service.Applicant.getJobApplications({
-      id: parent.id,
-    });
-
-    return {
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-      },
-      edges: jobApplications.map((job) => ({ node: job, cursor: job.id })),
-    };
-  },
+  }
 };

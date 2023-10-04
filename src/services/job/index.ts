@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import type {
+  CompanyJobPostsResponse,
   CreateJobPostInput,
+  EditJobPostInput,
+  GetCompanyJobPostsInput,
   GetJobPostInput,
   JobPost,
   JopPostFilterInput,
@@ -8,6 +11,7 @@ import type {
   SaveJobPostInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
+import { clearUndefined } from '@/services/account';
 
 async function getPostedJobs(input?: JopPostFilterInput): Promise<JobPost[]> {
   const filter: any = Object.keys(input ?? {}).reduce((acc, key) => {
@@ -34,6 +38,37 @@ async function getPostedJobs(input?: JopPostFilterInput): Promise<JobPost[]> {
   // console.log('get Posts', input, jobPosts);
 
   return jobPosts;
+}
+
+async function getCompanyPostedJobs(input: GetCompanyJobPostsInput) {
+  // : Promise<CompanyJobPostsResponse>
+  const jobPosts = await prisma.jobPost.findMany({
+    where: {
+      companyId: input.companyId,
+    },
+    include: {
+      // affiliate: true,
+      // company: true,
+      applications: {
+        include: {
+          applicant: true,
+        },
+      },
+    },
+  });
+
+  // console.log('get Posts', input, jobPosts);
+
+  return {
+    errors: [],
+    payload: jobPosts.map((jp) => ({
+      jobPost: jp,
+      applicationsWithApplicant: jp.applications.map((app) => ({
+        application: app,
+        applicant: app.applicant,
+      })),
+    })),
+  };
 }
 
 async function getSavedJobs(input: SavedJobPostsInput): Promise<JobPost[]> {
@@ -92,6 +127,37 @@ async function createJobPost(input: CreateJobPostInput) {
   };
 }
 
+async function editJobPost(input: EditJobPostInput) {
+  const nunNullEditedInput = clearUndefined(input.editedData);
+
+  const jobPost = await prisma.jobPost.update({
+    where: {
+      id: input.filter.jobPostId,
+      companyId: input.filter.companyId,
+    },
+
+    data: {
+      ...nunNullEditedInput,
+    },
+  });
+
+  if (jobPost == null) {
+    return {
+      errors: [
+        {
+          message: 'jobPost not found',
+        },
+      ],
+      jobPost: null,
+    };
+  }
+
+  return {
+    errors: [],
+    jobPost,
+  };
+}
+
 async function saveJobPost(input: SaveJobPostInput) {
   const jobPost = await prisma.applicant.update({
     data: {
@@ -126,9 +192,9 @@ async function getJobPost(input: GetJobPostInput) {
       id: input.id,
     },
     include: {
-      company: true,
-      affiliate: true,
-      savedBy: true,
+      // company: true,
+      // affiliate: true,
+      // savedBy: true,
     },
   });
 
@@ -143,6 +209,8 @@ const jobPost = {
   getSavedJobs,
   saveJobPost,
   getJobPost,
+  editJobPost,
+  getCompanyPostedJobs,
 };
 
 export default jobPost;

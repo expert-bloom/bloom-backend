@@ -4,5 +4,5 @@ import type { Applicant } from '@/graphql/schema/types.generated';
 
 export type ApplicantMapper = Omit<
   Applicant,
-  'savedJobs' | 'workExperience' | 'account' | 'applications'
+  'savedJobs' | 'workExperience' | 'account'
 >;

@@ -58,7 +58,7 @@ async function getMe(input: MeInput) {
   return account;
 }
 
-const clearUndefined = (obj = {}) => {
+export const clearUndefined = (obj = {}) => {
   return Object.keys(obj).reduce((acc, key) => {
     if (obj[key] !== undefined) {
       acc[key] = obj[key];

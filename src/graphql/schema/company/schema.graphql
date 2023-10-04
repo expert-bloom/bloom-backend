@@ -2,10 +2,78 @@
 extend type Query {
     getCompanies: [Company!]!
     getSavedApplicant(input: GetSavedApplicantInput!): [Applicant!]!
+    getCompanyJobPosts(input: GetCompanyJobPostsInput!): CompanyJobPostsResponse!
 }
 
 extend type Mutation {
     saveApplicant(input: SaveApplicantInput!): Boolean
+    createJobPost(input: CreateJobPostInput!): CreateJobPostResponse!
+    EditJobPost(input: EditJobPostInput!): CreateJobPostResponse! # todo: bad naming
+}
+
+input GetCompanyJobPostsInput {
+    companyId: String!
+}
+
+input CreateJobPostInput {
+    title: String!
+    description: String!
+    jobType: JobType!
+    salary: [Int!]!
+    category: [String!]!
+    vacancy: Int!
+    email: String!
+    jobSite: JobSite!
+    applicationDeadline: DateTime!
+    salaryType: SalaryType!
+    isVisible: Boolean!
+    location: String!
+
+    jobExperience: Int!
+    englishLevel: EnglishLevel!
+    otherLanguages: [String!]!
+    skills: [String!]!
+    qualifications :[String!]!
+    interviewQuestions :[String!]!
+    experienceLevel: ExperienceLevel!
+
+
+    postedBy: String!
+    companyId: String!
+    affiliateId: String
+}
+
+input EditJobPostFilter{
+    jobPostId: String!
+    companyId: String! # todo: use auth token
+}
+
+input EditJobPostInputData {
+    title: String
+    description: String
+    jobType: JobType
+    salary: [Int!]
+    category: [String!]
+    vacancy: Int
+    email: String
+    jobSite: JobSite
+    applicationDeadline: DateTime
+    salaryType: SalaryType
+    isVisible: Boolean
+    location: String
+
+    jobExperience: Int
+    englishLevel: EnglishLevel
+    otherLanguages: [String!]
+    skills: [String!]
+    qualifications :[String!]
+    interviewQuestions :[String!]
+    experienceLevel: ExperienceLevel
+}
+
+input EditJobPostInput {
+    filter: EditJobPostFilter!
+    editedData: EditJobPostInputData!
 }
 
 input GetSavedApplicantInput {
@@ -16,6 +84,26 @@ input SaveApplicantInput {
     applicantId: String!
     companyId: String!
     save: Boolean! = true
+}
+
+type CreateJobPostResponse{
+    errors: [Error!]!
+    jobPost: JobPost
+}
+
+type CompanyJobPostsResponse{
+    errors: [Error!]!
+    payload: [CompanyJobPostsPayload!]!
+}
+
+type CompanyJobPostsPayload{
+    jobPost: JobPost!
+    applicationsWithApplicant: [ApplicationsWithApplicant!]!
+}
+
+type ApplicationsWithApplicant {
+    application: Application!
+    applicant: Applicant!
 }
 
 type Company implements Node{

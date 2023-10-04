@@ -72,10 +72,11 @@ model Applicant {
   gender              String?
 
   // links
-  resume    String?
-  github    String?
-  linkedin  String?
-  portfolio String?
+  resume     String?
+  introVideo String?
+  github     String?
+  linkedin   String?
+  portfolio  String?
 
   about               String?
   jobPosition         String?
@@ -191,6 +192,8 @@ model JobApplication {
   attachment  String?
   coverLetter String
   resume      String
+  email       String
+  phone       String
 
   applicant   Applicant @relation(fields: [applicantId], references: [id])
   applicantId String

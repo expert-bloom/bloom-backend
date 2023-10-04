@@ -7,14 +7,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    createJobPost(input: CreateJobPostInput!): JobPostCreate!
     saveJobPost(input: SaveJobPostInput!): JobPost
     sayHi: String!
-}
-
-type JobPostCreate{
-    errors: [Error!]!
-    jobPost: JobPost
 }
 
 type JobPost implements Node{
@@ -40,7 +34,6 @@ type JobPost implements Node{
     qualifications :[String!]!
     interviewQuestions :[String!]!
 
-
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -62,6 +55,8 @@ type Application implements Node{
 
     applicantId: String!
     jobPostId: String!
+    jobPost: JobPost
+#    applicant: Applicant
 
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -85,35 +80,6 @@ input SaveJobPostInput {
     save: Boolean!
 }
 
-
-
-input CreateJobPostInput {
-    title: String!
-    description: String!
-    jobType: JobType!
-    salary: [Int!]!
-    category: [String!]!
-    vacancy: Int!
-    email: String!
-    jobSite: JobSite!
-    applicationDeadline: DateTime!
-    salaryType: SalaryType!
-    isVisible: Boolean!
-    location: String!
-
-    jobExperience: Int!
-    englishLevel: EnglishLevel!
-    otherLanguages: [String!]!
-    skills: [String!]!
-    qualifications :[String!]!
-    interviewQuestions :[String!]!
-    experienceLevel: ExperienceLevel!
-
-
-    postedBy: String!
-    companyId: String!
-    affiliateId: String
-}
 
 enum SalaryType {
     HOURLY

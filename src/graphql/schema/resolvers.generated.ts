@@ -16,16 +16,22 @@ import    { ApplicantSavedJobPostEdge } from './applicant/resolvers/ApplicantSav
 import    { Application } from './job/resolvers/Application';
 import    { ApplicationConnections } from './applicant/resolvers/ApplicationConnections';
 import    { ApplicationEdge } from './applicant/resolvers/ApplicationEdge';
+import    { ApplicationsWithApplicant } from './company/resolvers/ApplicationsWithApplicant';
 import    { AuthAccountPayload } from './auth/resolvers/AuthAccountPayload';
 import    { AuthApplicant } from './auth/resolvers/AuthApplicant';
 import    { AuthPayload } from './auth/resolvers/AuthPayload';
 import    { Company } from './company/resolvers/Company';
+import    { CompanyJobPostsPayload } from './company/resolvers/CompanyJobPostsPayload';
+import    { CompanyJobPostsResponse } from './company/resolvers/CompanyJobPostsResponse';
+import    { CreateApplicationPayload } from './applicant/resolvers/CreateApplicationPayload';
+import    { CreateJobPostResponse } from './company/resolvers/CreateJobPostResponse';
 import    { Error } from './base/resolvers/Error';
 import    { FindOnePayload } from './auth/resolvers/FindOnePayload';
 import    { JobPost } from './job/resolvers/JobPost';
-import    { JobPostCreate } from './job/resolvers/JobPostCreate';
+import    { EditJobPost as Mutation_EditJobPost } from './company/resolvers/Mutation/EditJobPost';
 import    { applicantProfileUpdate as Mutation_applicantProfileUpdate } from './applicant/resolvers/Mutation/applicantProfileUpdate';
-import    { createJobPost as Mutation_createJobPost } from './job/resolvers/Mutation/createJobPost';
+import    { createApplication as Mutation_createApplication } from './applicant/resolvers/Mutation/createApplication';
+import    { createJobPost as Mutation_createJobPost } from './company/resolvers/Mutation/createJobPost';
 import    { logIn as Mutation_logIn } from './auth/resolvers/Mutation/logIn';
 import    { profileUpdate as Mutation_profileUpdate } from './account/resolvers/Mutation/profileUpdate';
 import    { saveApplicant as Mutation_saveApplicant } from './company/resolvers/Mutation/saveApplicant';
@@ -39,6 +45,8 @@ import    { findAccount as Query_findAccount } from './account/resolvers/Query/f
 import    { getApplicant as Query_getApplicant } from './applicant/resolvers/Query/getApplicant';
 import    { getApplicants as Query_getApplicants } from './applicant/resolvers/Query/getApplicants';
 import    { getCompanies as Query_getCompanies } from './company/resolvers/Query/getCompanies';
+import    { getCompanyJobPosts as Query_getCompanyJobPosts } from './company/resolvers/Query/getCompanyJobPosts';
+import    { getJobApplications as Query_getJobApplications } from './applicant/resolvers/Query/getJobApplications';
 import    { getJobPost as Query_getJobPost } from './job/resolvers/Query/getJobPost';
 import    { getJobPosts as Query_getJobPosts } from './job/resolvers/Query/getJobPosts';
 import    { getSavedApplicant as Query_getSavedApplicant } from './company/resolvers/Query/getSavedApplicant';
@@ -48,8 +56,8 @@ import    { sayHi as Query_sayHi } from './job/resolvers/Query/sayHi';
 import    { WorkExperience } from './applicant/resolvers/WorkExperience';
 import    { DateTimeResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
-      Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedApplicant: Query_getSavedApplicant,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
-      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createJobPost: Mutation_createJobPost,logIn: Mutation_logIn,profileUpdate: Mutation_profileUpdate,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth },
+      Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getCompanyJobPosts: Query_getCompanyJobPosts,getJobApplications: Query_getJobApplications,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedApplicant: Query_getSavedApplicant,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
+      Mutation: { EditJobPost: Mutation_EditJobPost,applicantProfileUpdate: Mutation_applicantProfileUpdate,createApplication: Mutation_createApplication,createJobPost: Mutation_createJobPost,logIn: Mutation_logIn,profileUpdate: Mutation_profileUpdate,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth },
       
       Account: Account,
 AccountPayload: AccountPayload,
@@ -67,14 +75,18 @@ ApplicantSavedJobPostEdge: ApplicantSavedJobPostEdge,
 Application: Application,
 ApplicationConnections: ApplicationConnections,
 ApplicationEdge: ApplicationEdge,
+ApplicationsWithApplicant: ApplicationsWithApplicant,
 AuthAccountPayload: AuthAccountPayload,
 AuthApplicant: AuthApplicant,
 AuthPayload: AuthPayload,
 Company: Company,
+CompanyJobPostsPayload: CompanyJobPostsPayload,
+CompanyJobPostsResponse: CompanyJobPostsResponse,
+CreateApplicationPayload: CreateApplicationPayload,
+CreateJobPostResponse: CreateJobPostResponse,
 Error: Error,
 FindOnePayload: FindOnePayload,
 JobPost: JobPost,
-JobPostCreate: JobPostCreate,
 OAuth: OAuth,
 PageInfo: PageInfo,
 WorkExperience: WorkExperience,

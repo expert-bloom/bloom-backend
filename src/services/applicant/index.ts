@@ -1,9 +1,11 @@
 import prisma from '@/lib/prisma';
 import type {
+  CreateApplicationInput,
   GetApplicantInput,
   GetApplicantsInput,
+  GetJobApplicationsInput,
 } from '@/graphql/schema/types.generated';
-import { GraphQLError } from 'graphql/error';
+import { ApplicationStatus } from '.prisma/client';
 
 async function getAllApplicants(input: GetApplicantsInput) {
   const applicant = await prisma.applicant.findMany({
@@ -69,10 +71,13 @@ async function getSavedJobs(input: GetApplicantInput) {
   return savedJobs;
 }
 
-async function getJobApplications(input: GetApplicantInput) {
+async function getJobApplications(input: GetJobApplicationsInput) {
   const applications = await prisma.jobApplication.findMany({
     where: {
-      applicantId: input.id,
+      applicantId: input.applicantId,
+    },
+    include: {
+      // jobPost: true,
     },
   });
 
@@ -92,6 +97,26 @@ async function getWorkExperience(input: GetApplicantInput) {
   return workExperience;
 }
 
+async function createApplication(input: CreateApplicationInput) {
+  const application = await prisma.jobApplication.create({
+    data: {
+      applicantId: input.applicantId,
+      jobPostId: input.jobPostId,
+      status: ApplicationStatus.PENDING,
+      resume: input.resume,
+      coverLetter: input.coverLetter,
+      attachment: input.attachment,
+      email: input.email,
+      phone: input.phone,
+    },
+  });
+
+  return {
+    errors: [],
+    application,
+  };
+}
+
 const account = {
   getApplicant,
   getAllApplicants,
@@ -99,6 +124,7 @@ const account = {
   getWorkExperience,
   getApplicantAccount,
   getJobApplications,
+  createApplication,
 };
 
 export default account;

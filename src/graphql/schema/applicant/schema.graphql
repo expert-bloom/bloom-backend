@@ -1,10 +1,45 @@
 extend type Query{
     getApplicants(input: GetApplicantsInput!): ApplicantConnection
     getApplicant(input: GetApplicantInput!): Applicant
+    getJobApplications(input: GetJobApplicationsInput!): ApplicationConnections!
 }
 
 extend type Mutation {
     applicantProfileUpdate(input: ApplicantProfileUpdateInput!): AccountUpdate!
+    createApplication(input: CreateApplicationInput!): CreateApplicationPayload!
+}
+
+input GetJobApplicationsInput {
+    applicantId: String!
+    first: Int
+    after: String
+    last: Int
+    before: String
+}
+
+input ApplicationFilter {
+    status: ApplicationStatus
+    ids: [String!]
+}
+
+input GetApplicationsInput {
+    filter: ApplicationFilter
+    first: Int
+    last: Int
+    after: String
+    before: String
+
+    orderBy: [ApplicantOrdering!]
+}
+
+input CreateApplicationInput {
+    applicantId: String!
+    jobPostId: String!
+    coverLetter: String!
+    resume: String!
+    phone: String!
+    email: String!
+    attachment: String
 }
 
 input ApplicantProfileUpdateInput {
@@ -16,6 +51,7 @@ input ApplicantProfileUpdateInput {
 input ApplicantUpdateInput {
     experienceYear: Int
     resume: String
+    introVideo: String
     #    gender: String
 
     about:               String
@@ -64,6 +100,11 @@ input GetApplicantInput {
     id: String!
 }
 
+type CreateApplicationPayload implements PayloadError{
+    application: Application
+    errors: [Error!]!
+}
+
 type ApplicantConnection {
     edges: [ApplicantEdge!]!
     "Pagination data for this connection."
@@ -110,6 +151,15 @@ type ApplicantAppliedJobPostEdge {
     node: JobPost!
 }
 
+type ApplicationEdge {
+    cursor: String!
+    node: Application!
+}
+
+type ApplicationConnections {
+    edges: [ApplicationEdge!]!
+    pageInfo: PageInfo!
+}
 
 type ApplicantSavedJobPostConnections {
     edges: [ApplicantSavedJobPostEdge!]!
@@ -121,6 +171,7 @@ type Applicant implements Node{
     id: ID!
     experienceYear: Int
     resume: String
+    introVideo: String
     gender: String
 
     about:               String
@@ -149,26 +200,10 @@ type Applicant implements Node{
         after: String
         last: Int
         before: String
-    ):  ApplicantSavedJobPostConnections!
-
-    applications(
-        first: Int
-        after: String
-        last: Int
-        before: String
-    ):  ApplicationConnections!
+    ):  ApplicantSavedJobPostConnections
 
 }
 
-type ApplicationEdge {
-    cursor: String!
-    node: Application!
-}
-
-type ApplicationConnections {
-    edges: [ApplicationEdge!]!
-    pageInfo: PageInfo!
-}
 
 
 type WorkExperience {
