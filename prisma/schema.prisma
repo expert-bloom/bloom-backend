@@ -92,11 +92,12 @@ model Applicant {
   savedJobs      JobPost[]        @relation("SavedBy")
   applications   JobApplication[]
   workExperience WorkExperience[]
+  interviews     Interview[]
+  offers         Offer[]
+  savedBy        Company[]
 
   account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
-
-  savedBy Company[]
 }
 
 model Company {
@@ -110,6 +111,10 @@ model Company {
 
   affiliates      Partnership[]
   savedApplicants Applicant[]
+  applications    JobApplication[]
+
+  offers     Offer[]
+  interviews Interview[]
 }
 
 model Affiliate {
@@ -168,6 +173,9 @@ model JobPost {
 
   affiliate   Affiliate? @relation(fields: [affiliateId], references: [id])
   affiliateId String?
+
+  Interviews Interview[]
+  Offer      Offer[]
 }
 
 model WorkExperience {
@@ -200,6 +208,61 @@ model JobApplication {
 
   jobPost   JobPost @relation(fields: [jobPostId], references: [id])
   jobPostId String
+
+  Company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+
+  interview Interview?
+  offer     Offer?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  interviewId String?
+}
+
+model Interview {
+  id          String          @id @default(cuid())
+  status      InterviewStatus
+  attachment  String?
+  deadline    DateTime?
+  description String
+  answerVideo String?
+  answerText  String?
+
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId String
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  jobPostId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  JobApplication   JobApplication? @relation(fields: [jobApplicationId], references: [id])
+  jobApplicationId String?         @unique
+}
+
+model Offer {
+  id          String      @id @default(cuid())
+  status      OfferStatus
+  deadline    DateTime
+  description String
+  answerText  String?
+
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId String
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+
+  jobPost   JobPost @relation(fields: [jobPostId], references: [id])
+  jobPostId String
+
+  JobApplication   JobApplication? @relation(fields: [jobApplicationId], references: [id])
+  jobApplicationId String?         @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -268,6 +331,20 @@ enum JobType {
 enum ApplicationStatus {
   PENDING
   INTERVIEW
+  ACCEPTED // offer accepted
+  REJECTED
+}
+
+enum InterviewStatus {
+  PENDING
+  APPLICANT_REFUSED
+  APPLICANT_RESPONDED
   ACCEPTED
   REJECTED
+}
+
+enum OfferStatus {
+  PENDING
+  APPLICANT_REFUSED
+  ACCEPTED
 }

@@ -1,0 +1,2 @@
+import type   { MutationResolvers } from './../../../types.generated';
+        export const offerApplicant: NonNullable<MutationResolvers['offerApplicant']> = async (_parent, _arg, _ctx) => { /* Implement Mutation.offerApplicant resolver logic here */ };

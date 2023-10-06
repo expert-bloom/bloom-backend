@@ -13,3 +13,13 @@ export async function hashPassword(password: string, SALT_WORK_FACTOR = 10) {
 export async function comparePassword(password1: string, password2: string) {
   return bcrypt.compare(password1, password2) as boolean;
 }
+
+
+export const clearUndefined = (obj = {}) : Record<string, any> => {
+  return Object.keys(obj).reduce((acc, key) => {
+    if (obj[key] !== undefined) {
+      acc[key] = obj[key];
+    }
+    return acc ;
+  }, {});
+};

@@ -9,32 +9,27 @@ extend type Mutation {
     createApplication(input: CreateApplicationInput!): CreateApplicationPayload!
 }
 
-input GetJobApplicationsInput {
-    applicantId: String!
-    first: Int
-    after: String
-    last: Int
-    before: String
-}
-
 input ApplicationFilter {
     status: ApplicationStatus
+    applicantId: String
+    jobPostId: String
     ids: [String!]
 }
 
-input GetApplicationsInput {
+input GetJobApplicationsInput {
     filter: ApplicationFilter
     first: Int
     last: Int
     after: String
     before: String
-
     orderBy: [ApplicantOrdering!]
 }
 
 input CreateApplicationInput {
     applicantId: String!
     jobPostId: String!
+    companyId: String!
+
     coverLetter: String!
     resume: String!
     phone: String!

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import prisma from '@/lib/prisma';
 import type {
   CreateApplicationInput,
@@ -6,6 +7,8 @@ import type {
   GetJobApplicationsInput,
 } from '@/graphql/schema/types.generated';
 import { ApplicationStatus } from '.prisma/client';
+import { GraphQLError } from 'graphql/error';
+import { clearUndefined } from '@/util/helper';
 
 async function getAllApplicants(input: GetApplicantsInput) {
   const applicant = await prisma.applicant.findMany({
@@ -72,12 +75,18 @@ async function getSavedJobs(input: GetApplicantInput) {
 }
 
 async function getJobApplications(input: GetJobApplicationsInput) {
+  const filter = clearUndefined(input.filter ?? {});
+
+  console.log('getJobApplications filter : ', filter);
+
   const applications = await prisma.jobApplication.findMany({
     where: {
-      applicantId: input.applicantId,
+      ...filter,
+      ...(filter?.ids ? { id: { in: filter?.ids } } : {}),
     },
     include: {
-      // jobPost: true,
+      interview: true,
+      offer: true,
     },
   });
 
@@ -102,6 +111,7 @@ async function createApplication(input: CreateApplicationInput) {
     data: {
       applicantId: input.applicantId,
       jobPostId: input.jobPostId,
+      companyId: input.companyId,
       status: ApplicationStatus.PENDING,
       resume: input.resume,
       coverLetter: input.coverLetter,
@@ -115,6 +125,84 @@ async function createApplication(input: CreateApplicationInput) {
     errors: [],
     application,
   };
+}
+
+async function respondInterview(input: GetApplicantInput) {
+  let application = await prisma.interview.update({
+    where: {
+      id: input.id,
+    },
+    data: {
+      status: 'APPLICANT_RESPONDED',
+      answerVideo: 'input.answerVideo',
+    },
+  });
+
+  if (application === null) {
+    throw new GraphQLError(
+      `Fail to save applicant with id : ${'input.applicantId'}`,
+    );
+  }
+
+  return application;
+}
+
+async function refuseInterview(input: GetApplicantInput) {
+  let application = await prisma.interview.update({
+    where: {
+      id: input.id,
+    },
+    data: {
+      status: 'APPLICANT_REFUSED',
+    },
+  });
+
+  if (application === null) {
+    throw new GraphQLError(
+      `Fail to save applicant with id : ${'input.applicantId'}`,
+    );
+  }
+
+  return application;
+}
+
+async function respondOffer(input: GetApplicantInput) {
+  let application = await prisma.interview.update({
+    where: {
+      id: input.id,
+    },
+    data: {
+      status: 'APPLICANT_RESPONDED',
+      answerVideo: 'input.answerVideo',
+    },
+  });
+
+  if (application === null) {
+    throw new GraphQLError(
+      `Fail to save applicant with id : ${'input.applicantId'}`,
+    );
+  }
+
+  return application;
+}
+
+async function refuseOffer(input: GetApplicantInput) {
+  let application = await prisma.interview.update({
+    where: {
+      id: input.id,
+    },
+    data: {
+      status: 'APPLICANT_REFUSED',
+    },
+  });
+
+  if (application === null) {
+    throw new GraphQLError(
+      `Fail to save applicant with id : ${'input.applicantId'}`,
+    );
+  }
+
+  return application;
 }
 
 const account = {

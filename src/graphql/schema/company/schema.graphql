@@ -7,8 +7,18 @@ extend type Query {
 
 extend type Mutation {
     saveApplicant(input: SaveApplicantInput!): Boolean
-    createJobPost(input: CreateJobPostInput!): CreateJobPostResponse!
-    EditJobPost(input: EditJobPostInput!): CreateJobPostResponse! # todo: bad naming
+    createJobPost(input: CreateJobPostInput!): JobPostResponse!
+    EditJobPost(input: EditJobPostInput!): JobPostResponse! # todo: bad naming
+
+    sendInterviewRequest(input: SendInterviewRequestInput!): Interview
+    offerApplicant(input: SendInterviewRequestInput!): String!
+}
+
+
+input SendInterviewRequestInput {
+    applicationId: String!
+    description: String!
+    date: DateTime
 }
 
 input GetCompanyJobPostsInput {
@@ -86,25 +96,16 @@ input SaveApplicantInput {
     save: Boolean! = true
 }
 
-type CreateJobPostResponse{
+type JobPostResponse{
     errors: [Error!]!
     jobPost: JobPost
 }
 
 type CompanyJobPostsResponse{
     errors: [Error!]!
-    payload: [CompanyJobPostsPayload!]!
+    jobPosts: [JobPost!]!
 }
 
-type CompanyJobPostsPayload{
-    jobPost: JobPost!
-    applicationsWithApplicant: [ApplicationsWithApplicant!]!
-}
-
-type ApplicationsWithApplicant {
-    application: Application!
-    applicant: Applicant!
-}
 
 type Company implements Node{
     id: ID!

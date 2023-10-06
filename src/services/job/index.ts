@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import type {
-  CompanyJobPostsResponse,
   CreateJobPostInput,
   EditJobPostInput,
   GetCompanyJobPostsInput,
@@ -11,7 +10,7 @@ import type {
   SaveJobPostInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
-import { clearUndefined } from '@/services/account';
+import { clearUndefined } from '@/util/helper';
 
 async function getPostedJobs(input?: JopPostFilterInput): Promise<JobPost[]> {
   const filter: any = Object.keys(input ?? {}).reduce((acc, key) => {
@@ -47,13 +46,7 @@ async function getCompanyPostedJobs(input: GetCompanyJobPostsInput) {
       companyId: input.companyId,
     },
     include: {
-      // affiliate: true,
       // company: true,
-      applications: {
-        include: {
-          applicant: true,
-        },
-      },
     },
   });
 
@@ -61,12 +54,28 @@ async function getCompanyPostedJobs(input: GetCompanyJobPostsInput) {
 
   return {
     errors: [],
-    payload: jobPosts.map((jp) => ({
-      jobPost: jp,
-      applicationsWithApplicant: jp.applications.map((app) => ({
-        application: app,
-        applicant: app.applicant,
-      })),
+    jobPosts,
+  };
+}
+
+async function getJobPostApplications(input: any) {
+  // : Promise<CompanyJobPostsResponse>
+  const jobApplications = await prisma.jobApplication.findMany({
+    where: {
+      jobPostId: input.jobPostId,
+    },
+    include: {
+      applicant: true,
+    },
+  });
+
+  // console.log('get Posts', input, jobPosts);
+
+  return {
+    errors: [],
+    payload: jobApplications.map((ja) => ({
+      application: ja,
+      applicant: ja.applicant,
     })),
   };
 }
@@ -211,6 +220,7 @@ const jobPost = {
   getJobPost,
   editJobPost,
   getCompanyPostedJobs,
+  getJobPostApplications,
 };
 
 export default jobPost;

@@ -10,7 +10,7 @@
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write"
   },
   "dependencies": {
-    "@prisma/client": "^5.3.1",
+    "@prisma/client": "5.3.1",
     "bcrypt": "^5.1.0",
     "everify": "0.0.8",
     "graphql": "16.7.1",

@@ -4,6 +4,7 @@ import type {
   MeInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
+import {clearUndefined} from "@/util/helper";
 
 async function findOne(input: AccountInput) {
   // filter out the undefined values
@@ -58,14 +59,8 @@ async function getMe(input: MeInput) {
   return account;
 }
 
-export const clearUndefined = (obj = {}) => {
-  return Object.keys(obj).reduce((acc, key) => {
-    if (obj[key] !== undefined) {
-      acc[key] = obj[key];
-    }
-    return acc;
-  }, {});
-};
+
+
 
 async function updateProfile(input: ApplicantProfileUpdateInput) {
   // filter out the undefined values from the input.account and also Type it with prisma.account type for the prisma.account.update

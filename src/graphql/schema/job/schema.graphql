@@ -14,6 +14,7 @@ extend type Mutation {
 type JobPost implements Node{
     id: ID!
     title: String!
+    companyId: String!
     description: String!
     jobType: JobType!
     salaryType: SalaryType!
@@ -38,13 +39,6 @@ type JobPost implements Node{
     updatedAt: DateTime!
 }
 
-enum ApplicationStatus {
-    PENDING
-    INTERVIEW
-    ACCEPTED
-    REJECTED
-}
-
 
 type Application implements Node{
     id: ID!
@@ -55,8 +49,49 @@ type Application implements Node{
 
     applicantId: String!
     jobPostId: String!
+
+    createdAt: DateTime!
+    updatedAt: DateTime!
+
+    # Extra models
     jobPost: JobPost
-#    applicant: Applicant
+    interview: Interview
+    offer: Offer
+    applicant: Applicant
+}
+
+
+type Interview implements Node{
+    id     :     ID!
+    status:      InterviewStatus
+    attachment:  String
+    deadline:    DateTime
+    description: String!
+    answerVideo: String
+    answerText:  String
+
+    applicantId: String!
+    companyId: String!
+    jobPostId: String!
+    jobApplicationId: String
+
+    createdAt: DateTime!
+    updatedAt: DateTime!
+
+}
+
+type Offer implements Node{
+    id:     ID!
+    status:      OfferStatus
+    deadline:    DateTime
+    description: String!
+    answerVideo: String
+    answerText:  String
+
+    applicantId: String!
+    companyId: String!
+    jobPostId: String!
+    jobApplicationId: String
 
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -114,5 +149,26 @@ enum ExperienceLevel {
     Expert
     Junior
     Senior
+}
+
+enum ApplicationStatus {
+    PENDING
+    INTERVIEW
+    ACCEPTED
+    REJECTED
+}
+
+enum InterviewStatus {
+    PENDING
+    APPLICANT_REFUSED
+    APPLICANT_RESPONDED
+    ACCEPTED
+    REJECTED
+}
+
+enum OfferStatus {
+    PENDING
+    APPLICANT_REFUSED
+    ACCEPTED
 }
 

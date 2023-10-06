@@ -1,11 +1,10 @@
 import type { ApplicationResolvers } from './../../types.generated';
-import { GraphQLError } from 'graphql/error';
 
 export const Application: ApplicationResolvers = {
   jobPost: async (parent, args, context, info) => {
     // console.log('account resolver parent : ', parent);
 
-    console.log('args: ', args, 'parents: ', parent, 'info: ', info);
+    // console.log('args: ', args, 'parents: ', parent, 'info: ', info);
 
     if (info.operation.name?.value === 'GetCompanyJobPosts') {
       return null;
@@ -16,19 +15,19 @@ export const Application: ApplicationResolvers = {
     });
   },
 
-  /* applicant: async (parent, args, context) => {
+  applicant: async (parent, args, context) => {
     // console.log('account resolver parent : ', parent);
 
-    const applicant = await context.service.Applicant.getApplicant({
+    return await context.service.Applicant.getApplicant({
       id: parent.applicantId,
     });
+  },
 
-    if (applicant === null) {
-      throw new GraphQLError(
-        `applicant cant be null for a given application : ${parent.id}`,
-      );
-    }
+  /* interview: async (parent, args, context) => {
+    // console.log('account resolver parent : ', parent);
 
-    return applicant;
+    return await context.service.Applicant.getApplicant({
+      id: parent.applicantId,
+    });
   } */
 };
