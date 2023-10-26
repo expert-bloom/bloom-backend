@@ -139,6 +139,8 @@ async function createJobPost(input: CreateJobPostInput) {
 async function editJobPost(input: EditJobPostInput) {
   const nunNullEditedInput = clearUndefined(input.editedData);
 
+  console.log('edit input : ', nunNullEditedInput);
+
   const jobPost = await prisma.jobPost.update({
     where: {
       id: input.filter.jobPostId,
@@ -149,6 +151,8 @@ async function editJobPost(input: EditJobPostInput) {
       ...nunNullEditedInput,
     },
   });
+
+  console.log('updated jobpost : ', jobPost);
 
   if (jobPost == null) {
     return {

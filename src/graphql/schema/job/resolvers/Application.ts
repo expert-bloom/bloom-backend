@@ -21,13 +21,5 @@ export const Application: ApplicationResolvers = {
     return await context.service.Applicant.getApplicant({
       id: parent.applicantId,
     });
-  },
-
-  /* interview: async (parent, args, context) => {
-    // console.log('account resolver parent : ', parent);
-
-    return await context.service.Applicant.getApplicant({
-      id: parent.applicantId,
-    });
-  } */
+  }
 };

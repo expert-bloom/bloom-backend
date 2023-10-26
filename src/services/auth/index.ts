@@ -45,7 +45,9 @@ async function signUp(input: SignUpInput): Promise<AuthPayload> {
       ...(accountType === 'COMPANY'
         ? {
             company: {
-              create: {},
+              create: {
+                companyName: input?.companyName ?? firstName,
+              },
             },
           }
         : accountType === 'APPLICANT'

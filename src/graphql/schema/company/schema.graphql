@@ -8,12 +8,19 @@ extend type Query {
 extend type Mutation {
     saveApplicant(input: SaveApplicantInput!): Boolean
     createJobPost(input: CreateJobPostInput!): JobPostResponse!
-    EditJobPost(input: EditJobPostInput!): JobPostResponse! # todo: bad naming
+    editJobPost(input: EditJobPostInput!): JobPostResponse!
 
     sendInterviewRequest(input: SendInterviewRequestInput!): Interview
-    offerApplicant(input: SendInterviewRequestInput!): String!
+    offerApplicant(input: OfferApplicantInput!): Offer
 }
 
+
+input OfferApplicantInput {
+    applicationId: String!
+    applicantId: String!
+    description: String!
+    date: DateTime
+}
 
 input SendInterviewRequestInput {
     applicationId: String!

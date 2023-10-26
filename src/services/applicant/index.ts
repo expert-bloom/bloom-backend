@@ -5,6 +5,8 @@ import type {
   GetApplicantInput,
   GetApplicantsInput,
   GetJobApplicationsInput,
+  RespondInterviewInput,
+  RespondOfferInput,
 } from '@/graphql/schema/types.generated';
 import { ApplicationStatus } from '.prisma/client';
 import { GraphQLError } from 'graphql/error';
@@ -127,28 +129,23 @@ async function createApplication(input: CreateApplicationInput) {
   };
 }
 
-async function respondInterview(input: GetApplicantInput) {
-  let application = await prisma.interview.update({
+async function respondInterview(input: RespondInterviewInput) {
+  const updatedInterview = await prisma.interview.update({
     where: {
-      id: input.id,
+      id: input.interviewId,
+      applicantId: input.applicantId,
     },
     data: {
-      status: 'APPLICANT_RESPONDED',
-      answerVideo: 'input.answerVideo',
+      status: input?.refuse ? 'APPLICANT_REFUSED' : 'APPLICANT_RESPONDED',
+      answerVideo: input.interviewVideoUrl,
     },
   });
 
-  if (application === null) {
-    throw new GraphQLError(
-      `Fail to save applicant with id : ${'input.applicantId'}`,
-    );
-  }
-
-  return application;
+  return updatedInterview;
 }
 
 async function refuseInterview(input: GetApplicantInput) {
-  let application = await prisma.interview.update({
+  const updatedInterview = await prisma.interview.update({
     where: {
       id: input.id,
     },
@@ -157,33 +154,36 @@ async function refuseInterview(input: GetApplicantInput) {
     },
   });
 
-  if (application === null) {
-    throw new GraphQLError(
-      `Fail to save applicant with id : ${'input.applicantId'}`,
-    );
-  }
-
-  return application;
+  return updatedInterview;
 }
 
-async function respondOffer(input: GetApplicantInput) {
-  let application = await prisma.interview.update({
+async function respondOffer(input: RespondOfferInput) {
+  let updatedOffer = await prisma.jobApplication.update({
     where: {
-      id: input.id,
+      id: input.applicationId,
+      applicantId: input.applicantId,
     },
     data: {
-      status: 'APPLICANT_RESPONDED',
-      answerVideo: 'input.answerVideo',
+      status: input.refuse ? 'OFFER' : 'ACCEPTED',
+
+      offer: {
+        update: {
+          status: input.refuse ? 'APPLICANT_REFUSED' : 'ACCEPTED',
+        },
+      },
+    },
+    include: {
+      offer: true,
     },
   });
 
-  if (application === null) {
+  if (updatedOffer?.offer === null) {
     throw new GraphQLError(
       `Fail to save applicant with id : ${'input.applicantId'}`,
     );
   }
 
-  return application;
+  return updatedOffer.offer;
 }
 
 async function refuseOffer(input: GetApplicantInput) {
@@ -213,6 +213,8 @@ const account = {
   getApplicantAccount,
   getJobApplications,
   createApplication,
+  respondInterview,
+  respondOffer,
 };
 
 export default account;

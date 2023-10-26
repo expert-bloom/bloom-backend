@@ -59,6 +59,7 @@ input LoginInput {
 input SignUpInput {
     email: String!
     firstName: String!
+    companyName: String
     lastName: String!
     password: String!
     accountType: AccountType!

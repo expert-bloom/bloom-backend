@@ -7,6 +7,23 @@ extend type Query{
 extend type Mutation {
     applicantProfileUpdate(input: ApplicantProfileUpdateInput!): AccountUpdate!
     createApplication(input: CreateApplicationInput!): CreateApplicationPayload!
+
+    respondInterview(input: RespondInterviewInput!): Interview
+    respondToOffer(input: RespondOfferInput!): Offer
+}
+
+input RespondInterviewInput {
+    interviewId: String!
+    applicantId: String!
+    interviewVideoUrl: String
+    refuse: Boolean = false
+}
+
+input RespondOfferInput {
+    offerId: String!
+    applicationId: String!
+    applicantId: String!
+    refuse: Boolean = false
 }
 
 input ApplicationFilter {

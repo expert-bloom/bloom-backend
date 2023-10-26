@@ -39,12 +39,6 @@ export type AccountFilterInput = {
   phone?: InputMaybe<Scalars['String']>;
 };
 
-export type AccountInput = {
-  email?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['ID']>;
-  phone?: InputMaybe<Scalars['String']>;
-};
-
 export type AccountPayload = {
   accountType: AccountType;
   affiliate?: Maybe<AffiliateLight>;
@@ -220,11 +214,13 @@ export type Application = Node & {
   attachment?: Maybe<Scalars['String']>;
   coverLetter: Scalars['String'];
   createdAt: Scalars['DateTime'];
+  email: Scalars['String'];
   id: Scalars['ID'];
   interview?: Maybe<Interview>;
   jobPost?: Maybe<JobPost>;
   jobPostId: Scalars['String'];
   offer?: Maybe<Offer>;
+  phone: Scalars['String'];
   resume: Scalars['String'];
   status: ApplicationStatus;
   updatedAt: Scalars['DateTime'];
@@ -250,6 +246,7 @@ export type ApplicationFilter = {
 export type ApplicationStatus =
   | 'ACCEPTED'
   | 'INTERVIEW'
+  | 'OFFER'
   | 'PENDING'
   | 'REJECTED';
 
@@ -380,6 +377,11 @@ export type ExperienceLevel =
   | 'Intermediate'
   | 'Junior'
   | 'Senior';
+
+export type FindAccountFilterInput = {
+  accountFilter?: InputMaybe<AccountFilterInput>;
+  oAuthFilter?: InputMaybe<OAuthAccountFilterInput>;
+};
 
 export type FindOnePayload = PayloadError & {
   account?: Maybe<AccountPayload>;
@@ -516,24 +518,21 @@ export type MeInput = {
 };
 
 export type Mutation = {
-  EditJobPost: JobPostResponse;
   applicantProfileUpdate: AccountUpdate;
   createApplication: CreateApplicationPayload;
   createJobPost: JobPostResponse;
+  editJobPost: JobPostResponse;
   logIn: AuthPayload;
-  offerApplicant: Scalars['String'];
+  offerApplicant?: Maybe<Offer>;
   profileUpdate: AccountUpdate;
+  respondInterview?: Maybe<Interview>;
+  respondToOffer?: Maybe<Offer>;
   saveApplicant?: Maybe<Scalars['Boolean']>;
   saveJobPost?: Maybe<JobPost>;
   sayHi: Scalars['String'];
   sendInterviewRequest?: Maybe<Interview>;
   signUp: AuthPayload;
   signUpOAuth: AuthPayload;
-};
-
-
-export type MutationEditJobPostArgs = {
-  input: EditJobPostInput;
 };
 
 
@@ -552,18 +551,33 @@ export type MutationCreateJobPostArgs = {
 };
 
 
+export type MutationEditJobPostArgs = {
+  input: EditJobPostInput;
+};
+
+
 export type MutationLogInArgs = {
   input: LoginInput;
 };
 
 
 export type MutationOfferApplicantArgs = {
-  input: SendInterviewRequestInput;
+  input: OfferApplicantInput;
 };
 
 
 export type MutationProfileUpdateArgs = {
   input: UpdateProfileInput;
+};
+
+
+export type MutationRespondInterviewArgs = {
+  input: RespondInterviewInput;
+};
+
+
+export type MutationRespondToOfferArgs = {
+  input: RespondOfferInput;
 };
 
 
@@ -607,7 +621,7 @@ export type OAuth = {
   tokenType: Scalars['String'];
 };
 
-export type OAuthAccount = {
+export type OAuthAccountFilterInput = {
   provider?: InputMaybe<Scalars['String']>;
 };
 
@@ -654,6 +668,13 @@ export type Offer = Node & {
   updatedAt: Scalars['DateTime'];
 };
 
+export type OfferApplicantInput = {
+  applicantId: Scalars['String'];
+  applicationId: Scalars['String'];
+  date?: InputMaybe<Scalars['DateTime']>;
+  description: Scalars['String'];
+};
+
 export type OfferStatus =
   | 'ACCEPTED'
   | 'APPLICANT_REFUSED'
@@ -693,7 +714,7 @@ export type Query = {
 
 
 export type QueryFindAccountArgs = {
-  input: AccountInput;
+  input: FindAccountFilterInput;
 };
 
 
@@ -741,6 +762,20 @@ export type QueryMeArgs = {
   input: MeInput;
 };
 
+export type RespondInterviewInput = {
+  applicantId: Scalars['String'];
+  interviewId: Scalars['String'];
+  interviewVideoUrl?: InputMaybe<Scalars['String']>;
+  refuse?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type RespondOfferInput = {
+  applicantId: Scalars['String'];
+  applicationId: Scalars['String'];
+  offerId: Scalars['String'];
+  refuse?: InputMaybe<Scalars['Boolean']>;
+};
+
 export type SalaryType =
   | 'HOURLY'
   | 'MONTHLY'
@@ -771,6 +806,7 @@ export type SendInterviewRequestInput = {
 
 export type SignUpInput = {
   accountType: AccountType;
+  companyName?: InputMaybe<Scalars['String']>;
   country: Scalars['String'];
   email: Scalars['String'];
   firstName: Scalars['String'];
@@ -883,7 +919,6 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>;
   AccountFilterInput: AccountFilterInput;
   ID: ResolverTypeWrapper<Scalars['ID']>;
-  AccountInput: AccountInput;
   AccountPayload: ResolverTypeWrapper<Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversTypes['Applicant']>, company: Maybe<ResolversTypes['Company']> }>;
   AccountSortField: AccountSortField;
   AccountType: AccountType;
@@ -925,6 +960,7 @@ export type ResolversTypes = {
   EnglishLevel: EnglishLevel;
   Error: ResolverTypeWrapper<Error>;
   ExperienceLevel: ExperienceLevel;
+  FindAccountFilterInput: FindAccountFilterInput;
   FindOnePayload: ResolverTypeWrapper<Omit<FindOnePayload, 'account'> & { account: Maybe<ResolversTypes['AccountPayload']> }>;
   Gender: Gender;
   GetApplicantInput: GetApplicantInput;
@@ -946,17 +982,20 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   Node: ResolversTypes['Applicant'] | ResolversTypes['Application'] | ResolversTypes['Company'] | ResolversTypes['Interview'] | ResolversTypes['JobPost'] | ResolversTypes['Offer'];
   OAuth: ResolverTypeWrapper<OAuth>;
-  OAuthAccount: OAuthAccount;
+  OAuthAccountFilterInput: OAuthAccountFilterInput;
   OAuthAccountInput: OAuthAccountInput;
   OAuthInput: OAuthInput;
   OAuthLoginInput: OAuthLoginInput;
   OAuthSignUpInput: OAuthSignUpInput;
   Offer: ResolverTypeWrapper<Offer>;
+  OfferApplicantInput: OfferApplicantInput;
   OfferStatus: OfferStatus;
   OrderDirection: OrderDirection;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   PayloadError: ResolversTypes['AccountUpdate'] | ResolversTypes['AuthPayload'] | ResolversTypes['CreateApplicationPayload'] | ResolversTypes['FindOnePayload'];
   Query: ResolverTypeWrapper<{}>;
+  RespondInterviewInput: RespondInterviewInput;
+  RespondOfferInput: RespondOfferInput;
   SalaryType: SalaryType;
   SaveApplicantInput: SaveApplicantInput;
   SaveJobPostInput: SaveJobPostInput;
@@ -974,7 +1013,6 @@ export type ResolversParentTypes = {
   String: Scalars['String'];
   AccountFilterInput: AccountFilterInput;
   ID: Scalars['ID'];
-  AccountInput: AccountInput;
   AccountPayload: Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversParentTypes['Applicant']>, company: Maybe<ResolversParentTypes['Company']> };
   AccountUpdate: Omit<AccountUpdate, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
   AccountUpdateInput: AccountUpdateInput;
@@ -1011,6 +1049,7 @@ export type ResolversParentTypes = {
   EditJobPostInput: EditJobPostInput;
   EditJobPostInputData: EditJobPostInputData;
   Error: Error;
+  FindAccountFilterInput: FindAccountFilterInput;
   FindOnePayload: Omit<FindOnePayload, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
   GetApplicantInput: GetApplicantInput;
   GetApplicantsInput: GetApplicantsInput;
@@ -1028,15 +1067,18 @@ export type ResolversParentTypes = {
   Mutation: {};
   Node: ResolversParentTypes['Applicant'] | ResolversParentTypes['Application'] | ResolversParentTypes['Company'] | ResolversParentTypes['Interview'] | ResolversParentTypes['JobPost'] | ResolversParentTypes['Offer'];
   OAuth: OAuth;
-  OAuthAccount: OAuthAccount;
+  OAuthAccountFilterInput: OAuthAccountFilterInput;
   OAuthAccountInput: OAuthAccountInput;
   OAuthInput: OAuthInput;
   OAuthLoginInput: OAuthLoginInput;
   OAuthSignUpInput: OAuthSignUpInput;
   Offer: Offer;
+  OfferApplicantInput: OfferApplicantInput;
   PageInfo: PageInfo;
   PayloadError: ResolversParentTypes['AccountUpdate'] | ResolversParentTypes['AuthPayload'] | ResolversParentTypes['CreateApplicationPayload'] | ResolversParentTypes['FindOnePayload'];
   Query: {};
+  RespondInterviewInput: RespondInterviewInput;
+  RespondOfferInput: RespondOfferInput;
   SaveApplicantInput: SaveApplicantInput;
   SaveJobPostInput: SaveJobPostInput;
   SavedJobPostsInput: SavedJobPostsInput;
@@ -1178,11 +1220,13 @@ export type ApplicationResolvers<ContextType = GraphqlContext, ParentType extend
   attachment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   coverLetter?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interview?: Resolver<Maybe<ResolversTypes['Interview']>, ParentType, ContextType>;
   jobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType>;
   jobPostId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   offer?: Resolver<Maybe<ResolversTypes['Offer']>, ParentType, ContextType>;
+  phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   resume?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ApplicationStatus'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -1329,13 +1373,15 @@ export type JobPostResponseResolvers<ContextType = GraphqlContext, ParentType ex
 };
 
 export type MutationResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  EditJobPost?: Resolver<ResolversTypes['JobPostResponse'], ParentType, ContextType, RequireFields<MutationEditJobPostArgs, 'input'>>;
   applicantProfileUpdate?: Resolver<ResolversTypes['AccountUpdate'], ParentType, ContextType, RequireFields<MutationApplicantProfileUpdateArgs, 'input'>>;
   createApplication?: Resolver<ResolversTypes['CreateApplicationPayload'], ParentType, ContextType, RequireFields<MutationCreateApplicationArgs, 'input'>>;
   createJobPost?: Resolver<ResolversTypes['JobPostResponse'], ParentType, ContextType, RequireFields<MutationCreateJobPostArgs, 'input'>>;
+  editJobPost?: Resolver<ResolversTypes['JobPostResponse'], ParentType, ContextType, RequireFields<MutationEditJobPostArgs, 'input'>>;
   logIn?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationLogInArgs, 'input'>>;
-  offerApplicant?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationOfferApplicantArgs, 'input'>>;
+  offerApplicant?: Resolver<Maybe<ResolversTypes['Offer']>, ParentType, ContextType, RequireFields<MutationOfferApplicantArgs, 'input'>>;
   profileUpdate?: Resolver<ResolversTypes['AccountUpdate'], ParentType, ContextType, RequireFields<MutationProfileUpdateArgs, 'input'>>;
+  respondInterview?: Resolver<Maybe<ResolversTypes['Interview']>, ParentType, ContextType, RequireFields<MutationRespondInterviewArgs, 'input'>>;
+  respondToOffer?: Resolver<Maybe<ResolversTypes['Offer']>, ParentType, ContextType, RequireFields<MutationRespondToOfferArgs, 'input'>>;
   saveApplicant?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSaveApplicantArgs, 'input'>>;
   saveJobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<MutationSaveJobPostArgs, 'input'>>;
   sayHi?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

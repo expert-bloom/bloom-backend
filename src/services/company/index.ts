@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import prisma from '@/lib/prisma';
 import {
   GetApplicantInput,
   GetSavedApplicantInput,
+  OfferApplicantInput,
   SaveApplicantInput,
   SendInterviewRequestInput,
 } from '@/graphql/schema/types.generated';
@@ -123,51 +125,41 @@ async function acceptApplicationAndCreateInterview(
   return newInterview;
 }
 
-async function acceptInterviewAndCreateOffer(input: GetApplicantInput) {
-  const application = await prisma.jobApplication.findUnique({
+async function acceptInterviewAndCreateOffer(input: OfferApplicantInput) {
+  const application = await prisma.jobApplication.update({
     where: {
-      id: input.id,
+      id: input.applicationId,
+      applicantId: input.applicantId,
+    },
+    data: {
+      status: 'OFFER',
+      interview: {
+        update: {
+          status: 'ACCEPTED',
+        },
+      },
     },
   });
 
   if (application === null) {
     throw new GraphQLError(
-      `Fail to save applicant with id : ${'input.applicantId'}`,
+      'No application found with id : ' + `${input.applicationId}`,
     );
   }
-
-  let interview = await prisma.interview.findUnique({
-    where: {
-      id: application.interviewId ?? '',
-    },
-  });
-
-  if (interview === null) {
-    throw new GraphQLError(
-      `Fail to save applicant with id : ${'input.applicantId'}`,
-    );
-  }
-
-  await prisma.interview.update({
-    where: {
-      id: input.id,
-    },
-    data: {
-      status: 'ACCEPTED',
-    },
-  });
 
   const newOffer = await prisma.offer.create({
     data: {
       applicantId: application.applicantId,
       companyId: application.companyId,
       jobPostId: application.jobPostId,
-      description: 'Interview invitation',
+      jobApplicationId: application.id,
+      description: input.description,
       deadline: new Date(),
       status: 'PENDING',
-      jobApplicationId: application.id,
     },
   });
+
+  return newOffer;
 }
 
 async function rejectApplication(input: GetApplicantInput) {

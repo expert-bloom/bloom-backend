@@ -45,6 +45,8 @@ type Application implements Node{
     status:  ApplicationStatus!
     coverLetter: String!
     resume: String!
+    email: String!
+    phone: String!
     attachment: String
 
     applicantId: String!
@@ -154,6 +156,7 @@ enum ExperienceLevel {
 enum ApplicationStatus {
     PENDING
     INTERVIEW
+    OFFER
     ACCEPTED
     REJECTED
 }

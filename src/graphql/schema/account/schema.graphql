@@ -1,7 +1,7 @@
 #schema.graphql
 extend type Query{
     me (input: MeInput!): AccountPayload
-    findAccount(input: AccountInput!): FindOnePayload
+    findAccount(input: FindAccountFilterInput!): FindOnePayload
 }
 
 extend type Mutation {
@@ -60,14 +60,12 @@ input MeInput {
     accountId: String!
 }
 
-
-input AccountInput {
-    id: ID
-    email: String
-    phone: String
+input FindAccountFilterInput {
+    accountFilter: AccountFilterInput
+    oAuthFilter: OAuthAccountFilterInput
 }
 
-input OAuthAccount {
+input OAuthAccountFilterInput {
     provider: String
 }
 

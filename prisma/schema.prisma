@@ -268,6 +268,13 @@ model Offer {
   updatedAt DateTime @updatedAt
 }
 
+model Workforce {
+  id String @id @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // enum Declarations -----------------------------
 
 enum RelationStatus {
@@ -331,6 +338,7 @@ enum JobType {
 enum ApplicationStatus {
   PENDING
   INTERVIEW
+  OFFER
   ACCEPTED // offer accepted
   REJECTED
 }
