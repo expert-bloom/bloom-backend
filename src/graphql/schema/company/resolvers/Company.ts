@@ -18,10 +18,10 @@ export const Company: CompanyResolvers = {
 
     return company;
   },
-  savedApplicants: (parent, args, context) => {
+  savedApplicants: async (parent, args, context) => {
     // console.log('savedApplicants resolver parent  : ', parent);
 
-    return context.service.Company.getSavedApplicants({
+    return await context.service.Company.getSavedApplicants({
       companyId: parent.id,
     });
   }

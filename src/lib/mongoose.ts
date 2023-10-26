@@ -8,8 +8,7 @@ const error = require('debug')('error');
 const connectDB = async () => {
   const connectionUrl = process.env.MONGO_DB_URL;
 
-  console.log('connect DB : ', connectionUrl)
-
+  console.log('connect DB : ', connectionUrl);
 
   try {
     const mongooseInstance = await mongoose.connect(connectionUrl as any);

@@ -7,7 +7,6 @@ const config: CodegenConfig = {
   debug: false,
   verbose: false,
 
-
   generates: {
     'src/graphql/schema': defineConfig({
       typesPluginsConfig: {
@@ -23,7 +22,6 @@ const config: CodegenConfig = {
           // defaultValue: true,
         }, // defaultMapper: 'any',
         // defaultMapper: 'Partial<{T}>',
-
       },
 
       // replace the generated content in every chaged file

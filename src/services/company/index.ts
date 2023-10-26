@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import prisma from '@/lib/prisma';
 import {
-  GetApplicantInput,
-  GetSavedApplicantInput,
-  OfferApplicantInput,
-  SaveApplicantInput,
-  SendInterviewRequestInput,
+  type GetApplicantInput,
+  type GetSavedApplicantInput,
+  type OfferApplicantInput,
+  type SaveApplicantInput,
+  type SendInterviewRequestInput,
 } from '@/graphql/schema/types.generated';
 import { GraphQLError } from 'graphql/error';
 
@@ -163,7 +163,7 @@ async function acceptInterviewAndCreateOffer(input: OfferApplicantInput) {
 }
 
 async function rejectApplication(input: GetApplicantInput) {
-  let application = await prisma.jobApplication.update({
+  const application = await prisma.jobApplication.update({
     where: {
       id: input.id,
     },

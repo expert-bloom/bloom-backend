@@ -7,16 +7,18 @@
     ],
     "strict": true,
     "noImplicitAny": false,
-//    "module": "ESNext",
-//    "target": "ESNext",
     //    "allowJs": true,
-//    "skipLibCheck": true,
-//    "forceConsistentCasingInFileNames": true,
-//    "noEmit": true,
+    //    "skipLibCheck": true,
+    //    "forceConsistentCasingInFileNames": true,
+    //    "noEmit": true,
     "esModuleInterop": true,
-//    "resolveJsonModule": true,
-//    "isolatedModules": true,
-//    "incremental": true,
+    //    "resolveJsonModule": true,
+    //    "isolatedModules": true,
+    //    "incremental": true,
+
+    "moduleResolution": "Node",
+    "target": "ES2016",
+    "sourceMap": true,
 
     "baseUrl": ".",
     "paths": {
@@ -28,9 +30,11 @@
 
   "include": [
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "prisma/seed.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "prisma/generated",
   ]
 }

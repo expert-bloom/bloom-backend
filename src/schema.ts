@@ -1,8 +1,8 @@
 import { createSchema } from 'graphql-yoga';
 import { DateTimeResolver } from 'graphql-scalars';
-import { GraphqlContext as Context } from './graphql/context';
+import { type GraphqlContext as Context } from './graphql/context';
 
-export const typeDefs = /*graphql*/ `
+export const typeDefs = /* graphql */ `
   type Mutation {
     createDraft(authorEmail: String!, data: PostCreateInput!): Post
     deletePost(id: Int!): Post

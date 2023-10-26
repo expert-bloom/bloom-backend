@@ -31,7 +31,7 @@ const yoga = createYoga({
   context: async (initialContext) => createContext(initialContext),
 });
 
-const server = createServer(yoga);
+const server = createServer(yoga as any);
 
 server.listen(4000, () => {
   console.log(`

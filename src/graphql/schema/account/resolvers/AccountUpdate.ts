@@ -1,4 +1,4 @@
-import type   { AccountUpdateResolvers } from './../../types.generated';
-    export const AccountUpdate: AccountUpdateResolvers = { 
-    /* Implement AccountUpdate resolver logic here */ 
-  };
+import type { AccountUpdateResolvers } from './../../types.generated';
+export const AccountUpdate: AccountUpdateResolvers = {
+  /* Implement AccountUpdate resolver logic here */
+};
