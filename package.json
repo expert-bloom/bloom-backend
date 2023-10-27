@@ -2,23 +2,27 @@
   "name": "bloom-server",
   "scripts": {
     "dev": "env-cmd -f .env ts-node-dev --debug --exit-child --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
-    "start": "env-cmd -f .env ts-node src/main.ts",
     "codegen": "graphql-codegen  --config src/lib/codegen.ts",
     "codegen:watch": "graphql-codegen --profile true --watch --config src/lib/codegen.ts",
     "lint": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\"",
     "lint-fix": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --quiet --fix",
-    "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write"
+    "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
+    "start": "node dist/server.js",
+    "build": "esbuild src/server.ts --platform=node --bundle --watch --outfile=dist/server.js",
+    "clean-build": "rimraf dist && tsc"
   },
   "dependencies": {
     "@prisma/client": "5.3.1",
-    "bcrypt": "^5.1.0",
+    "bcryptjs": "^2.4.3",
+    "esbuild": "^0.19.5",
     "everify": "0.0.8",
     "graphql": "16.7.1",
     "graphql-middleware": "^6.1.35",
     "graphql-scalars": "1.22.2",
     "graphql-shield": "^7.6.5",
     "graphql-yoga": "^4.0.3",
-    "moment": "^2.29.4"
+    "moment": "^2.29.4",
+    "rimraf": "^5.0.5"
   },
   "devDependencies": {
     "@eddeee888/gcg-typescript-resolver-files": "^0.4.0",
