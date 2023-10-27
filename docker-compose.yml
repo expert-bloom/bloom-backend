@@ -3,22 +3,37 @@ version: "3"
 volumes:
   bloom-pg-data:
 
-
 services:
 
-  postgres:
-    container_name: bloom-pg
+  db:
     image: postgres:12.2-alpine
     volumes:
       - bloom-pg-data:/var/lib/postgresql/data
     expose:
       - 5432
     ports:
-      - '5431:5432'
+      - '5432:5432'
     environment:
       - POSTGRES_PASSWORD=password
       # database name with mydb
-      - POSTGRES_DB=bloom
+      - POSTGRES_DB=bloom-db
+
+
+#  bloom-server:
+#    container_name: bloom-server
+#    image: expert-bloom-server:0.2
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+#    ports:
+#      - '4000:4000'
+#    depends_on:
+#      - db
+#    # Set the environment variables for the app service
+#    environment:
+#      DATABASE_URL: postgresql://postgres:password@db:5432/bloom-db
+#      NEXT_PUBLIC_S3_CLOUD_FRONT_URL: https://d3jm3hdd9b8409.cloudfront.net
+#      JWT_SECRET: 1234
 
 
 

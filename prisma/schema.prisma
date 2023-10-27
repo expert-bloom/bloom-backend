@@ -1,8 +1,8 @@
 generator client {
-  provider     = "prisma-client-js"
-  sdlGenerator = "sdl"
+  provider      = "prisma-client-js"
+  sdlGenerator  = "sdl"
   // engineType    = "library"
-  // binaryTargets = ["debian-openssl-3.0.x"]
+  binaryTargets = ["debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -168,10 +168,10 @@ model JobPost {
   applications JobApplication[]
   savedBy      Applicant[]      @relation("SavedBy")
 
-  company   Company @relation(fields: [companyId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId String
 
-  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id])
+  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
   affiliateId String?
 
   Interviews Interview[]
@@ -190,7 +190,7 @@ model WorkExperience {
   skills         String[]
   // projects       String[]
 
-  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   applicantId String
 }
 
@@ -203,7 +203,7 @@ model JobApplication {
   email       String
   phone       String
 
-  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   applicantId String
 
   jobPost   JobPost @relation(fields: [jobPostId], references: [id])
@@ -232,7 +232,7 @@ model Interview {
   applicant   Applicant @relation(fields: [applicantId], references: [id])
   applicantId String
 
-  company   Company @relation(fields: [companyId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId String
 
   jobPost   JobPost @relation(fields: [jobPostId], references: [id])
@@ -255,7 +255,7 @@ model Offer {
   applicant   Applicant @relation(fields: [applicantId], references: [id])
   applicantId String
 
-  company   Company @relation(fields: [companyId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId String
 
   jobPost   JobPost @relation(fields: [jobPostId], references: [id])

@@ -1,6 +1,9 @@
 {
   "name": "bloom-server",
   "scripts": {
+    "predev": "prisma migrate dev && prisma generate && prisma db seed",
+    "prestart": "prisma migrate dev && prisma generate && prisma db seed",
+    "_prebuild": "prisma migrate dev && prisma generate && prisma db seed",
     "dev": "env-cmd -f .env ts-node-dev --debug --exit-child --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
     "codegen": "graphql-codegen  --config src/lib/codegen.ts",
     "codegen:watch": "graphql-codegen --profile true --watch --config src/lib/codegen.ts",
@@ -8,7 +11,8 @@
     "lint-fix": "eslint --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --quiet --fix",
     "format": "prettier --ignore-path .gitignore \"src/**/*.+(ts|js|tsx)\" --write",
     "start": "node dist/server.js",
-    "build": "esbuild src/server.ts --platform=node --bundle --watch --outfile=dist/server.js",
+    "build": "esbuild src/server.ts --platform=node --bundle --outfile=dist/server.js",
+    "build-watch": "esbuild src/server.ts --platform=node --watch --bundle --outfile=dist/server.js",
     "clean-build": "rimraf dist && tsc"
   },
   "dependencies": {
@@ -34,7 +38,6 @@
     "@graphql-codegen/typescript-resolvers": "^3.2.1",
     "@prisma-korea/graphql-schema-generator": "^0.3.0",
     "@types/bcryptjs": "^2.4.2",
-    "@types/node": "20.2.1",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.59.6",
     "cross-env": "^7.0.3",
@@ -49,7 +52,6 @@
     "eslint-plugin-promise": "^6.1.1",
     "prettier": "3.0.0",
     "prisma": "5.3.1",
-    "prisma-sdl": "^0.3.7",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",

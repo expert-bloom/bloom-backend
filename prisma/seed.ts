@@ -39,74 +39,96 @@ const postsData = [
 ];
 
 async function main() {
-  console.log('Start seeding ...');
-  const company = await prisma.company.create({
-    data: {
-      companyName: 'EBS',
-      logo: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/Sample+tv+tumbnails/ebssport800x445.jpg`,
-      account: {
-        create: {
-          email,
-          firstName: 'henok',
-          lastName: 'getachew',
-          fullName: 'henok getachew',
-          password: '12345678',
-          accountType: 'COMPANY',
-          image: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/Sample+tv+tumbnails/ebssport800x445.jpg`,
+  console.log('Start seeding ... 🌱');
+  try {
+    await prisma.company.create({
+      data: {
+        companyName: 'EBS',
+        logo: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/Sample+tv+tumbnails/ebssport800x445.jpg`,
+        account: {
+          create: {
+            email,
+            firstName: 'henok',
+            lastName: 'getachew',
+            fullName: 'henok getachew',
+            password: '12345678',
+            accountType: 'COMPANY',
+            image: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/Sample+tv+tumbnails/ebssport800x445.jpg`,
+          },
         },
       },
-    },
-  });
-
-  // loop through the postsData 5 times and create all of them
-  for (let i = 0; i < postsData.length * 4; i++) {
-    const pd = postsData[i % postsData.length];
-    const posts = await prisma.jobPost.create({
-      data: {
-        title: pd.title,
-        description: pd.description,
-
-        jobType: 'FULL_TIME',
-        email,
-        category: [
-          'IT',
-          'DESIGN',
-          'CUSTOMER_SERVICE',
-          'ADMINISTRATIVE',
-          'FINANCE',
-          'LEGAL',
-          'EDUCATION',
-          'ENGINEERING',
-        ],
-        vacancy: 1,
-        applicationDeadline: moment()
-          .add(getRandomAmountOfHourToAdd(), 'hours')
-          .toDate(),
-        englishLevel: EnglishLevel.FLUENT,
-        salaryType: 'MONTHLY',
-        skills: [
-          'HTML',
-          'CSS',
-          'JAVASCRIPT',
-          'REACT',
-          'NEXTJS',
-          'GRAPHQL',
-          'PRISMA',
-          'NODEJS',
-        ],
-        salary: [1000, 3000],
-        location: 'United States',
-        experienceLevel: 'Junior',
-        // obSite, jobExperience, isVisible, company
-        jobSite: 'HYBRID',
-        jobExperience: 5,
-        isVisible: true,
-        companyId: company.id,
-      },
     });
+  } catch (e: any) {
+    console.log(e?.message ?? 'error creating dummy company');
   }
 
-  console.log('Seeding finished.');
+  try {
+    // loop through the postsData 5 times and create all of them
+    for (let i = 0; i < postsData.length * 4; i++) {
+      const pd = postsData[i % postsData.length];
+
+      const company = await prisma.account.findUnique({
+        where: {
+          email,
+        },
+        include: {
+          company: true,
+        },
+      });
+
+      if (!company?.company) {
+        console.log('company not found');
+        return;
+      }
+
+      await prisma.jobPost.create({
+        data: {
+          title: pd.title,
+          description: pd.description,
+
+          jobType: 'FULL_TIME',
+          email,
+          category: [
+            'IT',
+            'DESIGN',
+            'CUSTOMER_SERVICE',
+            'ADMINISTRATIVE',
+            'FINANCE',
+            'LEGAL',
+            'EDUCATION',
+            'ENGINEERING',
+          ],
+          vacancy: 1,
+          applicationDeadline: moment()
+            .add(getRandomAmountOfHourToAdd(), 'hours')
+            .toDate(),
+          englishLevel: EnglishLevel.FLUENT,
+          salaryType: 'MONTHLY',
+          skills: [
+            'HTML',
+            'CSS',
+            'JAVASCRIPT',
+            'REACT',
+            'NEXTJS',
+            'GRAPHQL',
+            'PRISMA',
+            'NODEJS',
+          ],
+          salary: [1000, 3000],
+          location: 'United States',
+          experienceLevel: 'Junior', // obSite, jobExperience, isVisible, company
+          jobSite: 'HYBRID',
+          jobExperience: 5,
+          isVisible: true,
+          companyId: company.company.id,
+        },
+      });
+    }
+  } catch (err: any) {
+    console.log(err?.message ?? 'error creating dummy job posts');
+  }
+
+  console.log(`Seeding finished. 🌱 ( ${postsData.length} posts})`);
 }
 
 main()
