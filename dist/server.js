@@ -77,8 +77,8 @@ var require_isPromise = __commonJS({
     Object.defineProperty(exports2, "__esModule", {
       value: true
     });
-    exports2.isPromise = isPromise3;
-    function isPromise3(value) {
+    exports2.isPromise = isPromise2;
+    function isPromise2(value) {
       return typeof (value === null || value === void 0 ? void 0 : value.then) === "function";
     }
   }
@@ -16514,7 +16514,7 @@ var require_ValueOrPromise = __commonJS({
 var require_main = __commonJS({
   "node_modules/value-or-promise/build/main/index.js"(exports2) {
     "use strict";
-    var __createBinding2 = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k2, k22) {
+    var __createBinding3 = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k2, k22) {
       if (k22 === void 0)
         k22 = k2;
       var desc = Object.getOwnPropertyDescriptor(m2, k2);
@@ -16529,13 +16529,13 @@ var require_main = __commonJS({
         k22 = k2;
       o[k22] = m2[k2];
     });
-    var __exportStar2 = exports2 && exports2.__exportStar || function(m2, exports3) {
+    var __exportStar3 = exports2 && exports2.__exportStar || function(m2, exports3) {
       for (var p in m2)
         if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports3, p))
-          __createBinding2(exports3, m2, p);
+          __createBinding3(exports3, m2, p);
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
-    __exportStar2(require_ValueOrPromise(), exports2);
+    __exportStar3(require_ValueOrPromise(), exports2);
   }
 });
 
@@ -17352,35 +17352,320 @@ var require_urlpattern_polyfill = __commonJS({
   }
 });
 
-// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js
-var require_AbortError = __commonJS({
-  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js"(exports2) {
+// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/ReadableStream.js
+var require_ReadableStream = __commonJS({
+  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/ReadableStream.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.PonyfillAbortError = void 0;
-    var PonyfillAbortError = class extends Error {
-      constructor(reason) {
-        let message = "The operation was aborted";
-        if (reason) {
-          message += ` reason: ${reason}`;
+    exports2.PonyfillReadableStream = void 0;
+    var stream_1 = require("stream");
+    function createController(desiredSize, readable) {
+      let chunks = [];
+      let _closed = false;
+      let flushed = false;
+      return {
+        desiredSize,
+        enqueue(chunk) {
+          const buf = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+          if (!flushed) {
+            chunks.push(buf);
+          } else {
+            readable.push(buf);
+          }
+        },
+        close() {
+          if (chunks.length > 0) {
+            this._flush();
+          }
+          readable.push(null);
+          _closed = true;
+        },
+        error(error) {
+          if (chunks.length > 0) {
+            this._flush();
+          }
+          readable.destroy(error);
+        },
+        get _closed() {
+          return _closed;
+        },
+        _flush() {
+          flushed = true;
+          if (chunks.length > 0) {
+            const concatenated = Buffer.concat(chunks);
+            readable.push(concatenated);
+            chunks = [];
+          }
         }
-        super(message, {
-          cause: reason
-        });
-        this.name = "AbortError";
+      };
+    }
+    var PonyfillReadableStream = class _PonyfillReadableStream {
+      constructor(underlyingSource) {
+        this.locked = false;
+        if (underlyingSource instanceof _PonyfillReadableStream) {
+          this.readable = underlyingSource.readable;
+        } else if (underlyingSource && "read" in underlyingSource) {
+          this.readable = underlyingSource;
+        } else if (underlyingSource && "getReader" in underlyingSource) {
+          let reader;
+          let started = false;
+          this.readable = new stream_1.Readable({
+            read() {
+              if (!started) {
+                started = true;
+                reader = underlyingSource.getReader();
+              }
+              reader.read().then(({ value, done }) => {
+                if (done) {
+                  this.push(null);
+                } else {
+                  this.push(value);
+                }
+              }).catch((err) => {
+                this.destroy(err);
+              });
+            },
+            destroy(err, callback) {
+              reader.cancel(err).then(() => callback(err), callback);
+            }
+          });
+        } else {
+          let started = false;
+          let ongoing = false;
+          this.readable = new stream_1.Readable({
+            read(desiredSize) {
+              if (ongoing) {
+                return;
+              }
+              ongoing = true;
+              return Promise.resolve().then(async () => {
+                if (!started) {
+                  const controller2 = createController(desiredSize, this);
+                  started = true;
+                  await underlyingSource?.start?.(controller2);
+                  controller2._flush();
+                  if (controller2._closed) {
+                    return;
+                  }
+                }
+                const controller = createController(desiredSize, this);
+                await underlyingSource?.pull?.(controller);
+                controller._flush();
+                ongoing = false;
+              });
+            },
+            async destroy(err, callback) {
+              try {
+                await underlyingSource?.cancel?.(err);
+                callback(null);
+              } catch (err2) {
+                callback(err2);
+              }
+            }
+          });
+        }
       }
-      get reason() {
-        return this.cause;
+      cancel(reason) {
+        this.readable.destroy(reason);
+        return Promise.resolve();
+      }
+      getReader(_options) {
+        const iterator = this.readable[Symbol.asyncIterator]();
+        this.locked = true;
+        return {
+          read() {
+            return iterator.next();
+          },
+          releaseLock: () => {
+            iterator.return?.();
+            this.locked = false;
+          },
+          cancel: async (reason) => {
+            await iterator.return?.(reason);
+            this.locked = false;
+          },
+          closed: new Promise((resolve, reject) => {
+            this.readable.once("end", resolve);
+            this.readable.once("error", reject);
+          })
+        };
+      }
+      [Symbol.asyncIterator]() {
+        return this.readable[Symbol.asyncIterator]();
+      }
+      tee() {
+        throw new Error("Not implemented");
+      }
+      async pipeTo(destination) {
+        const writer = destination.getWriter();
+        await writer.ready;
+        for await (const chunk of this.readable) {
+          await writer.write(chunk);
+        }
+        await writer.ready;
+        return writer.close();
+      }
+      pipeThrough({ writable, readable }) {
+        this.pipeTo(writable);
+        return readable;
+      }
+      static [Symbol.hasInstance](instance) {
+        return instance != null && typeof instance === "object" && "getReader" in instance;
       }
     };
-    exports2.PonyfillAbortError = PonyfillAbortError;
+    exports2.PonyfillReadableStream = PonyfillReadableStream;
   }
 });
 
-// node_modules/tslib/tslib.es6.mjs
+// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/utils.js
+var require_utils = __commonJS({
+  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/utils.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.defaultHeadersSerializer = exports2.uint8ArrayToArrayBuffer = exports2.getHeadersObj = void 0;
+    function getHeadersObj(headers) {
+      if (headers == null || !("forEach" in headers)) {
+        return headers;
+      }
+      const obj = {};
+      headers.forEach((value, key) => {
+        obj[key] = value;
+      });
+      return obj;
+    }
+    exports2.getHeadersObj = getHeadersObj;
+    function uint8ArrayToArrayBuffer(uint8array) {
+      return uint8array.buffer.slice(uint8array.byteOffset, uint8array.byteOffset + uint8array.byteLength);
+    }
+    exports2.uint8ArrayToArrayBuffer = uint8ArrayToArrayBuffer;
+    function defaultHeadersSerializer(headers, onContentLength) {
+      const headerArray = [];
+      headers.forEach((value, key) => {
+        if (onContentLength && key === "content-length") {
+          onContentLength(value);
+        }
+        headerArray.push(`${key}: ${value}`);
+      });
+      return headerArray;
+    }
+    exports2.defaultHeadersSerializer = defaultHeadersSerializer;
+  }
+});
+
+// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/Blob.js
+var require_Blob = __commonJS({
+  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/Blob.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.PonyfillBlob = void 0;
+    var ReadableStream_js_1 = require_ReadableStream();
+    var utils_js_1 = require_utils();
+    function getBlobPartAsBuffer(blobPart) {
+      if (typeof blobPart === "string") {
+        return Buffer.from(blobPart);
+      } else if (Buffer.isBuffer(blobPart)) {
+        return blobPart;
+      } else if (blobPart instanceof Uint8Array) {
+        return Buffer.from(blobPart);
+      } else if ("buffer" in blobPart) {
+        return Buffer.from(blobPart.buffer, blobPart.byteOffset, blobPart.byteLength);
+      } else {
+        return Buffer.from(blobPart);
+      }
+    }
+    function isBlob(obj) {
+      return obj != null && typeof obj === "object" && obj.arrayBuffer != null;
+    }
+    var PonyfillBlob = class {
+      constructor(blobParts, options) {
+        this.blobParts = blobParts;
+        this.type = options?.type || "application/octet-stream";
+        this.encoding = options?.encoding || "utf8";
+      }
+      async buffer() {
+        const bufferChunks = [];
+        for (const blobPart of this.blobParts) {
+          if (isBlob(blobPart)) {
+            const arrayBuf = await blobPart.arrayBuffer();
+            const buf = Buffer.from(arrayBuf, void 0, blobPart.size);
+            bufferChunks.push(buf);
+          } else {
+            const buf = getBlobPartAsBuffer(blobPart);
+            bufferChunks.push(buf);
+          }
+        }
+        return Buffer.concat(bufferChunks);
+      }
+      async arrayBuffer() {
+        const buffer = await this.buffer();
+        return (0, utils_js_1.uint8ArrayToArrayBuffer)(buffer);
+      }
+      async text() {
+        let text = "";
+        for (const blobPart of this.blobParts) {
+          if (typeof blobPart === "string") {
+            text += blobPart;
+          } else if ("text" in blobPart) {
+            text += await blobPart.text();
+          } else {
+            const buf = getBlobPartAsBuffer(blobPart);
+            text += buf.toString(this.encoding);
+          }
+        }
+        return text;
+      }
+      get size() {
+        let size = 0;
+        for (const blobPart of this.blobParts) {
+          if (typeof blobPart === "string") {
+            size += Buffer.byteLength(blobPart);
+          } else if (isBlob(blobPart)) {
+            size += blobPart.size;
+          } else if ("length" in blobPart) {
+            size += blobPart.length;
+          } else if ("byteLength" in blobPart) {
+            size += blobPart.byteLength;
+          }
+        }
+        return size;
+      }
+      stream() {
+        let partQueue = [];
+        return new ReadableStream_js_1.PonyfillReadableStream({
+          start: (controller) => {
+            partQueue = [...this.blobParts];
+            if (partQueue.length === 0) {
+              controller.close();
+            }
+          },
+          pull: async (controller) => {
+            const blobPart = partQueue.pop();
+            if (blobPart) {
+              if (isBlob(blobPart)) {
+                const arrayBuffer = await blobPart.arrayBuffer();
+                const buf = Buffer.from(arrayBuffer, void 0, blobPart.size);
+                controller.enqueue(buf);
+              } else {
+                const buf = getBlobPartAsBuffer(blobPart);
+                controller.enqueue(buf);
+              }
+            } else {
+              controller.close();
+            }
+          }
+        });
+      }
+      slice() {
+        throw new Error("Not implemented");
+      }
+    };
+    exports2.PonyfillBlob = PonyfillBlob;
+  }
+});
+
+// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/node_modules/tslib/tslib.es6.js
 var tslib_es6_exports = {};
 __export(tslib_es6_exports, {
-  __addDisposableResource: () => __addDisposableResource,
   __assign: () => __assign,
   __asyncDelegator: () => __asyncDelegator,
   __asyncGenerator: () => __asyncGenerator,
@@ -17392,7 +17677,6 @@ __export(tslib_es6_exports, {
   __classPrivateFieldSet: () => __classPrivateFieldSet,
   __createBinding: () => __createBinding,
   __decorate: () => __decorate,
-  __disposeResources: () => __disposeResources,
   __esDecorate: () => __esDecorate,
   __exportStar: () => __exportStar,
   __extends: () => __extends,
@@ -17410,8 +17694,7 @@ __export(tslib_es6_exports, {
   __spread: () => __spread,
   __spreadArray: () => __spreadArray,
   __spreadArrays: () => __spreadArrays,
-  __values: () => __values,
-  default: () => tslib_es6_default
+  __values: () => __values
 });
 function __extends(d, b2) {
   if (typeof b2 !== "function" && b2 !== null)
@@ -17481,10 +17764,10 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
       if (_2 = accept(result.set))
         descriptor.set = _2;
       if (_2 = accept(result.init))
-        initializers.unshift(_2);
+        initializers.push(_2);
     } else if (_2 = accept(result)) {
       if (kind === "field")
-        initializers.unshift(_2);
+        initializers.push(_2);
       else
         descriptor[key] = _2;
     }
@@ -17795,56 +18078,9 @@ function __classPrivateFieldIn(state, receiver) {
     throw new TypeError("Cannot use 'in' operator on non-object");
   return typeof state === "function" ? receiver === state : state.has(receiver);
 }
-function __addDisposableResource(env, value, async) {
-  if (value !== null && value !== void 0) {
-    if (typeof value !== "object" && typeof value !== "function")
-      throw new TypeError("Object expected.");
-    var dispose;
-    if (async) {
-      if (!Symbol.asyncDispose)
-        throw new TypeError("Symbol.asyncDispose is not defined.");
-      dispose = value[Symbol.asyncDispose];
-    }
-    if (dispose === void 0) {
-      if (!Symbol.dispose)
-        throw new TypeError("Symbol.dispose is not defined.");
-      dispose = value[Symbol.dispose];
-    }
-    if (typeof dispose !== "function")
-      throw new TypeError("Object not disposable.");
-    env.stack.push({ value, dispose, async });
-  } else if (async) {
-    env.stack.push({ async: true });
-  }
-  return value;
-}
-function __disposeResources(env) {
-  function fail(e) {
-    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-    env.hasError = true;
-  }
-  function next() {
-    while (env.stack.length) {
-      var rec = env.stack.pop();
-      try {
-        var result = rec.dispose && rec.dispose.call(rec.value);
-        if (rec.async)
-          return Promise.resolve(result).then(next, function(e) {
-            fail(e);
-            return next();
-          });
-      } catch (e) {
-        fail(e);
-      }
-    }
-    if (env.hasError)
-      throw env.error;
-  }
-  return next();
-}
-var extendStatics, __assign, __createBinding, __setModuleDefault, _SuppressedError, tslib_es6_default;
+var extendStatics, __assign, __createBinding, __setModuleDefault;
 var init_tslib_es6 = __esm({
-  "node_modules/tslib/tslib.es6.mjs"() {
+  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/node_modules/tslib/tslib.es6.js"() {
     extendStatics = function(d, b2) {
       extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b3) {
         d2.__proto__ = b3;
@@ -17856,7 +18092,7 @@ var init_tslib_es6 = __esm({
       return extendStatics(d, b2);
     };
     __assign = function() {
-      __assign = Object.assign || function __assign2(t) {
+      __assign = Object.assign || function __assign3(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
           s = arguments[i];
           for (var p in s)
@@ -17887,44 +18123,11 @@ var init_tslib_es6 = __esm({
     } : function(o, v2) {
       o["default"] = v2;
     };
-    _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
-      var e = new Error(message);
-      return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-    };
-    tslib_es6_default = {
-      __extends,
-      __assign,
-      __rest,
-      __decorate,
-      __param,
-      __metadata,
-      __awaiter,
-      __generator,
-      __createBinding,
-      __exportStar,
-      __values,
-      __read,
-      __spread,
-      __spreadArrays,
-      __spreadArray,
-      __await,
-      __asyncGenerator,
-      __asyncDelegator,
-      __asyncValues,
-      __makeTemplateObject,
-      __importStar,
-      __importDefault,
-      __classPrivateFieldGet,
-      __classPrivateFieldSet,
-      __classPrivateFieldIn,
-      __addDisposableResource,
-      __disposeResources
-    };
   }
 });
 
 // node_modules/busboy/lib/utils.js
-var require_utils = __commonJS({
+var require_utils2 = __commonJS({
   "node_modules/busboy/lib/utils.js"(exports2, module2) {
     "use strict";
     function parseContentType(str) {
@@ -20017,7 +20220,7 @@ var require_multipart = __commonJS({
       getDecoder,
       parseContentType,
       parseDisposition
-    } = require_utils();
+    } = require_utils2();
     var BUF_CRLF = Buffer.from("\r\n");
     var BUF_CR = Buffer.from("\r");
     var BUF_DASH = Buffer.from("-");
@@ -21057,7 +21260,7 @@ var require_urlencoded = __commonJS({
   "node_modules/busboy/lib/types/urlencoded.js"(exports2, module2) {
     "use strict";
     var { Writable } = require("stream");
-    var { getDecoder } = require_utils();
+    var { getDecoder } = require_utils2();
     var URLEncoded = class extends Writable {
       constructor(cfg) {
         const streamOpts = {
@@ -21603,7 +21806,7 @@ var require_urlencoded = __commonJS({
 var require_lib = __commonJS({
   "node_modules/busboy/lib/index.js"(exports2, module2) {
     "use strict";
-    var { parseContentType } = require_utils();
+    var { parseContentType } = require_utils2();
     function getInstance(cfg) {
       const headers = cfg.headers;
       const conType = parseContentType(headers["content-type"]);
@@ -21651,390 +21854,6 @@ var require_lib = __commonJS({
   }
 });
 
-// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/ReadableStream.js
-var require_ReadableStream = __commonJS({
-  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/ReadableStream.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.PonyfillReadableStream = void 0;
-    var stream_1 = require("stream");
-    function createController(desiredSize, readable) {
-      let chunks = [];
-      let _closed = false;
-      let flushed = false;
-      return {
-        desiredSize,
-        enqueue(chunk) {
-          const buf = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
-          if (!flushed) {
-            chunks.push(buf);
-          } else {
-            readable.push(buf);
-          }
-        },
-        close() {
-          if (chunks.length > 0) {
-            this._flush();
-          }
-          readable.push(null);
-          _closed = true;
-        },
-        error(error) {
-          if (chunks.length > 0) {
-            this._flush();
-          }
-          readable.destroy(error);
-        },
-        get _closed() {
-          return _closed;
-        },
-        _flush() {
-          flushed = true;
-          if (chunks.length > 0) {
-            const concatenated = chunks.length > 1 ? Buffer.concat(chunks) : chunks[0];
-            readable.push(concatenated);
-            chunks = [];
-          }
-        }
-      };
-    }
-    function isNodeReadable(obj) {
-      return obj?.read != null;
-    }
-    function isReadableStream(obj) {
-      return obj?.getReader != null;
-    }
-    var PonyfillReadableStream = class _PonyfillReadableStream {
-      constructor(underlyingSource) {
-        this.locked = false;
-        if (underlyingSource instanceof _PonyfillReadableStream) {
-          this.readable = underlyingSource.readable;
-        } else if (isNodeReadable(underlyingSource)) {
-          this.readable = underlyingSource;
-        } else if (isReadableStream(underlyingSource)) {
-          let reader;
-          let started = false;
-          this.readable = new stream_1.Readable({
-            read() {
-              if (!started) {
-                started = true;
-                reader = underlyingSource.getReader();
-              }
-              reader.read().then(({ value, done }) => {
-                if (done) {
-                  this.push(null);
-                } else {
-                  this.push(value);
-                }
-              }).catch((err) => {
-                this.destroy(err);
-              });
-            },
-            destroy(err, callback) {
-              reader.cancel(err).then(() => callback(err), callback);
-            }
-          });
-        } else {
-          let started = false;
-          let ongoing = false;
-          this.readable = new stream_1.Readable({
-            read(desiredSize) {
-              if (ongoing) {
-                return;
-              }
-              ongoing = true;
-              return Promise.resolve().then(async () => {
-                if (!started) {
-                  const controller2 = createController(desiredSize, this);
-                  started = true;
-                  await underlyingSource?.start?.(controller2);
-                  controller2._flush();
-                  if (controller2._closed) {
-                    return;
-                  }
-                }
-                const controller = createController(desiredSize, this);
-                await underlyingSource?.pull?.(controller);
-                controller._flush();
-                ongoing = false;
-              });
-            },
-            async destroy(err, callback) {
-              try {
-                await underlyingSource?.cancel?.(err);
-                callback(null);
-              } catch (err2) {
-                callback(err2);
-              }
-            }
-          });
-        }
-      }
-      cancel(reason) {
-        this.readable.destroy(reason);
-        return Promise.resolve();
-      }
-      getReader(_options) {
-        const iterator = this.readable[Symbol.asyncIterator]();
-        this.locked = true;
-        return {
-          read() {
-            return iterator.next();
-          },
-          releaseLock: () => {
-            iterator.return?.();
-            this.locked = false;
-          },
-          cancel: async (reason) => {
-            await iterator.return?.(reason);
-            this.locked = false;
-          },
-          closed: new Promise((resolve, reject) => {
-            this.readable.once("end", resolve);
-            this.readable.once("error", reject);
-          })
-        };
-      }
-      [Symbol.asyncIterator]() {
-        return this.readable[Symbol.asyncIterator]();
-      }
-      tee() {
-        throw new Error("Not implemented");
-      }
-      async pipeTo(destination) {
-        const writer = destination.getWriter();
-        await writer.ready;
-        for await (const chunk of this.readable) {
-          await writer.write(chunk);
-        }
-        await writer.ready;
-        return writer.close();
-      }
-      pipeThrough({ writable, readable }) {
-        this.pipeTo(writable);
-        return readable;
-      }
-      static [Symbol.hasInstance](instance) {
-        return isReadableStream(instance);
-      }
-    };
-    exports2.PonyfillReadableStream = PonyfillReadableStream;
-  }
-});
-
-// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/utils.js
-var require_utils2 = __commonJS({
-  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/utils.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.isNodeReadable = exports2.isArrayBufferView = exports2.fakePromise = exports2.defaultHeadersSerializer = exports2.getHeadersObj = void 0;
-    function isHeadersInstance(obj) {
-      return obj?.forEach != null;
-    }
-    function getHeadersObj(headers) {
-      if (headers == null || !isHeadersInstance(headers)) {
-        return headers;
-      }
-      const obj = {};
-      headers.forEach((value, key) => {
-        obj[key] = value;
-      });
-      return obj;
-    }
-    exports2.getHeadersObj = getHeadersObj;
-    function defaultHeadersSerializer(headers, onContentLength) {
-      const headerArray = [];
-      headers.forEach((value, key) => {
-        if (onContentLength && key === "content-length") {
-          onContentLength(value);
-        }
-        headerArray.push(`${key}: ${value}`);
-      });
-      return headerArray;
-    }
-    exports2.defaultHeadersSerializer = defaultHeadersSerializer;
-    function isPromise3(val) {
-      return val?.then != null;
-    }
-    function fakePromise(value) {
-      if (isPromise3(value)) {
-        return value;
-      }
-      return {
-        then(resolve) {
-          if (resolve) {
-            const callbackResult = resolve(value);
-            if (isPromise3(callbackResult)) {
-              return callbackResult;
-            }
-            return fakePromise(callbackResult);
-          }
-          return this;
-        },
-        catch() {
-          return this;
-        },
-        finally(cb) {
-          if (cb) {
-            const callbackResult = cb();
-            if (isPromise3(callbackResult)) {
-              return callbackResult.then(() => value);
-            }
-            return fakePromise(value);
-          }
-          return this;
-        },
-        [Symbol.toStringTag]: "Promise"
-      };
-    }
-    exports2.fakePromise = fakePromise;
-    function isArrayBufferView(obj) {
-      return obj != null && obj.buffer != null && obj.byteLength != null && obj.byteOffset != null;
-    }
-    exports2.isArrayBufferView = isArrayBufferView;
-    function isNodeReadable(obj) {
-      return obj != null && obj.pipe != null;
-    }
-    exports2.isNodeReadable = isNodeReadable;
-  }
-});
-
-// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/Blob.js
-var require_Blob = __commonJS({
-  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/Blob.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.PonyfillBlob = void 0;
-    var ReadableStream_js_1 = require_ReadableStream();
-    var utils_js_1 = require_utils2();
-    function getBlobPartAsBuffer(blobPart) {
-      if (typeof blobPart === "string") {
-        return Buffer.from(blobPart);
-      } else if (Buffer.isBuffer(blobPart)) {
-        return blobPart;
-      } else if ((0, utils_js_1.isArrayBufferView)(blobPart)) {
-        return Buffer.from(blobPart.buffer, blobPart.byteOffset, blobPart.byteLength);
-      } else {
-        return Buffer.from(blobPart);
-      }
-    }
-    function isBlob(obj) {
-      return obj != null && obj.arrayBuffer != null;
-    }
-    var PonyfillBlob = class {
-      constructor(blobParts, options) {
-        this.blobParts = blobParts;
-        this._size = null;
-        this.type = options?.type || "application/octet-stream";
-        this.encoding = options?.encoding || "utf8";
-        this._size = options?.size || null;
-        if (blobParts.length === 1 && isBlob(blobParts[0])) {
-          return blobParts[0];
-        }
-      }
-      arrayBuffer() {
-        if (this.blobParts.length === 1) {
-          const blobPart = this.blobParts[0];
-          if (isBlob(blobPart)) {
-            return blobPart.arrayBuffer();
-          }
-          return (0, utils_js_1.fakePromise)(getBlobPartAsBuffer(blobPart));
-        }
-        const jobs = [];
-        const bufferChunks = this.blobParts.map((blobPart, i) => {
-          if (isBlob(blobPart)) {
-            jobs.push(blobPart.arrayBuffer().then((arrayBuf) => {
-              bufferChunks[i] = Buffer.from(arrayBuf, void 0, blobPart.size);
-            }));
-            return void 0;
-          } else {
-            return getBlobPartAsBuffer(blobPart);
-          }
-        });
-        if (jobs.length > 0) {
-          return Promise.all(jobs).then(() => Buffer.concat(bufferChunks, this._size || void 0));
-        }
-        return (0, utils_js_1.fakePromise)(Buffer.concat(bufferChunks, this._size || void 0));
-      }
-      text() {
-        if (this.blobParts.length === 1) {
-          const blobPart = this.blobParts[0];
-          if (typeof blobPart === "string") {
-            return (0, utils_js_1.fakePromise)(blobPart);
-          }
-          if (isBlob(blobPart)) {
-            return blobPart.text();
-          }
-          const buf = getBlobPartAsBuffer(blobPart);
-          return (0, utils_js_1.fakePromise)(buf.toString(this.encoding));
-        }
-        return this.arrayBuffer().then((buf) => buf.toString(this.encoding));
-      }
-      get size() {
-        if (this._size == null) {
-          this._size = 0;
-          for (const blobPart of this.blobParts) {
-            if (typeof blobPart === "string") {
-              this._size += Buffer.byteLength(blobPart);
-            } else if (isBlob(blobPart)) {
-              this._size += blobPart.size;
-            } else if ((0, utils_js_1.isArrayBufferView)(blobPart)) {
-              this._size += blobPart.byteLength;
-            }
-          }
-        }
-        return this._size;
-      }
-      stream() {
-        if (this.blobParts.length === 1) {
-          const blobPart = this.blobParts[0];
-          if (isBlob(blobPart)) {
-            return blobPart.stream();
-          }
-          const buf = getBlobPartAsBuffer(blobPart);
-          return new ReadableStream_js_1.PonyfillReadableStream({
-            start: (controller) => {
-              controller.enqueue(buf);
-              controller.close();
-            }
-          });
-        }
-        let blobPartIterator;
-        return new ReadableStream_js_1.PonyfillReadableStream({
-          start: (controller) => {
-            if (this.blobParts.length === 0) {
-              controller.close();
-              return;
-            }
-            blobPartIterator = this.blobParts[Symbol.iterator]();
-          },
-          pull: (controller) => {
-            const { value: blobPart, done } = blobPartIterator.next();
-            if (done) {
-              controller.close();
-              return;
-            }
-            if (blobPart) {
-              if (isBlob(blobPart)) {
-                return blobPart.arrayBuffer().then((arrayBuffer) => {
-                  const buf2 = Buffer.from(arrayBuffer, void 0, blobPart.size);
-                  controller.enqueue(buf2);
-                });
-              }
-              const buf = getBlobPartAsBuffer(blobPart);
-              controller.enqueue(buf);
-            }
-          }
-        });
-      }
-      slice() {
-        throw new Error("Not implemented");
-      }
-    };
-    exports2.PonyfillBlob = PonyfillBlob;
-  }
-});
-
 // node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/File.js
 var require_File = __commonJS({
   "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/File.js"(exports2) {
@@ -22060,6 +21879,7 @@ var require_FormData = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getStreamFromFormData = exports2.PonyfillFormData = void 0;
+    var File_js_1 = require_File();
     var ReadableStream_js_1 = require_ReadableStream();
     var PonyfillFormData = class {
       constructor() {
@@ -22182,11 +22002,19 @@ var require_FormData = __commonJS({
     }
     exports2.getStreamFromFormData = getStreamFromFormData;
     function getNormalizedFile(name, blob, fileName) {
-      blob.name = fileName || blob.name || name;
-      return blob;
+      if (blob instanceof File_js_1.PonyfillFile) {
+        if (fileName != null) {
+          return new File_js_1.PonyfillFile([blob], fileName, {
+            type: blob.type,
+            lastModified: blob.lastModified
+          });
+        }
+        return blob;
+      }
+      return new File_js_1.PonyfillFile([blob], fileName || name, { type: blob.type });
     }
     function isBlob(value) {
-      return value?.arrayBuffer != null;
+      return value != null && typeof value === "object" && typeof value.arrayBuffer === "function";
     }
   }
 });
@@ -22204,15 +22032,17 @@ var require_Body = __commonJS({
     var File_js_1 = require_File();
     var FormData_js_1 = require_FormData();
     var ReadableStream_js_1 = require_ReadableStream();
-    var utils_js_1 = require_utils2();
+    var utils_js_1 = require_utils();
     var BodyInitType;
     (function(BodyInitType2) {
       BodyInitType2["ReadableStream"] = "ReadableStream";
       BodyInitType2["Blob"] = "Blob";
       BodyInitType2["FormData"] = "FormData";
+      BodyInitType2["ArrayBuffer"] = "ArrayBuffer";
       BodyInitType2["String"] = "String";
       BodyInitType2["Readable"] = "Readable";
       BodyInitType2["Buffer"] = "Buffer";
+      BodyInitType2["Uint8Array"] = "Uint8Array";
     })(BodyInitType || (BodyInitType = {}));
     var PonyfillBody = class {
       constructor(bodyInit, options = {}) {
@@ -22223,12 +22053,11 @@ var require_Body = __commonJS({
         this.contentLength = null;
         this._bodyFactory = () => null;
         this._generatedBody = null;
-        const { bodyFactory, contentType, contentLength, bodyType, buffer } = processBodyInit(bodyInit);
+        const { bodyFactory, contentType, contentLength, bodyType } = processBodyInit(bodyInit);
         this._bodyFactory = bodyFactory;
         this.contentType = contentType;
         this.contentLength = contentLength;
         this.bodyType = bodyType;
-        this._buffer = buffer;
       }
       generateBody() {
         if (this._generatedBody) {
@@ -22264,50 +22093,75 @@ var require_Body = __commonJS({
         }
         return null;
       }
-      _collectChunksFromReadable() {
-        const _body = this.generateBody();
-        if (!_body) {
-          return (0, utils_js_1.fakePromise)([]);
+      async arrayBuffer() {
+        if (this.bodyType === BodyInitType.ArrayBuffer) {
+          return this.bodyInit;
         }
-        const chunks = [];
-        _body.readable.on("data", (chunk) => {
-          chunks.push(chunk);
-        });
+        if (this.bodyType === BodyInitType.Uint8Array || this.bodyType === BodyInitType.Buffer) {
+          const typedBodyInit = this.bodyInit;
+          return (0, utils_js_1.uint8ArrayToArrayBuffer)(typedBodyInit);
+        }
+        if (this.bodyType === BodyInitType.String) {
+          const buffer = Buffer.from(this.bodyInit);
+          return (0, utils_js_1.uint8ArrayToArrayBuffer)(buffer);
+        }
+        if (this.bodyType === BodyInitType.Blob) {
+          const blob2 = this.bodyInit;
+          const arrayBuffer = await blob2.arrayBuffer();
+          return arrayBuffer;
+        }
+        const blob = await this.blob();
+        return blob.arrayBuffer();
+      }
+      _collectChunksFromReadable() {
         return new Promise((resolve, reject) => {
-          _body.readable.once("end", () => {
+          const chunks = [];
+          const _body = this.generateBody();
+          if (_body) {
+            _body.readable.on("data", (chunk) => {
+              chunks.push(chunk);
+            });
+            _body.readable.on("end", () => {
+              resolve(chunks);
+            });
+            _body.readable.on("error", (e) => {
+              reject(e);
+            });
+          } else {
             resolve(chunks);
-          });
-          _body.readable.once("error", (e) => {
-            reject(e);
-          });
+          }
         });
       }
-      blob() {
+      async blob() {
         if (this.bodyType === BodyInitType.Blob) {
-          return (0, utils_js_1.fakePromise)(this.bodyInit);
+          return this.bodyInit;
         }
-        if (this._buffer) {
-          const blob = new Blob_js_1.PonyfillBlob([this._buffer], {
-            type: this.contentType || "",
-            size: this.contentLength
+        if (this.bodyType === BodyInitType.String || this.bodyType === BodyInitType.Buffer || this.bodyType === BodyInitType.Uint8Array) {
+          const bodyInitTyped = this.bodyInit;
+          return new Blob_js_1.PonyfillBlob([bodyInitTyped], {
+            type: this.contentType || ""
           });
-          return (0, utils_js_1.fakePromise)(blob);
         }
-        return this._collectChunksFromReadable().then((chunks) => {
-          return new Blob_js_1.PonyfillBlob(chunks, {
-            type: this.contentType || "",
-            size: this.contentLength
+        if (this.bodyType === BodyInitType.ArrayBuffer) {
+          const bodyInitTyped = this.bodyInit;
+          const buf = Buffer.from(bodyInitTyped, void 0, bodyInitTyped.byteLength);
+          return new Blob_js_1.PonyfillBlob([buf], {
+            type: this.contentType || ""
           });
+        }
+        const chunks = await this._collectChunksFromReadable();
+        return new Blob_js_1.PonyfillBlob(chunks, {
+          type: this.contentType || ""
         });
       }
       formData(opts) {
         if (this.bodyType === BodyInitType.FormData) {
-          return (0, utils_js_1.fakePromise)(this.bodyInit);
+          return Promise.resolve(this.bodyInit);
         }
         const formData = new FormData_js_1.PonyfillFormData();
         const _body = this.generateBody();
         if (_body == null) {
-          return (0, utils_js_1.fakePromise)(formData);
+          return Promise.resolve(formData);
         }
         const formDataLimits = {
           ...this.options.formDataLimits,
@@ -22339,7 +22193,7 @@ var require_Body = __commonJS({
               reject(new Error(`File size limit exceeded: ${formDataLimits?.fileSize} bytes`));
             });
             fileStream.on("data", (chunk) => {
-              chunks.push(chunk);
+              chunks.push(Buffer.from(chunk));
             });
             fileStream.on("close", () => {
               if (fileStream.truncated) {
@@ -22364,34 +22218,39 @@ var require_Body = __commonJS({
           _body?.readable.pipe(bb);
         });
       }
-      arrayBuffer() {
-        if (this._buffer) {
-          return (0, utils_js_1.fakePromise)(this._buffer);
+      async buffer() {
+        if (this.bodyType === BodyInitType.Buffer) {
+          return this.bodyInit;
+        }
+        if (this.bodyType === BodyInitType.String) {
+          return Buffer.from(this.bodyInit);
+        }
+        if (this.bodyType === BodyInitType.Uint8Array || this.bodyType === BodyInitType.ArrayBuffer) {
+          const bodyInitTyped = this.bodyInit;
+          const buffer = Buffer.from(bodyInitTyped, "byteOffset" in bodyInitTyped ? bodyInitTyped.byteOffset : void 0, bodyInitTyped.byteLength);
+          return buffer;
         }
         if (this.bodyType === BodyInitType.Blob) {
           if (this.bodyInit instanceof Blob_js_1.PonyfillBlob) {
-            return this.bodyInit.arrayBuffer();
+            return this.bodyInit.buffer();
           }
           const bodyInitTyped = this.bodyInit;
-          return bodyInitTyped.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, void 0, bodyInitTyped.size));
+          const buffer = Buffer.from(await bodyInitTyped.arrayBuffer(), void 0, bodyInitTyped.size);
+          return buffer;
         }
-        return this._collectChunksFromReadable().then(function concatCollectedChunksFromReadable(chunks) {
-          if (chunks.length === 1) {
-            return chunks[0];
-          }
-          return Buffer.concat(chunks);
-        });
+        const chunks = await this._collectChunksFromReadable();
+        return Buffer.concat(chunks);
       }
-      json() {
-        return this.text().then(function parseTextAsJson(text) {
-          return JSON.parse(text);
-        });
+      async json() {
+        const text = await this.text();
+        return JSON.parse(text);
       }
-      text() {
+      async text() {
         if (this.bodyType === BodyInitType.String) {
-          return (0, utils_js_1.fakePromise)(this.bodyInit);
+          return this.bodyInit;
         }
-        return this.arrayBuffer().then((buffer) => buffer.toString("utf-8"));
+        const buffer = await this.buffer();
+        return buffer.toString("utf-8");
       }
     };
     exports2.PonyfillBody = PonyfillBody;
@@ -22410,35 +22269,20 @@ var require_Body = __commonJS({
           bodyType: BodyInitType.String,
           contentType: "text/plain;charset=UTF-8",
           contentLength,
-          buffer,
           bodyFactory() {
             const readable = stream_1.Readable.from(buffer);
             return new ReadableStream_js_1.PonyfillReadableStream(readable);
           }
         };
       }
-      if (Buffer.isBuffer(bodyInit)) {
+      if (bodyInit instanceof Buffer) {
+        const contentLength = bodyInit.byteLength;
         return {
           bodyType: BodyInitType.Buffer,
+          contentLength,
           contentType: null,
-          contentLength: bodyInit.length,
-          buffer: bodyInit,
           bodyFactory() {
             const readable = stream_1.Readable.from(bodyInit);
-            const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
-            return body;
-          }
-        };
-      }
-      if ((0, utils_js_1.isArrayBufferView)(bodyInit)) {
-        const buffer = Buffer.from(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength);
-        return {
-          bodyType: BodyInitType.Buffer,
-          contentLength: bodyInit.byteLength,
-          contentType: null,
-          buffer,
-          bodyFactory() {
-            const readable = stream_1.Readable.from(buffer);
             const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
             return body;
           }
@@ -22452,7 +22296,7 @@ var require_Body = __commonJS({
           contentLength: null
         };
       }
-      if (isBlob(bodyInit)) {
+      if (bodyInit instanceof Blob_js_1.PonyfillBlob) {
         return {
           bodyType: BodyInitType.Blob,
           contentType: bodyInit.type,
@@ -22462,15 +22306,40 @@ var require_Body = __commonJS({
           }
         };
       }
+      if (bodyInit instanceof Uint8Array) {
+        const contentLength = bodyInit.byteLength;
+        return {
+          bodyType: BodyInitType.Uint8Array,
+          contentLength,
+          contentType: null,
+          bodyFactory() {
+            const readable = stream_1.Readable.from(bodyInit);
+            const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
+            return body;
+          }
+        };
+      }
+      if ("buffer" in bodyInit) {
+        const contentLength = bodyInit.byteLength;
+        return {
+          contentLength,
+          contentType: null,
+          bodyFactory() {
+            const buffer = Buffer.from(bodyInit);
+            const readable = stream_1.Readable.from(buffer);
+            const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
+            return body;
+          }
+        };
+      }
       if (bodyInit instanceof ArrayBuffer) {
         const contentLength = bodyInit.byteLength;
-        const buffer = Buffer.from(bodyInit, void 0, bodyInit.byteLength);
         return {
-          bodyType: BodyInitType.Buffer,
+          bodyType: BodyInitType.ArrayBuffer,
           contentType: null,
           contentLength,
-          buffer,
           bodyFactory() {
+            const buffer = Buffer.from(bodyInit, void 0, bodyInit.byteLength);
             const readable = stream_1.Readable.from(buffer);
             const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
             return body;
@@ -22488,7 +22357,18 @@ var require_Body = __commonJS({
           }
         };
       }
-      if (isURLSearchParams(bodyInit)) {
+      if ("stream" in bodyInit) {
+        return {
+          contentType: bodyInit.type,
+          contentLength: bodyInit.size,
+          bodyFactory() {
+            const bodyStream = bodyInit.stream();
+            const body = new ReadableStream_js_1.PonyfillReadableStream(bodyStream);
+            return body;
+          }
+        };
+      }
+      if ("sort" in bodyInit) {
         const contentType = "application/x-www-form-urlencoded;charset=UTF-8";
         return {
           bodyType: BodyInitType.String,
@@ -22500,11 +22380,10 @@ var require_Body = __commonJS({
           }
         };
       }
-      if (isFormData(bodyInit)) {
+      if ("forEach" in bodyInit) {
         const boundary = Math.random().toString(36).substr(2);
         const contentType = `multipart/form-data; boundary=${boundary}`;
         return {
-          bodyType: BodyInitType.FormData,
           contentType,
           contentLength: null,
           bodyFactory() {
@@ -22523,15 +22402,6 @@ var require_Body = __commonJS({
         };
       }
       throw new Error("Unknown body type");
-    }
-    function isFormData(value) {
-      return value?.forEach != null;
-    }
-    function isBlob(value) {
-      return value?.stream != null;
-    }
-    function isURLSearchParams(value) {
-      return value?.sort != null;
     }
   }
 });
@@ -22837,12 +22707,16 @@ var require_fetchCurl = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.fetchCurl = void 0;
     var node_stream_1 = require("node:stream");
-    var AbortError_js_1 = require_AbortError();
     var Response_js_1 = require_Response();
-    var utils_js_1 = require_utils2();
+    var utils_js_1 = require_utils();
     function fetchCurl(fetchRequest) {
       const { Curl, CurlCode, CurlFeature, CurlPause, CurlProgressFunc } = globalThis["libcurl"];
       const curlHandle = new Curl();
+      if (fetchRequest["_signal"]) {
+        fetchRequest["_signal"].onabort = () => {
+          curlHandle.pause(CurlPause.Recv);
+        };
+      }
       curlHandle.enable(CurlFeature.NoDataParsing);
       curlHandle.setOpt("URL", fetchRequest.url);
       curlHandle.setOpt("SSL_VERIFYPEER", false);
@@ -22853,7 +22727,7 @@ var require_fetchCurl = __commonJS({
       if (fetchRequest["bodyType"] === "String") {
         curlHandle.setOpt("POSTFIELDS", fetchRequest["bodyInit"]);
       } else {
-        const nodeReadable = fetchRequest.body != null ? (0, utils_js_1.isNodeReadable)(fetchRequest.body) ? fetchRequest.body : node_stream_1.Readable.from(fetchRequest.body) : null;
+        const nodeReadable = fetchRequest.body != null ? "pipe" in fetchRequest.body ? fetchRequest.body : node_stream_1.Readable.from(fetchRequest.body) : null;
         if (nodeReadable) {
           curlHandle.setOpt("UPLOAD", true);
           curlHandle.setUploadStream(nodeReadable);
@@ -22879,17 +22753,6 @@ var require_fetchCurl = __commonJS({
       curlHandle.setOpt("HTTPHEADER", curlHeaders);
       curlHandle.enable(CurlFeature.NoHeaderParsing);
       return new Promise(function promiseResolver(resolve, reject) {
-        let streamResolved = false;
-        if (fetchRequest["_signal"]) {
-          fetchRequest["_signal"].onabort = () => {
-            if (streamResolved) {
-              curlHandle.pause(CurlPause.Recv);
-            } else {
-              reject(new AbortError_js_1.PonyfillAbortError());
-              curlHandle.close();
-            }
-          };
-        }
         curlHandle.once("end", function endListener() {
           curlHandle.close();
         });
@@ -22916,12 +22779,36 @@ var require_fetchCurl = __commonJS({
             headers: headersInit,
             url: fetchRequest.url
           }));
-          streamResolved = true;
         });
         curlHandle.perform();
       });
     }
     exports2.fetchCurl = fetchCurl;
+  }
+});
+
+// node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js
+var require_AbortError = __commonJS({
+  "node_modules/graphql-yoga/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.PonyfillAbortError = void 0;
+    var PonyfillAbortError = class extends Error {
+      constructor(reason) {
+        let message = "The operation was aborted";
+        if (reason) {
+          message += ` reason: ${reason}`;
+        }
+        super(message, {
+          cause: reason
+        });
+        this.name = "AbortError";
+      }
+      get reason() {
+        return this.cause;
+      }
+    };
+    exports2.PonyfillAbortError = PonyfillAbortError;
   }
 });
 
@@ -22936,9 +22823,6 @@ var require_Request = __commonJS({
     function isRequest(input) {
       return input[Symbol.toStringTag] === "Request";
     }
-    function isURL(obj) {
-      return obj?.href != null;
-    }
     var PonyfillRequest = class _PonyfillRequest extends Body_js_1.PonyfillBody {
       constructor(input, options) {
         let url;
@@ -22946,7 +22830,7 @@ var require_Request = __commonJS({
         let requestInit;
         if (typeof input === "string") {
           url = input;
-        } else if (isURL(input)) {
+        } else if ("href" in input) {
           url = input.toString();
         } else if (isRequest(input)) {
           url = input.url;
@@ -24662,9 +24546,6 @@ var require_URLSearchParams = __commonJS({
     exports2.PonyfillURLSearchParams = void 0;
     var tslib_1 = (init_tslib_es6(), __toCommonJS(tslib_es6_exports));
     var fast_querystring_1 = tslib_1.__importDefault(require_lib2());
-    function isURLSearchParams(value) {
-      return value?.entries != null;
-    }
     var PonyfillURLSearchParams = class {
       constructor(init) {
         if (init) {
@@ -24675,7 +24556,7 @@ var require_URLSearchParams = __commonJS({
             for (const [key, value] of init) {
               this.params[key] = value;
             }
-          } else if (isURLSearchParams(init)) {
+          } else if ("entries" in init) {
             this.params = {};
             for (const [key, value] of init.entries()) {
               this.params[key] = value;
@@ -24833,10 +24714,11 @@ var require_fetchNodeHttp = __commonJS({
     var https_1 = require("https");
     var stream_1 = require("stream");
     var zlib_1 = require("zlib");
+    var AbortError_js_1 = require_AbortError();
     var Request_js_1 = require_Request();
     var Response_js_1 = require_Response();
     var URL_js_1 = require_URL();
-    var utils_js_1 = require_utils2();
+    var utils_js_1 = require_utils();
     function getRequestFnForProtocol(url) {
       if (url.startsWith("http:")) {
         return http_1.request;
@@ -24849,7 +24731,7 @@ var require_fetchNodeHttp = __commonJS({
       return new Promise((resolve, reject) => {
         try {
           const requestFn = getRequestFnForProtocol(fetchRequest.url);
-          const nodeReadable = fetchRequest.body != null ? (0, utils_js_1.isNodeReadable)(fetchRequest.body) ? fetchRequest.body : stream_1.Readable.from(fetchRequest.body) : null;
+          const nodeReadable = fetchRequest.body != null ? "pipe" in fetchRequest.body ? fetchRequest.body : stream_1.Readable.from(fetchRequest.body) : null;
           const headersSerializer = fetchRequest.headersSerializer || utils_js_1.getHeadersObj;
           const nodeHeaders = headersSerializer(fetchRequest.headers);
           const nodeRequest = requestFn(fetchRequest.url, {
@@ -24857,6 +24739,14 @@ var require_fetchNodeHttp = __commonJS({
             headers: nodeHeaders,
             signal: fetchRequest["_signal"] ?? void 0,
             agent: fetchRequest.agent
+          });
+          fetchRequest["_signal"]?.addEventListener("abort", () => {
+            if (!nodeRequest.aborted) {
+              nodeRequest.abort();
+            }
+          });
+          nodeRequest.once("abort", (reason) => {
+            reject(new AbortError_js_1.PonyfillAbortError(reason));
           });
           nodeRequest.once("response", (nodeResponse) => {
             let responseBody = nodeResponse;
@@ -24923,11 +24813,11 @@ var require_fetch = __commonJS({
     exports2.fetchPonyfill = void 0;
     var fs_1 = require("fs");
     var url_1 = require("url");
+    var Blob_js_1 = require_Blob();
     var fetchCurl_js_1 = require_fetchCurl();
     var fetchNodeHttp_js_1 = require_fetchNodeHttp();
     var Request_js_1 = require_Request();
     var Response_js_1 = require_Response();
-    var utils_js_1 = require_utils2();
     var BASE64_SUFFIX = ";base64";
     function getResponseForFile(url) {
       const path = (0, url_1.fileURLToPath)(url);
@@ -24940,12 +24830,10 @@ var require_fetch = __commonJS({
       if (mimeType.endsWith(BASE64_SUFFIX)) {
         const buffer = Buffer.from(data, "base64url");
         const realMimeType = mimeType.slice(0, -BASE64_SUFFIX.length);
-        return new Response_js_1.PonyfillResponse(buffer, {
+        const file = new Blob_js_1.PonyfillBlob([buffer], { type: realMimeType });
+        return new Response_js_1.PonyfillResponse(file, {
           status: 200,
-          statusText: "OK",
-          headers: {
-            "content-type": realMimeType
-          }
+          statusText: "OK"
         });
       }
       return new Response_js_1.PonyfillResponse(data, {
@@ -24956,22 +24844,19 @@ var require_fetch = __commonJS({
         }
       });
     }
-    function isURL(obj) {
-      return obj != null && obj.href != null;
-    }
-    function fetchPonyfill(info, init) {
-      if (typeof info === "string" || isURL(info)) {
+    async function fetchPonyfill(info, init) {
+      if (typeof info === "string" || "href" in info) {
         const ponyfillRequest = new Request_js_1.PonyfillRequest(info, init);
         return fetchPonyfill(ponyfillRequest);
       }
       const fetchRequest = info;
       if (fetchRequest.url.startsWith("data:")) {
         const response = getResponseForDataUri(fetchRequest.url);
-        return (0, utils_js_1.fakePromise)(response);
+        return Promise.resolve(response);
       }
       if (fetchRequest.url.startsWith("file:")) {
         const response = getResponseForFile(fetchRequest.url);
-        return (0, utils_js_1.fakePromise)(response);
+        return Promise.resolve(response);
       }
       if (globalThis.libcurl) {
         return (0, fetchCurl_js_1.fetchCurl)(fetchRequest);
@@ -24988,7 +24873,6 @@ var require_TextEncoderDecoder = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PonyfillBtoa = exports2.PonyfillTextDecoder = exports2.PonyfillTextEncoder = void 0;
-    var utils_js_1 = require_utils2();
     var PonyfillTextEncoder = class {
       constructor(encoding = "utf-8") {
         this.encoding = encoding;
@@ -25017,12 +24901,6 @@ var require_TextEncoderDecoder = __commonJS({
         }
       }
       decode(input) {
-        if (Buffer.isBuffer(input)) {
-          return input.toString(this.encoding);
-        }
-        if ((0, utils_js_1.isArrayBufferView)(input)) {
-          return Buffer.from(input.buffer, input.byteOffset, input.byteLength).toString(this.encoding);
-        }
         return Buffer.from(input).toString(this.encoding);
       }
     };
@@ -25171,12 +25049,10 @@ var require_node_ponyfill = __commonJS({
   "node_modules/graphql-yoga/node_modules/@whatwg-node/fetch/dist/node-ponyfill.js"(exports2, module2) {
     var createNodePonyfill = require_create_node_ponyfill();
     var ponyfills = createNodePonyfill();
-    if (!globalThis.Deno && !process.versions.bun) {
-      try {
-        const nodelibcurlName = "node-libcurl";
-        globalThis.libcurl = globalThis.libcurl || require(nodelibcurlName);
-      } catch (e) {
-      }
+    try {
+      const nodelibcurlName = "node-libcurl";
+      globalThis.libcurl = globalThis.libcurl || require(nodelibcurlName);
+    } catch (e) {
     }
     module2.exports.fetch = ponyfills.fetch;
     module2.exports.Headers = ponyfills.Headers;
@@ -26012,31 +25888,6 @@ var require_urlpattern_polyfill2 = __commonJS({
   }
 });
 
-// node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js
-var require_AbortError2 = __commonJS({
-  "node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.PonyfillAbortError = void 0;
-    var PonyfillAbortError = class extends Error {
-      constructor(reason) {
-        let message = "The operation was aborted";
-        if (reason) {
-          message += ` reason: ${reason}`;
-        }
-        super(message, {
-          cause: reason
-        });
-        this.name = "AbortError";
-      }
-      get reason() {
-        return this.cause;
-      }
-    };
-    exports2.PonyfillAbortError = PonyfillAbortError;
-  }
-});
-
 // node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/ReadableStream.js
 var require_ReadableStream2 = __commonJS({
   "node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/ReadableStream.js"(exports2) {
@@ -26077,27 +25928,21 @@ var require_ReadableStream2 = __commonJS({
         _flush() {
           flushed = true;
           if (chunks.length > 0) {
-            const concatenated = chunks.length > 1 ? Buffer.concat(chunks) : chunks[0];
+            const concatenated = Buffer.concat(chunks);
             readable.push(concatenated);
             chunks = [];
           }
         }
       };
     }
-    function isNodeReadable(obj) {
-      return obj?.read != null;
-    }
-    function isReadableStream(obj) {
-      return obj?.getReader != null;
-    }
     var PonyfillReadableStream = class _PonyfillReadableStream {
       constructor(underlyingSource) {
         this.locked = false;
         if (underlyingSource instanceof _PonyfillReadableStream) {
           this.readable = underlyingSource.readable;
-        } else if (isNodeReadable(underlyingSource)) {
+        } else if (underlyingSource && "read" in underlyingSource) {
           this.readable = underlyingSource;
-        } else if (isReadableStream(underlyingSource)) {
+        } else if (underlyingSource && "getReader" in underlyingSource) {
           let reader;
           let started = false;
           this.readable = new stream_1.Readable({
@@ -26201,7 +26046,7 @@ var require_ReadableStream2 = __commonJS({
         return readable;
       }
       static [Symbol.hasInstance](instance) {
-        return isReadableStream(instance);
+        return instance != null && typeof instance === "object" && "getReader" in instance;
       }
     };
     exports2.PonyfillReadableStream = PonyfillReadableStream;
@@ -26213,12 +26058,9 @@ var require_utils3 = __commonJS({
   "node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.isNodeReadable = exports2.isArrayBufferView = exports2.fakePromise = exports2.defaultHeadersSerializer = exports2.getHeadersObj = void 0;
-    function isHeadersInstance(obj) {
-      return obj?.forEach != null;
-    }
+    exports2.defaultHeadersSerializer = exports2.uint8ArrayToArrayBuffer = exports2.getHeadersObj = void 0;
     function getHeadersObj(headers) {
-      if (headers == null || !isHeadersInstance(headers)) {
+      if (headers == null || !("forEach" in headers)) {
         return headers;
       }
       const obj = {};
@@ -26228,6 +26070,10 @@ var require_utils3 = __commonJS({
       return obj;
     }
     exports2.getHeadersObj = getHeadersObj;
+    function uint8ArrayToArrayBuffer(uint8array) {
+      return uint8array.buffer.slice(uint8array.byteOffset, uint8array.byteOffset + uint8array.byteLength);
+    }
+    exports2.uint8ArrayToArrayBuffer = uint8ArrayToArrayBuffer;
     function defaultHeadersSerializer(headers, onContentLength) {
       const headerArray = [];
       headers.forEach((value, key) => {
@@ -26239,49 +26085,6 @@ var require_utils3 = __commonJS({
       return headerArray;
     }
     exports2.defaultHeadersSerializer = defaultHeadersSerializer;
-    function isPromise3(val) {
-      return val?.then != null;
-    }
-    function fakePromise(value) {
-      if (isPromise3(value)) {
-        return value;
-      }
-      return {
-        then(resolve) {
-          if (resolve) {
-            const callbackResult = resolve(value);
-            if (isPromise3(callbackResult)) {
-              return callbackResult;
-            }
-            return fakePromise(callbackResult);
-          }
-          return this;
-        },
-        catch() {
-          return this;
-        },
-        finally(cb) {
-          if (cb) {
-            const callbackResult = cb();
-            if (isPromise3(callbackResult)) {
-              return callbackResult.then(() => value);
-            }
-            return fakePromise(value);
-          }
-          return this;
-        },
-        [Symbol.toStringTag]: "Promise"
-      };
-    }
-    exports2.fakePromise = fakePromise;
-    function isArrayBufferView(obj) {
-      return obj != null && obj.buffer != null && obj.byteLength != null && obj.byteOffset != null;
-    }
-    exports2.isArrayBufferView = isArrayBufferView;
-    function isNodeReadable(obj) {
-      return obj != null && obj.pipe != null;
-    }
-    exports2.isNodeReadable = isNodeReadable;
   }
 });
 
@@ -26298,117 +26101,92 @@ var require_Blob2 = __commonJS({
         return Buffer.from(blobPart);
       } else if (Buffer.isBuffer(blobPart)) {
         return blobPart;
-      } else if ((0, utils_js_1.isArrayBufferView)(blobPart)) {
+      } else if (blobPart instanceof Uint8Array) {
+        return Buffer.from(blobPart);
+      } else if ("buffer" in blobPart) {
         return Buffer.from(blobPart.buffer, blobPart.byteOffset, blobPart.byteLength);
       } else {
         return Buffer.from(blobPart);
       }
     }
     function isBlob(obj) {
-      return obj != null && obj.arrayBuffer != null;
+      return obj != null && typeof obj === "object" && obj.arrayBuffer != null;
     }
     var PonyfillBlob = class {
       constructor(blobParts, options) {
         this.blobParts = blobParts;
-        this._size = null;
         this.type = options?.type || "application/octet-stream";
         this.encoding = options?.encoding || "utf8";
-        this._size = options?.size || null;
-        if (blobParts.length === 1 && isBlob(blobParts[0])) {
-          return blobParts[0];
-        }
       }
-      arrayBuffer() {
-        if (this.blobParts.length === 1) {
-          const blobPart = this.blobParts[0];
+      async buffer() {
+        const bufferChunks = [];
+        for (const blobPart of this.blobParts) {
           if (isBlob(blobPart)) {
-            return blobPart.arrayBuffer();
-          }
-          return (0, utils_js_1.fakePromise)(getBlobPartAsBuffer(blobPart));
-        }
-        const jobs = [];
-        const bufferChunks = this.blobParts.map((blobPart, i) => {
-          if (isBlob(blobPart)) {
-            jobs.push(blobPart.arrayBuffer().then((arrayBuf) => {
-              bufferChunks[i] = Buffer.from(arrayBuf, void 0, blobPart.size);
-            }));
-            return void 0;
+            const arrayBuf = await blobPart.arrayBuffer();
+            const buf = Buffer.from(arrayBuf, void 0, blobPart.size);
+            bufferChunks.push(buf);
           } else {
-            return getBlobPartAsBuffer(blobPart);
+            const buf = getBlobPartAsBuffer(blobPart);
+            bufferChunks.push(buf);
           }
-        });
-        if (jobs.length > 0) {
-          return Promise.all(jobs).then(() => Buffer.concat(bufferChunks, this._size || void 0));
         }
-        return (0, utils_js_1.fakePromise)(Buffer.concat(bufferChunks, this._size || void 0));
+        return Buffer.concat(bufferChunks);
       }
-      text() {
-        if (this.blobParts.length === 1) {
-          const blobPart = this.blobParts[0];
+      async arrayBuffer() {
+        const buffer = await this.buffer();
+        return (0, utils_js_1.uint8ArrayToArrayBuffer)(buffer);
+      }
+      async text() {
+        let text = "";
+        for (const blobPart of this.blobParts) {
           if (typeof blobPart === "string") {
-            return (0, utils_js_1.fakePromise)(blobPart);
+            text += blobPart;
+          } else if ("text" in blobPart) {
+            text += await blobPart.text();
+          } else {
+            const buf = getBlobPartAsBuffer(blobPart);
+            text += buf.toString(this.encoding);
           }
-          if (isBlob(blobPart)) {
-            return blobPart.text();
-          }
-          const buf = getBlobPartAsBuffer(blobPart);
-          return (0, utils_js_1.fakePromise)(buf.toString(this.encoding));
         }
-        return this.arrayBuffer().then((buf) => buf.toString(this.encoding));
+        return text;
       }
       get size() {
-        if (this._size == null) {
-          this._size = 0;
-          for (const blobPart of this.blobParts) {
-            if (typeof blobPart === "string") {
-              this._size += Buffer.byteLength(blobPart);
-            } else if (isBlob(blobPart)) {
-              this._size += blobPart.size;
-            } else if ((0, utils_js_1.isArrayBufferView)(blobPart)) {
-              this._size += blobPart.byteLength;
-            }
+        let size = 0;
+        for (const blobPart of this.blobParts) {
+          if (typeof blobPart === "string") {
+            size += Buffer.byteLength(blobPart);
+          } else if (isBlob(blobPart)) {
+            size += blobPart.size;
+          } else if ("length" in blobPart) {
+            size += blobPart.length;
+          } else if ("byteLength" in blobPart) {
+            size += blobPart.byteLength;
           }
         }
-        return this._size;
+        return size;
       }
       stream() {
-        if (this.blobParts.length === 1) {
-          const blobPart = this.blobParts[0];
-          if (isBlob(blobPart)) {
-            return blobPart.stream();
-          }
-          const buf = getBlobPartAsBuffer(blobPart);
-          return new ReadableStream_js_1.PonyfillReadableStream({
-            start: (controller) => {
-              controller.enqueue(buf);
-              controller.close();
-            }
-          });
-        }
-        let blobPartIterator;
+        let partQueue = [];
         return new ReadableStream_js_1.PonyfillReadableStream({
           start: (controller) => {
-            if (this.blobParts.length === 0) {
+            partQueue = [...this.blobParts];
+            if (partQueue.length === 0) {
               controller.close();
-              return;
             }
-            blobPartIterator = this.blobParts[Symbol.iterator]();
           },
-          pull: (controller) => {
-            const { value: blobPart, done } = blobPartIterator.next();
-            if (done) {
-              controller.close();
-              return;
-            }
+          pull: async (controller) => {
+            const blobPart = partQueue.pop();
             if (blobPart) {
               if (isBlob(blobPart)) {
-                return blobPart.arrayBuffer().then((arrayBuffer) => {
-                  const buf2 = Buffer.from(arrayBuffer, void 0, blobPart.size);
-                  controller.enqueue(buf2);
-                });
+                const arrayBuffer = await blobPart.arrayBuffer();
+                const buf = Buffer.from(arrayBuffer, void 0, blobPart.size);
+                controller.enqueue(buf);
+              } else {
+                const buf = getBlobPartAsBuffer(blobPart);
+                controller.enqueue(buf);
               }
-              const buf = getBlobPartAsBuffer(blobPart);
-              controller.enqueue(buf);
+            } else {
+              controller.close();
             }
           }
         });
@@ -26418,6 +26196,469 @@ var require_Blob2 = __commonJS({
       }
     };
     exports2.PonyfillBlob = PonyfillBlob;
+  }
+});
+
+// node_modules/tslib/tslib.es6.js
+var tslib_es6_exports2 = {};
+__export(tslib_es6_exports2, {
+  __assign: () => __assign2,
+  __asyncDelegator: () => __asyncDelegator2,
+  __asyncGenerator: () => __asyncGenerator2,
+  __asyncValues: () => __asyncValues2,
+  __await: () => __await2,
+  __awaiter: () => __awaiter2,
+  __classPrivateFieldGet: () => __classPrivateFieldGet2,
+  __classPrivateFieldIn: () => __classPrivateFieldIn2,
+  __classPrivateFieldSet: () => __classPrivateFieldSet2,
+  __createBinding: () => __createBinding2,
+  __decorate: () => __decorate2,
+  __esDecorate: () => __esDecorate2,
+  __exportStar: () => __exportStar2,
+  __extends: () => __extends2,
+  __generator: () => __generator2,
+  __importDefault: () => __importDefault2,
+  __importStar: () => __importStar2,
+  __makeTemplateObject: () => __makeTemplateObject2,
+  __metadata: () => __metadata2,
+  __param: () => __param2,
+  __propKey: () => __propKey2,
+  __read: () => __read2,
+  __rest: () => __rest2,
+  __runInitializers: () => __runInitializers2,
+  __setFunctionName: () => __setFunctionName2,
+  __spread: () => __spread2,
+  __spreadArray: () => __spreadArray2,
+  __spreadArrays: () => __spreadArrays2,
+  __values: () => __values2
+});
+function __extends2(d, b2) {
+  if (typeof b2 !== "function" && b2 !== null)
+    throw new TypeError("Class extends value " + String(b2) + " is not a constructor or null");
+  extendStatics2(d, b2);
+  function __() {
+    this.constructor = d;
+  }
+  d.prototype = b2 === null ? Object.create(b2) : (__.prototype = b2.prototype, new __());
+}
+function __rest2(s, e) {
+  var t = {};
+  for (var p in s)
+    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+  if (s != null && typeof Object.getOwnPropertySymbols === "function")
+    for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+        t[p[i]] = s[p[i]];
+    }
+  return t;
+}
+function __decorate2(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function")
+    r = Reflect.decorate(decorators, target, key, desc);
+  else
+    for (var i = decorators.length - 1; i >= 0; i--)
+      if (d = decorators[i])
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+function __param2(paramIndex, decorator) {
+  return function(target, key) {
+    decorator(target, key, paramIndex);
+  };
+}
+function __esDecorate2(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+  function accept(f) {
+    if (f !== void 0 && typeof f !== "function")
+      throw new TypeError("Function expected");
+    return f;
+  }
+  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+  var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+  var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+  var _2, done = false;
+  for (var i = decorators.length - 1; i >= 0; i--) {
+    var context = {};
+    for (var p in contextIn)
+      context[p] = p === "access" ? {} : contextIn[p];
+    for (var p in contextIn.access)
+      context.access[p] = contextIn.access[p];
+    context.addInitializer = function(f) {
+      if (done)
+        throw new TypeError("Cannot add initializers after decoration has completed");
+      extraInitializers.push(accept(f || null));
+    };
+    var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+    if (kind === "accessor") {
+      if (result === void 0)
+        continue;
+      if (result === null || typeof result !== "object")
+        throw new TypeError("Object expected");
+      if (_2 = accept(result.get))
+        descriptor.get = _2;
+      if (_2 = accept(result.set))
+        descriptor.set = _2;
+      if (_2 = accept(result.init))
+        initializers.push(_2);
+    } else if (_2 = accept(result)) {
+      if (kind === "field")
+        initializers.push(_2);
+      else
+        descriptor[key] = _2;
+    }
+  }
+  if (target)
+    Object.defineProperty(target, contextIn.name, descriptor);
+  done = true;
+}
+function __runInitializers2(thisArg, initializers, value) {
+  var useValue = arguments.length > 2;
+  for (var i = 0; i < initializers.length; i++) {
+    value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+  }
+  return useValue ? value : void 0;
+}
+function __propKey2(x) {
+  return typeof x === "symbol" ? x : "".concat(x);
+}
+function __setFunctionName2(f, name, prefix) {
+  if (typeof name === "symbol")
+    name = name.description ? "[".concat(name.description, "]") : "";
+  return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+}
+function __metadata2(metadataKey, metadataValue) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function")
+    return Reflect.metadata(metadataKey, metadataValue);
+}
+function __awaiter2(thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
+function __generator2(thisArg, body) {
+  var _2 = { label: 0, sent: function() {
+    if (t[0] & 1)
+      throw t[1];
+    return t[1];
+  }, trys: [], ops: [] }, f, y, t, g;
+  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
+    return this;
+  }), g;
+  function verb(n) {
+    return function(v2) {
+      return step([n, v2]);
+    };
+  }
+  function step(op) {
+    if (f)
+      throw new TypeError("Generator is already executing.");
+    while (g && (g = 0, op[0] && (_2 = 0)), _2)
+      try {
+        if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done)
+          return t;
+        if (y = 0, t)
+          op = [op[0] & 2, t.value];
+        switch (op[0]) {
+          case 0:
+          case 1:
+            t = op;
+            break;
+          case 4:
+            _2.label++;
+            return { value: op[1], done: false };
+          case 5:
+            _2.label++;
+            y = op[1];
+            op = [0];
+            continue;
+          case 7:
+            op = _2.ops.pop();
+            _2.trys.pop();
+            continue;
+          default:
+            if (!(t = _2.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+              _2 = 0;
+              continue;
+            }
+            if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+              _2.label = op[1];
+              break;
+            }
+            if (op[0] === 6 && _2.label < t[1]) {
+              _2.label = t[1];
+              t = op;
+              break;
+            }
+            if (t && _2.label < t[2]) {
+              _2.label = t[2];
+              _2.ops.push(op);
+              break;
+            }
+            if (t[2])
+              _2.ops.pop();
+            _2.trys.pop();
+            continue;
+        }
+        op = body.call(thisArg, _2);
+      } catch (e) {
+        op = [6, e];
+        y = 0;
+      } finally {
+        f = t = 0;
+      }
+    if (op[0] & 5)
+      throw op[1];
+    return { value: op[0] ? op[1] : void 0, done: true };
+  }
+}
+function __exportStar2(m2, o) {
+  for (var p in m2)
+    if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p))
+      __createBinding2(o, m2, p);
+}
+function __values2(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator, m2 = s && o[s], i = 0;
+  if (m2)
+    return m2.call(o);
+  if (o && typeof o.length === "number")
+    return {
+      next: function() {
+        if (o && i >= o.length)
+          o = void 0;
+        return { value: o && o[i++], done: !o };
+      }
+    };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+}
+function __read2(o, n) {
+  var m2 = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m2)
+    return o;
+  var i = m2.call(o), r, ar2 = [], e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done)
+      ar2.push(r.value);
+  } catch (error) {
+    e = { error };
+  } finally {
+    try {
+      if (r && !r.done && (m2 = i["return"]))
+        m2.call(i);
+    } finally {
+      if (e)
+        throw e.error;
+    }
+  }
+  return ar2;
+}
+function __spread2() {
+  for (var ar2 = [], i = 0; i < arguments.length; i++)
+    ar2 = ar2.concat(__read2(arguments[i]));
+  return ar2;
+}
+function __spreadArrays2() {
+  for (var s = 0, i = 0, il2 = arguments.length; i < il2; i++)
+    s += arguments[i].length;
+  for (var r = Array(s), k2 = 0, i = 0; i < il2; i++)
+    for (var a = arguments[i], j2 = 0, jl = a.length; j2 < jl; j2++, k2++)
+      r[k2] = a[j2];
+  return r;
+}
+function __spreadArray2(to2, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar2; i < l; i++) {
+      if (ar2 || !(i in from)) {
+        if (!ar2)
+          ar2 = Array.prototype.slice.call(from, 0, i);
+        ar2[i] = from[i];
+      }
+    }
+  return to2.concat(ar2 || Array.prototype.slice.call(from));
+}
+function __await2(v2) {
+  return this instanceof __await2 ? (this.v = v2, this) : new __await2(v2);
+}
+function __asyncGenerator2(thisArg, _arguments, generator) {
+  if (!Symbol.asyncIterator)
+    throw new TypeError("Symbol.asyncIterator is not defined.");
+  var g = generator.apply(thisArg, _arguments || []), i, q2 = [];
+  return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
+    return this;
+  }, i;
+  function verb(n) {
+    if (g[n])
+      i[n] = function(v2) {
+        return new Promise(function(a, b2) {
+          q2.push([n, v2, a, b2]) > 1 || resume(n, v2);
+        });
+      };
+  }
+  function resume(n, v2) {
+    try {
+      step(g[n](v2));
+    } catch (e) {
+      settle(q2[0][3], e);
+    }
+  }
+  function step(r) {
+    r.value instanceof __await2 ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q2[0][2], r);
+  }
+  function fulfill(value) {
+    resume("next", value);
+  }
+  function reject(value) {
+    resume("throw", value);
+  }
+  function settle(f, v2) {
+    if (f(v2), q2.shift(), q2.length)
+      resume(q2[0][0], q2[0][1]);
+  }
+}
+function __asyncDelegator2(o) {
+  var i, p;
+  return i = {}, verb("next"), verb("throw", function(e) {
+    throw e;
+  }), verb("return"), i[Symbol.iterator] = function() {
+    return this;
+  }, i;
+  function verb(n, f) {
+    i[n] = o[n] ? function(v2) {
+      return (p = !p) ? { value: __await2(o[n](v2)), done: false } : f ? f(v2) : v2;
+    } : f;
+  }
+}
+function __asyncValues2(o) {
+  if (!Symbol.asyncIterator)
+    throw new TypeError("Symbol.asyncIterator is not defined.");
+  var m2 = o[Symbol.asyncIterator], i;
+  return m2 ? m2.call(o) : (o = typeof __values2 === "function" ? __values2(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
+    return this;
+  }, i);
+  function verb(n) {
+    i[n] = o[n] && function(v2) {
+      return new Promise(function(resolve, reject) {
+        v2 = o[n](v2), settle(resolve, reject, v2.done, v2.value);
+      });
+    };
+  }
+  function settle(resolve, reject, d, v2) {
+    Promise.resolve(v2).then(function(v3) {
+      resolve({ value: v3, done: d });
+    }, reject);
+  }
+}
+function __makeTemplateObject2(cooked, raw2) {
+  if (Object.defineProperty) {
+    Object.defineProperty(cooked, "raw", { value: raw2 });
+  } else {
+    cooked.raw = raw2;
+  }
+  return cooked;
+}
+function __importStar2(mod) {
+  if (mod && mod.__esModule)
+    return mod;
+  var result = {};
+  if (mod != null) {
+    for (var k2 in mod)
+      if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2))
+        __createBinding2(result, mod, k2);
+  }
+  __setModuleDefault2(result, mod);
+  return result;
+}
+function __importDefault2(mod) {
+  return mod && mod.__esModule ? mod : { default: mod };
+}
+function __classPrivateFieldGet2(receiver, state, kind, f) {
+  if (kind === "a" && !f)
+    throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
+    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+}
+function __classPrivateFieldSet2(receiver, state, value, kind, f) {
+  if (kind === "m")
+    throw new TypeError("Private method is not writable");
+  if (kind === "a" && !f)
+    throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
+    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  return kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
+}
+function __classPrivateFieldIn2(state, receiver) {
+  if (receiver === null || typeof receiver !== "object" && typeof receiver !== "function")
+    throw new TypeError("Cannot use 'in' operator on non-object");
+  return typeof state === "function" ? receiver === state : state.has(receiver);
+}
+var extendStatics2, __assign2, __createBinding2, __setModuleDefault2;
+var init_tslib_es62 = __esm({
+  "node_modules/tslib/tslib.es6.js"() {
+    extendStatics2 = function(d, b2) {
+      extendStatics2 = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b3) {
+        d2.__proto__ = b3;
+      } || function(d2, b3) {
+        for (var p in b3)
+          if (Object.prototype.hasOwnProperty.call(b3, p))
+            d2[p] = b3[p];
+      };
+      return extendStatics2(d, b2);
+    };
+    __assign2 = function() {
+      __assign2 = Object.assign || function __assign3(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+          s = arguments[i];
+          for (var p in s)
+            if (Object.prototype.hasOwnProperty.call(s, p))
+              t[p] = s[p];
+        }
+        return t;
+      };
+      return __assign2.apply(this, arguments);
+    };
+    __createBinding2 = Object.create ? function(o, m2, k2, k22) {
+      if (k22 === void 0)
+        k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m2, k2);
+      if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m2[k2];
+        } };
+      }
+      Object.defineProperty(o, k22, desc);
+    } : function(o, m2, k2, k22) {
+      if (k22 === void 0)
+        k22 = k2;
+      o[k22] = m2[k2];
+    };
+    __setModuleDefault2 = Object.create ? function(o, v2) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v2 });
+    } : function(o, v2) {
+      o["default"] = v2;
+    };
   }
 });
 
@@ -26446,6 +26687,7 @@ var require_FormData2 = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getStreamFromFormData = exports2.PonyfillFormData = void 0;
+    var File_js_1 = require_File2();
     var ReadableStream_js_1 = require_ReadableStream2();
     var PonyfillFormData = class {
       constructor() {
@@ -26568,11 +26810,19 @@ var require_FormData2 = __commonJS({
     }
     exports2.getStreamFromFormData = getStreamFromFormData;
     function getNormalizedFile(name, blob, fileName) {
-      blob.name = fileName || blob.name || name;
-      return blob;
+      if (blob instanceof File_js_1.PonyfillFile) {
+        if (fileName != null) {
+          return new File_js_1.PonyfillFile([blob], fileName, {
+            type: blob.type,
+            lastModified: blob.lastModified
+          });
+        }
+        return blob;
+      }
+      return new File_js_1.PonyfillFile([blob], fileName || name, { type: blob.type });
     }
     function isBlob(value) {
-      return value?.arrayBuffer != null;
+      return value != null && typeof value === "object" && typeof value.arrayBuffer === "function";
     }
   }
 });
@@ -26583,7 +26833,7 @@ var require_Body2 = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PonyfillBody = void 0;
-    var tslib_1 = (init_tslib_es6(), __toCommonJS(tslib_es6_exports));
+    var tslib_1 = (init_tslib_es62(), __toCommonJS(tslib_es6_exports2));
     var stream_1 = require("stream");
     var busboy_1 = tslib_1.__importDefault(require_lib());
     var Blob_js_1 = require_Blob2();
@@ -26596,9 +26846,11 @@ var require_Body2 = __commonJS({
       BodyInitType2["ReadableStream"] = "ReadableStream";
       BodyInitType2["Blob"] = "Blob";
       BodyInitType2["FormData"] = "FormData";
+      BodyInitType2["ArrayBuffer"] = "ArrayBuffer";
       BodyInitType2["String"] = "String";
       BodyInitType2["Readable"] = "Readable";
       BodyInitType2["Buffer"] = "Buffer";
+      BodyInitType2["Uint8Array"] = "Uint8Array";
     })(BodyInitType || (BodyInitType = {}));
     var PonyfillBody = class {
       constructor(bodyInit, options = {}) {
@@ -26609,12 +26861,11 @@ var require_Body2 = __commonJS({
         this.contentLength = null;
         this._bodyFactory = () => null;
         this._generatedBody = null;
-        const { bodyFactory, contentType, contentLength, bodyType, buffer } = processBodyInit(bodyInit);
+        const { bodyFactory, contentType, contentLength, bodyType } = processBodyInit(bodyInit);
         this._bodyFactory = bodyFactory;
         this.contentType = contentType;
         this.contentLength = contentLength;
         this.bodyType = bodyType;
-        this._buffer = buffer;
       }
       generateBody() {
         if (this._generatedBody) {
@@ -26650,50 +26901,75 @@ var require_Body2 = __commonJS({
         }
         return null;
       }
-      _collectChunksFromReadable() {
-        const _body = this.generateBody();
-        if (!_body) {
-          return (0, utils_js_1.fakePromise)([]);
+      async arrayBuffer() {
+        if (this.bodyType === BodyInitType.ArrayBuffer) {
+          return this.bodyInit;
         }
-        const chunks = [];
-        _body.readable.on("data", (chunk) => {
-          chunks.push(chunk);
-        });
+        if (this.bodyType === BodyInitType.Uint8Array || this.bodyType === BodyInitType.Buffer) {
+          const typedBodyInit = this.bodyInit;
+          return (0, utils_js_1.uint8ArrayToArrayBuffer)(typedBodyInit);
+        }
+        if (this.bodyType === BodyInitType.String) {
+          const buffer = Buffer.from(this.bodyInit);
+          return (0, utils_js_1.uint8ArrayToArrayBuffer)(buffer);
+        }
+        if (this.bodyType === BodyInitType.Blob) {
+          const blob2 = this.bodyInit;
+          const arrayBuffer = await blob2.arrayBuffer();
+          return arrayBuffer;
+        }
+        const blob = await this.blob();
+        return blob.arrayBuffer();
+      }
+      _collectChunksFromReadable() {
         return new Promise((resolve, reject) => {
-          _body.readable.once("end", () => {
+          const chunks = [];
+          const _body = this.generateBody();
+          if (_body) {
+            _body.readable.on("data", (chunk) => {
+              chunks.push(chunk);
+            });
+            _body.readable.on("end", () => {
+              resolve(chunks);
+            });
+            _body.readable.on("error", (e) => {
+              reject(e);
+            });
+          } else {
             resolve(chunks);
-          });
-          _body.readable.once("error", (e) => {
-            reject(e);
-          });
+          }
         });
       }
-      blob() {
+      async blob() {
         if (this.bodyType === BodyInitType.Blob) {
-          return (0, utils_js_1.fakePromise)(this.bodyInit);
+          return this.bodyInit;
         }
-        if (this._buffer) {
-          const blob = new Blob_js_1.PonyfillBlob([this._buffer], {
-            type: this.contentType || "",
-            size: this.contentLength
+        if (this.bodyType === BodyInitType.String || this.bodyType === BodyInitType.Buffer || this.bodyType === BodyInitType.Uint8Array) {
+          const bodyInitTyped = this.bodyInit;
+          return new Blob_js_1.PonyfillBlob([bodyInitTyped], {
+            type: this.contentType || ""
           });
-          return (0, utils_js_1.fakePromise)(blob);
         }
-        return this._collectChunksFromReadable().then((chunks) => {
-          return new Blob_js_1.PonyfillBlob(chunks, {
-            type: this.contentType || "",
-            size: this.contentLength
+        if (this.bodyType === BodyInitType.ArrayBuffer) {
+          const bodyInitTyped = this.bodyInit;
+          const buf = Buffer.from(bodyInitTyped, void 0, bodyInitTyped.byteLength);
+          return new Blob_js_1.PonyfillBlob([buf], {
+            type: this.contentType || ""
           });
+        }
+        const chunks = await this._collectChunksFromReadable();
+        return new Blob_js_1.PonyfillBlob(chunks, {
+          type: this.contentType || ""
         });
       }
       formData(opts) {
         if (this.bodyType === BodyInitType.FormData) {
-          return (0, utils_js_1.fakePromise)(this.bodyInit);
+          return Promise.resolve(this.bodyInit);
         }
         const formData = new FormData_js_1.PonyfillFormData();
         const _body = this.generateBody();
         if (_body == null) {
-          return (0, utils_js_1.fakePromise)(formData);
+          return Promise.resolve(formData);
         }
         const formDataLimits = {
           ...this.options.formDataLimits,
@@ -26725,7 +27001,7 @@ var require_Body2 = __commonJS({
               reject(new Error(`File size limit exceeded: ${formDataLimits?.fileSize} bytes`));
             });
             fileStream.on("data", (chunk) => {
-              chunks.push(chunk);
+              chunks.push(Buffer.from(chunk));
             });
             fileStream.on("close", () => {
               if (fileStream.truncated) {
@@ -26750,34 +27026,39 @@ var require_Body2 = __commonJS({
           _body?.readable.pipe(bb);
         });
       }
-      arrayBuffer() {
-        if (this._buffer) {
-          return (0, utils_js_1.fakePromise)(this._buffer);
+      async buffer() {
+        if (this.bodyType === BodyInitType.Buffer) {
+          return this.bodyInit;
+        }
+        if (this.bodyType === BodyInitType.String) {
+          return Buffer.from(this.bodyInit);
+        }
+        if (this.bodyType === BodyInitType.Uint8Array || this.bodyType === BodyInitType.ArrayBuffer) {
+          const bodyInitTyped = this.bodyInit;
+          const buffer = Buffer.from(bodyInitTyped, "byteOffset" in bodyInitTyped ? bodyInitTyped.byteOffset : void 0, bodyInitTyped.byteLength);
+          return buffer;
         }
         if (this.bodyType === BodyInitType.Blob) {
           if (this.bodyInit instanceof Blob_js_1.PonyfillBlob) {
-            return this.bodyInit.arrayBuffer();
+            return this.bodyInit.buffer();
           }
           const bodyInitTyped = this.bodyInit;
-          return bodyInitTyped.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, void 0, bodyInitTyped.size));
+          const buffer = Buffer.from(await bodyInitTyped.arrayBuffer(), void 0, bodyInitTyped.size);
+          return buffer;
         }
-        return this._collectChunksFromReadable().then(function concatCollectedChunksFromReadable(chunks) {
-          if (chunks.length === 1) {
-            return chunks[0];
-          }
-          return Buffer.concat(chunks);
-        });
+        const chunks = await this._collectChunksFromReadable();
+        return Buffer.concat(chunks);
       }
-      json() {
-        return this.text().then(function parseTextAsJson(text) {
-          return JSON.parse(text);
-        });
+      async json() {
+        const text = await this.text();
+        return JSON.parse(text);
       }
-      text() {
+      async text() {
         if (this.bodyType === BodyInitType.String) {
-          return (0, utils_js_1.fakePromise)(this.bodyInit);
+          return this.bodyInit;
         }
-        return this.arrayBuffer().then((buffer) => buffer.toString("utf-8"));
+        const buffer = await this.buffer();
+        return buffer.toString("utf-8");
       }
     };
     exports2.PonyfillBody = PonyfillBody;
@@ -26796,35 +27077,20 @@ var require_Body2 = __commonJS({
           bodyType: BodyInitType.String,
           contentType: "text/plain;charset=UTF-8",
           contentLength,
-          buffer,
           bodyFactory() {
             const readable = stream_1.Readable.from(buffer);
             return new ReadableStream_js_1.PonyfillReadableStream(readable);
           }
         };
       }
-      if (Buffer.isBuffer(bodyInit)) {
+      if (bodyInit instanceof Buffer) {
+        const contentLength = bodyInit.byteLength;
         return {
           bodyType: BodyInitType.Buffer,
+          contentLength,
           contentType: null,
-          contentLength: bodyInit.length,
-          buffer: bodyInit,
           bodyFactory() {
             const readable = stream_1.Readable.from(bodyInit);
-            const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
-            return body;
-          }
-        };
-      }
-      if ((0, utils_js_1.isArrayBufferView)(bodyInit)) {
-        const buffer = Buffer.from(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength);
-        return {
-          bodyType: BodyInitType.Buffer,
-          contentLength: bodyInit.byteLength,
-          contentType: null,
-          buffer,
-          bodyFactory() {
-            const readable = stream_1.Readable.from(buffer);
             const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
             return body;
           }
@@ -26838,7 +27104,7 @@ var require_Body2 = __commonJS({
           contentLength: null
         };
       }
-      if (isBlob(bodyInit)) {
+      if (bodyInit instanceof Blob_js_1.PonyfillBlob) {
         return {
           bodyType: BodyInitType.Blob,
           contentType: bodyInit.type,
@@ -26848,15 +27114,40 @@ var require_Body2 = __commonJS({
           }
         };
       }
+      if (bodyInit instanceof Uint8Array) {
+        const contentLength = bodyInit.byteLength;
+        return {
+          bodyType: BodyInitType.Uint8Array,
+          contentLength,
+          contentType: null,
+          bodyFactory() {
+            const readable = stream_1.Readable.from(bodyInit);
+            const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
+            return body;
+          }
+        };
+      }
+      if ("buffer" in bodyInit) {
+        const contentLength = bodyInit.byteLength;
+        return {
+          contentLength,
+          contentType: null,
+          bodyFactory() {
+            const buffer = Buffer.from(bodyInit);
+            const readable = stream_1.Readable.from(buffer);
+            const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
+            return body;
+          }
+        };
+      }
       if (bodyInit instanceof ArrayBuffer) {
         const contentLength = bodyInit.byteLength;
-        const buffer = Buffer.from(bodyInit, void 0, bodyInit.byteLength);
         return {
-          bodyType: BodyInitType.Buffer,
+          bodyType: BodyInitType.ArrayBuffer,
           contentType: null,
           contentLength,
-          buffer,
           bodyFactory() {
+            const buffer = Buffer.from(bodyInit, void 0, bodyInit.byteLength);
             const readable = stream_1.Readable.from(buffer);
             const body = new ReadableStream_js_1.PonyfillReadableStream(readable);
             return body;
@@ -26874,7 +27165,18 @@ var require_Body2 = __commonJS({
           }
         };
       }
-      if (isURLSearchParams(bodyInit)) {
+      if ("stream" in bodyInit) {
+        return {
+          contentType: bodyInit.type,
+          contentLength: bodyInit.size,
+          bodyFactory() {
+            const bodyStream = bodyInit.stream();
+            const body = new ReadableStream_js_1.PonyfillReadableStream(bodyStream);
+            return body;
+          }
+        };
+      }
+      if ("sort" in bodyInit) {
         const contentType = "application/x-www-form-urlencoded;charset=UTF-8";
         return {
           bodyType: BodyInitType.String,
@@ -26886,11 +27188,10 @@ var require_Body2 = __commonJS({
           }
         };
       }
-      if (isFormData(bodyInit)) {
+      if ("forEach" in bodyInit) {
         const boundary = Math.random().toString(36).substr(2);
         const contentType = `multipart/form-data; boundary=${boundary}`;
         return {
-          bodyType: BodyInitType.FormData,
           contentType,
           contentLength: null,
           bodyFactory() {
@@ -26909,15 +27210,6 @@ var require_Body2 = __commonJS({
         };
       }
       throw new Error("Unknown body type");
-    }
-    function isFormData(value) {
-      return value?.forEach != null;
-    }
-    function isBlob(value) {
-      return value?.stream != null;
-    }
-    function isURLSearchParams(value) {
-      return value?.sort != null;
     }
   }
 });
@@ -27223,12 +27515,16 @@ var require_fetchCurl2 = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.fetchCurl = void 0;
     var node_stream_1 = require("node:stream");
-    var AbortError_js_1 = require_AbortError2();
     var Response_js_1 = require_Response2();
     var utils_js_1 = require_utils3();
     function fetchCurl(fetchRequest) {
       const { Curl, CurlCode, CurlFeature, CurlPause, CurlProgressFunc } = globalThis["libcurl"];
       const curlHandle = new Curl();
+      if (fetchRequest["_signal"]) {
+        fetchRequest["_signal"].onabort = () => {
+          curlHandle.pause(CurlPause.Recv);
+        };
+      }
       curlHandle.enable(CurlFeature.NoDataParsing);
       curlHandle.setOpt("URL", fetchRequest.url);
       curlHandle.setOpt("SSL_VERIFYPEER", false);
@@ -27239,7 +27535,7 @@ var require_fetchCurl2 = __commonJS({
       if (fetchRequest["bodyType"] === "String") {
         curlHandle.setOpt("POSTFIELDS", fetchRequest["bodyInit"]);
       } else {
-        const nodeReadable = fetchRequest.body != null ? (0, utils_js_1.isNodeReadable)(fetchRequest.body) ? fetchRequest.body : node_stream_1.Readable.from(fetchRequest.body) : null;
+        const nodeReadable = fetchRequest.body != null ? "pipe" in fetchRequest.body ? fetchRequest.body : node_stream_1.Readable.from(fetchRequest.body) : null;
         if (nodeReadable) {
           curlHandle.setOpt("UPLOAD", true);
           curlHandle.setUploadStream(nodeReadable);
@@ -27265,17 +27561,6 @@ var require_fetchCurl2 = __commonJS({
       curlHandle.setOpt("HTTPHEADER", curlHeaders);
       curlHandle.enable(CurlFeature.NoHeaderParsing);
       return new Promise(function promiseResolver(resolve, reject) {
-        let streamResolved = false;
-        if (fetchRequest["_signal"]) {
-          fetchRequest["_signal"].onabort = () => {
-            if (streamResolved) {
-              curlHandle.pause(CurlPause.Recv);
-            } else {
-              reject(new AbortError_js_1.PonyfillAbortError());
-              curlHandle.close();
-            }
-          };
-        }
         curlHandle.once("end", function endListener() {
           curlHandle.close();
         });
@@ -27302,12 +27587,36 @@ var require_fetchCurl2 = __commonJS({
             headers: headersInit,
             url: fetchRequest.url
           }));
-          streamResolved = true;
         });
         curlHandle.perform();
       });
     }
     exports2.fetchCurl = fetchCurl;
+  }
+});
+
+// node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js
+var require_AbortError2 = __commonJS({
+  "node_modules/@whatwg-node/server/node_modules/@whatwg-node/node-fetch/cjs/AbortError.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.PonyfillAbortError = void 0;
+    var PonyfillAbortError = class extends Error {
+      constructor(reason) {
+        let message = "The operation was aborted";
+        if (reason) {
+          message += ` reason: ${reason}`;
+        }
+        super(message, {
+          cause: reason
+        });
+        this.name = "AbortError";
+      }
+      get reason() {
+        return this.cause;
+      }
+    };
+    exports2.PonyfillAbortError = PonyfillAbortError;
   }
 });
 
@@ -27322,9 +27631,6 @@ var require_Request2 = __commonJS({
     function isRequest(input) {
       return input[Symbol.toStringTag] === "Request";
     }
-    function isURL(obj) {
-      return obj?.href != null;
-    }
     var PonyfillRequest = class _PonyfillRequest extends Body_js_1.PonyfillBody {
       constructor(input, options) {
         let url;
@@ -27332,7 +27638,7 @@ var require_Request2 = __commonJS({
         let requestInit;
         if (typeof input === "string") {
           url = input;
-        } else if (isURL(input)) {
+        } else if ("href" in input) {
           url = input.toString();
         } else if (isRequest(input)) {
           url = input.url;
@@ -27398,11 +27704,8 @@ var require_URLSearchParams2 = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PonyfillURLSearchParams = void 0;
-    var tslib_1 = (init_tslib_es6(), __toCommonJS(tslib_es6_exports));
+    var tslib_1 = (init_tslib_es62(), __toCommonJS(tslib_es6_exports2));
     var fast_querystring_1 = tslib_1.__importDefault(require_lib2());
-    function isURLSearchParams(value) {
-      return value?.entries != null;
-    }
     var PonyfillURLSearchParams = class {
       constructor(init) {
         if (init) {
@@ -27413,7 +27716,7 @@ var require_URLSearchParams2 = __commonJS({
             for (const [key, value] of init) {
               this.params[key] = value;
             }
-          } else if (isURLSearchParams(init)) {
+          } else if ("entries" in init) {
             this.params = {};
             for (const [key, value] of init.entries()) {
               this.params[key] = value;
@@ -27508,7 +27811,7 @@ var require_URL2 = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PonyfillURL = void 0;
-    var tslib_1 = (init_tslib_es6(), __toCommonJS(tslib_es6_exports));
+    var tslib_1 = (init_tslib_es62(), __toCommonJS(tslib_es6_exports2));
     var fast_querystring_1 = tslib_1.__importDefault(require_lib2());
     var fast_url_parser_1 = tslib_1.__importDefault(require_urlparser());
     var URLSearchParams_js_1 = require_URLSearchParams2();
@@ -27571,6 +27874,7 @@ var require_fetchNodeHttp2 = __commonJS({
     var https_1 = require("https");
     var stream_1 = require("stream");
     var zlib_1 = require("zlib");
+    var AbortError_js_1 = require_AbortError2();
     var Request_js_1 = require_Request2();
     var Response_js_1 = require_Response2();
     var URL_js_1 = require_URL2();
@@ -27587,7 +27891,7 @@ var require_fetchNodeHttp2 = __commonJS({
       return new Promise((resolve, reject) => {
         try {
           const requestFn = getRequestFnForProtocol(fetchRequest.url);
-          const nodeReadable = fetchRequest.body != null ? (0, utils_js_1.isNodeReadable)(fetchRequest.body) ? fetchRequest.body : stream_1.Readable.from(fetchRequest.body) : null;
+          const nodeReadable = fetchRequest.body != null ? "pipe" in fetchRequest.body ? fetchRequest.body : stream_1.Readable.from(fetchRequest.body) : null;
           const headersSerializer = fetchRequest.headersSerializer || utils_js_1.getHeadersObj;
           const nodeHeaders = headersSerializer(fetchRequest.headers);
           const nodeRequest = requestFn(fetchRequest.url, {
@@ -27595,6 +27899,14 @@ var require_fetchNodeHttp2 = __commonJS({
             headers: nodeHeaders,
             signal: fetchRequest["_signal"] ?? void 0,
             agent: fetchRequest.agent
+          });
+          fetchRequest["_signal"]?.addEventListener("abort", () => {
+            if (!nodeRequest.aborted) {
+              nodeRequest.abort();
+            }
+          });
+          nodeRequest.once("abort", (reason) => {
+            reject(new AbortError_js_1.PonyfillAbortError(reason));
           });
           nodeRequest.once("response", (nodeResponse) => {
             let responseBody = nodeResponse;
@@ -27661,11 +27973,11 @@ var require_fetch2 = __commonJS({
     exports2.fetchPonyfill = void 0;
     var fs_1 = require("fs");
     var url_1 = require("url");
+    var Blob_js_1 = require_Blob2();
     var fetchCurl_js_1 = require_fetchCurl2();
     var fetchNodeHttp_js_1 = require_fetchNodeHttp2();
     var Request_js_1 = require_Request2();
     var Response_js_1 = require_Response2();
-    var utils_js_1 = require_utils3();
     var BASE64_SUFFIX = ";base64";
     function getResponseForFile(url) {
       const path = (0, url_1.fileURLToPath)(url);
@@ -27678,12 +27990,10 @@ var require_fetch2 = __commonJS({
       if (mimeType.endsWith(BASE64_SUFFIX)) {
         const buffer = Buffer.from(data, "base64url");
         const realMimeType = mimeType.slice(0, -BASE64_SUFFIX.length);
-        return new Response_js_1.PonyfillResponse(buffer, {
+        const file = new Blob_js_1.PonyfillBlob([buffer], { type: realMimeType });
+        return new Response_js_1.PonyfillResponse(file, {
           status: 200,
-          statusText: "OK",
-          headers: {
-            "content-type": realMimeType
-          }
+          statusText: "OK"
         });
       }
       return new Response_js_1.PonyfillResponse(data, {
@@ -27694,22 +28004,19 @@ var require_fetch2 = __commonJS({
         }
       });
     }
-    function isURL(obj) {
-      return obj != null && obj.href != null;
-    }
-    function fetchPonyfill(info, init) {
-      if (typeof info === "string" || isURL(info)) {
+    async function fetchPonyfill(info, init) {
+      if (typeof info === "string" || "href" in info) {
         const ponyfillRequest = new Request_js_1.PonyfillRequest(info, init);
         return fetchPonyfill(ponyfillRequest);
       }
       const fetchRequest = info;
       if (fetchRequest.url.startsWith("data:")) {
         const response = getResponseForDataUri(fetchRequest.url);
-        return (0, utils_js_1.fakePromise)(response);
+        return Promise.resolve(response);
       }
       if (fetchRequest.url.startsWith("file:")) {
         const response = getResponseForFile(fetchRequest.url);
-        return (0, utils_js_1.fakePromise)(response);
+        return Promise.resolve(response);
       }
       if (globalThis.libcurl) {
         return (0, fetchCurl_js_1.fetchCurl)(fetchRequest);
@@ -27726,7 +28033,6 @@ var require_TextEncoderDecoder2 = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.PonyfillBtoa = exports2.PonyfillTextDecoder = exports2.PonyfillTextEncoder = void 0;
-    var utils_js_1 = require_utils3();
     var PonyfillTextEncoder = class {
       constructor(encoding = "utf-8") {
         this.encoding = encoding;
@@ -27755,12 +28061,6 @@ var require_TextEncoderDecoder2 = __commonJS({
         }
       }
       decode(input) {
-        if (Buffer.isBuffer(input)) {
-          return input.toString(this.encoding);
-        }
-        if ((0, utils_js_1.isArrayBufferView)(input)) {
-          return Buffer.from(input.buffer, input.byteOffset, input.byteLength).toString(this.encoding);
-        }
         return Buffer.from(input).toString(this.encoding);
       }
     };
@@ -27909,12 +28209,10 @@ var require_node_ponyfill2 = __commonJS({
   "node_modules/@whatwg-node/server/node_modules/@whatwg-node/fetch/dist/node-ponyfill.js"(exports2, module2) {
     var createNodePonyfill = require_create_node_ponyfill2();
     var ponyfills = createNodePonyfill();
-    if (!globalThis.Deno && !process.versions.bun) {
-      try {
-        const nodelibcurlName = "node-libcurl";
-        globalThis.libcurl = globalThis.libcurl || require(nodelibcurlName);
-      } catch (e) {
-      }
+    try {
+      const nodelibcurlName = "node-libcurl";
+      globalThis.libcurl = globalThis.libcurl || require(nodelibcurlName);
+    } catch (e) {
     }
     module2.exports.fetch = ponyfills.fetch;
     module2.exports.Headers = ponyfills.Headers;
@@ -35926,25 +36224,7 @@ var import_graphql3 = __toESM(require_graphql2(), 1);
 
 // node_modules/graphql-yoga/node_modules/@graphql-tools/utils/esm/errors.js
 var import_graphql = __toESM(require_graphql2(), 1);
-var possibleGraphQLErrorProperties = [
-  "message",
-  "locations",
-  "path",
-  "nodes",
-  "source",
-  "positions",
-  "originalError",
-  "name",
-  "stack",
-  "extensions"
-];
-function isGraphQLErrorLike(error) {
-  return error != null && typeof error === "object" && Object.keys(error).every((key) => possibleGraphQLErrorProperties.includes(key));
-}
 function createGraphQLError(message, options) {
-  if (options?.originalError && !(options.originalError instanceof Error) && isGraphQLErrorLike(options.originalError)) {
-    options.originalError = createGraphQLError(options.originalError.message, options.originalError);
-  }
   if (import_graphql.versionInfo.major >= 17) {
     return new import_graphql.GraphQLError(message, options);
   }
@@ -36047,7 +36327,7 @@ function isObjectLike(value) {
   return typeof value === "object" && value !== null;
 }
 function isPromise(value) {
-  return value?.then != null;
+  return isObjectLike(value) && typeof value["then"] === "function";
 }
 function promiseReduce(values, callbackFn, initialValue) {
   let accumulator = initialValue;
@@ -38252,7 +38532,7 @@ var collectSubFields = memoize5(function collectSubfields(schema2, fragments, va
 
 // node_modules/graphql-yoga/node_modules/@graphql-tools/utils/esm/isAsyncIterable.js
 function isAsyncIterable(value) {
-  return value?.[Symbol.asyncIterator] != null;
+  return typeof value === "object" && value != null && Symbol.asyncIterator in value && typeof value[Symbol.asyncIterator] === "function";
 }
 
 // node_modules/graphql-yoga/node_modules/@graphql-tools/utils/esm/isDocumentNode.js
@@ -38428,7 +38708,7 @@ var createLogger = (logLevel = globalThis.process?.env["DEBUG"] === "1" ? "debug
 };
 
 // node_modules/graphql-yoga/esm/graphiql-html.js
-var graphiql_html_default = '<!doctype html><html lang=en><head><meta charset=utf-8><title>__TITLE__</title><link rel=icon href=https://raw.githubusercontent.com/dotansimha/graphql-yoga/main/website/public/favicon.ico><link rel=stylesheet href=https://unpkg.com/@graphql-yoga/graphiql@4.1.1/dist/style.css></head><body id=body class=no-focus-outline><noscript>You need to enable JavaScript to run this app.</noscript><div id=root></div><script type=module>import{renderYogaGraphiQL}from"https://unpkg.com/@graphql-yoga/graphiql@4.1.1/dist/yoga-graphiql.es.js";renderYogaGraphiQL(root,__OPTS__)</script></body></html>';
+var graphiql_html_default = '<!DOCTYPE html><html lang=en><head><meta charset=utf-8><title>__TITLE__</title><link rel=icon href=https://raw.githubusercontent.com/dotansimha/graphql-yoga/main/website/public/favicon.ico><link rel=stylesheet href=https://unpkg.com/@graphql-yoga/graphiql@4.1.0/dist/style.css></head><body id=body class=no-focus-outline><noscript>You need to enable JavaScript to run this app.</noscript><div id=root></div><script type=module>import{renderYogaGraphiQL}from"https://unpkg.com/@graphql-yoga/graphiql@4.1.0/dist/yoga-graphiql.es.js";renderYogaGraphiQL(root,__OPTS__)</script></body></html>';
 
 // node_modules/graphql-yoga/esm/plugins/use-graphiql.js
 function shouldRenderGraphiQL({ headers, method }) {
@@ -39622,9 +39902,6 @@ function createSchema(opts) {
   return makeExecutableSchema(opts);
 }
 
-// node_modules/graphql-yoga/esm/server.js
-var import_graphql41 = __toESM(require_graphql2(), 1);
-
 // node_modules/@envelop/core/esm/document-string-map.js
 var documentStringMap = /* @__PURE__ */ new WeakMap();
 
@@ -39945,17 +40222,14 @@ function createEnvelopOrchestrator({ plugins }) {
   } : () => validate2;
   const customContextFactory = beforeCallbacks.context.length ? (initialContext) => async (orchestratorCtx) => {
     const afterCalls = [];
-    const context = initialContext;
-    if (orchestratorCtx) {
-      Object.assign(context, orchestratorCtx);
-    }
+    let context = orchestratorCtx ? { ...initialContext, ...orchestratorCtx } : initialContext;
     try {
       let isBreakingContextBuilding = false;
       for (const onContext of beforeCallbacks.context) {
         const afterHookResult = await onContext({
           context,
           extendContext: (extension) => {
-            Object.assign(context, extension);
+            context = { ...context, ...extension };
           },
           breakContextBuilding: () => {
             isBreakingContextBuilding = true;
@@ -39972,7 +40246,7 @@ function createEnvelopOrchestrator({ plugins }) {
         afterCb({
           context,
           extendContext: (extension) => {
-            Object.assign(context, extension);
+            context = { ...context, ...extension };
           }
         });
       }
@@ -39990,18 +40264,13 @@ function createEnvelopOrchestrator({ plugins }) {
       }
       throw error;
     }
-  } : (initialContext) => (orchestratorCtx) => {
-    if (orchestratorCtx) {
-      Object.assign(initialContext, orchestratorCtx);
-    }
-    return initialContext;
-  };
+  } : (initialContext) => (orchestratorCtx) => orchestratorCtx ? { ...initialContext, ...orchestratorCtx } : initialContext;
   const useCustomSubscribe = beforeCallbacks.subscribe.length;
   const customSubscribe = useCustomSubscribe ? makeSubscribe(async (args) => {
     let subscribeFn = subscribe2;
     const afterCalls = [];
     const subscribeErrorHandlers = [];
-    const context = args.contextValue || {};
+    let context = args.contextValue || {};
     let result;
     for (const onSubscribe of beforeCallbacks.subscribe) {
       const after = await onSubscribe({
@@ -40010,7 +40279,7 @@ function createEnvelopOrchestrator({ plugins }) {
           subscribeFn = newSubscribeFn;
         },
         extendContext: (extension) => {
-          Object.assign(context, extension);
+          context = { ...context, ...extension };
         },
         args,
         setResultAndStopExecution: (stopResult) => {
@@ -40099,7 +40368,7 @@ function createEnvelopOrchestrator({ plugins }) {
     let executeFn = execute2;
     let result;
     const afterCalls = [];
-    const context = args.contextValue || {};
+    let context = args.contextValue || {};
     for (const onExecute of beforeCallbacks.execute) {
       const after = await onExecute({
         executeFn,
@@ -40111,7 +40380,10 @@ function createEnvelopOrchestrator({ plugins }) {
         },
         extendContext: (extension) => {
           if (typeof extension === "object") {
-            Object.assign(context, extension);
+            context = {
+              ...context,
+              ...extension
+            };
           } else {
             throw new Error(`Invalid context extension provided! Expected "object", got: "${JSON.stringify(extension)}" (${typeof extension})`);
           }
@@ -40334,7 +40606,78 @@ var useEngine = (engine) => {
 
 // node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/execute.js
 var import_graphql37 = __toESM(require_graphql2(), 1);
-var import_value_or_promise = __toESM(require_main(), 1);
+
+// node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/values.js
+var import_graphql36 = __toESM(require_graphql2(), 1);
+function getVariableValues(schema2, varDefNodes, inputs, options) {
+  const errors = [];
+  const maxErrors = options?.maxErrors;
+  try {
+    const coerced = coerceVariableValues(schema2, varDefNodes, inputs, (error) => {
+      if (maxErrors != null && errors.length >= maxErrors) {
+        throw createGraphQLError("Too many errors processing variables, error limit reached. Execution aborted.");
+      }
+      errors.push(error);
+    });
+    if (errors.length === 0) {
+      return { coerced };
+    }
+  } catch (error) {
+    errors.push(error);
+  }
+  return { errors };
+}
+function coerceVariableValues(schema2, varDefNodes, inputs, onError) {
+  const coercedValues = {};
+  for (const varDefNode of varDefNodes) {
+    const varName = varDefNode.variable.name.value;
+    const varType = (0, import_graphql36.typeFromAST)(schema2, varDefNode.type);
+    if (!(0, import_graphql36.isInputType)(varType)) {
+      const varTypeStr = (0, import_graphql36.print)(varDefNode.type);
+      onError(createGraphQLError(`Variable "$${varName}" expected value of type "${varTypeStr}" which cannot be used as an input type.`, { nodes: varDefNode.type }));
+      continue;
+    }
+    if (!hasOwnProperty(inputs, varName)) {
+      if (varDefNode.defaultValue) {
+        coercedValues[varName] = (0, import_graphql36.valueFromAST)(varDefNode.defaultValue, varType);
+      } else if ((0, import_graphql36.isNonNullType)(varType)) {
+        const varTypeStr = inspect(varType);
+        onError(createGraphQLError(`Variable "$${varName}" of required type "${varTypeStr}" was not provided.`, {
+          nodes: varDefNode
+        }));
+      }
+      continue;
+    }
+    const value = inputs[varName];
+    if (value === null && (0, import_graphql36.isNonNullType)(varType)) {
+      const varTypeStr = inspect(varType);
+      onError(createGraphQLError(`Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`, {
+        nodes: varDefNode
+      }));
+      continue;
+    }
+    coercedValues[varName] = (0, import_graphql36.coerceInputValue)(value, varType, (path, invalidValue, error) => {
+      let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
+      if (path.length > 0) {
+        prefix += ` at "${varName}${printPathArray(path)}"`;
+      }
+      onError(createGraphQLError(prefix + "; " + error.message, {
+        nodes: varDefNode,
+        originalError: error.originalError
+      }));
+    });
+  }
+  return coercedValues;
+}
+
+// node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/promiseForObject.js
+async function promiseForObject(object) {
+  const resolvedObject = /* @__PURE__ */ Object.create(null);
+  await Promise.all(Object.entries(object).map(async ([key, value]) => {
+    resolvedObject[key] = await value;
+  }));
+  return resolvedObject;
+}
 
 // node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/flattenAsyncIterable.js
 function flattenAsyncIterable(iterable) {
@@ -40405,84 +40748,8 @@ function invariant(condition, message) {
   }
 }
 
-// node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/promiseForObject.js
-async function promiseForObject(object, signal) {
-  const resolvedObject = /* @__PURE__ */ Object.create(null);
-  await new Promise((resolve, reject) => {
-    signal?.addEventListener("abort", () => {
-      resolve();
-    });
-    Promise.all(Object.entries(object).map(async ([key, value]) => {
-      resolvedObject[key] = await value;
-    })).then(() => resolve(), reject);
-  });
-  return resolvedObject;
-}
-
-// node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/values.js
-var import_graphql36 = __toESM(require_graphql2(), 1);
-function getVariableValues(schema2, varDefNodes, inputs, options) {
-  const errors = [];
-  const maxErrors = options?.maxErrors;
-  try {
-    const coerced = coerceVariableValues(schema2, varDefNodes, inputs, (error) => {
-      if (maxErrors != null && errors.length >= maxErrors) {
-        throw createGraphQLError("Too many errors processing variables, error limit reached. Execution aborted.");
-      }
-      errors.push(error);
-    });
-    if (errors.length === 0) {
-      return { coerced };
-    }
-  } catch (error) {
-    errors.push(error);
-  }
-  return { errors };
-}
-function coerceVariableValues(schema2, varDefNodes, inputs, onError) {
-  const coercedValues = {};
-  for (const varDefNode of varDefNodes) {
-    const varName = varDefNode.variable.name.value;
-    const varType = (0, import_graphql36.typeFromAST)(schema2, varDefNode.type);
-    if (!(0, import_graphql36.isInputType)(varType)) {
-      const varTypeStr = (0, import_graphql36.print)(varDefNode.type);
-      onError(createGraphQLError(`Variable "$${varName}" expected value of type "${varTypeStr}" which cannot be used as an input type.`, { nodes: varDefNode.type }));
-      continue;
-    }
-    if (!hasOwnProperty(inputs, varName)) {
-      if (varDefNode.defaultValue) {
-        coercedValues[varName] = (0, import_graphql36.valueFromAST)(varDefNode.defaultValue, varType);
-      } else if ((0, import_graphql36.isNonNullType)(varType)) {
-        const varTypeStr = inspect(varType);
-        onError(createGraphQLError(`Variable "$${varName}" of required type "${varTypeStr}" was not provided.`, {
-          nodes: varDefNode
-        }));
-      }
-      continue;
-    }
-    const value = inputs[varName];
-    if (value === null && (0, import_graphql36.isNonNullType)(varType)) {
-      const varTypeStr = inspect(varType);
-      onError(createGraphQLError(`Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`, {
-        nodes: varDefNode
-      }));
-      continue;
-    }
-    coercedValues[varName] = (0, import_graphql36.coerceInputValue)(value, varType, (path, invalidValue, error) => {
-      let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
-      if (path.length > 0) {
-        prefix += ` at "${varName}${printPathArray(path)}"`;
-      }
-      onError(createGraphQLError(prefix + "; " + error.message, {
-        nodes: varDefNode,
-        originalError: error.originalError
-      }));
-    });
-  }
-  return coercedValues;
-}
-
 // node_modules/graphql-yoga/node_modules/@graphql-tools/executor/esm/execution/execute.js
+var import_value_or_promise = __toESM(require_main(), 1);
 var collectSubfields2 = memoize3((exeContext, returnType, fieldNodes) => collectSubFields(exeContext.schema, exeContext.fragments, exeContext.variableValues, returnType, fieldNodes));
 function execute(args) {
   const exeContext = buildExecutionContext(args);
@@ -40535,7 +40802,7 @@ var getFragmentsFromDocument = memoize1(function getFragmentsFromDocument2(docum
   return fragments;
 });
 function buildExecutionContext(args) {
-  const { schema: schema2, document: document2, rootValue, contextValue, variableValues: rawVariableValues, operationName, fieldResolver, typeResolver, subscribeFieldResolver, signal } = args;
+  const { schema: schema2, document: document2, rootValue, contextValue, variableValues: rawVariableValues, operationName, fieldResolver, typeResolver, subscribeFieldResolver } = args;
   (0, import_graphql37.assertValidSchema)(schema2);
   const fragments = getFragmentsFromDocument(document2);
   let operation;
@@ -40544,9 +40811,7 @@ function buildExecutionContext(args) {
       case import_graphql37.Kind.OPERATION_DEFINITION:
         if (operationName == null) {
           if (operation !== void 0) {
-            return [
-              createGraphQLError("Must provide operation name if query contains multiple operations.")
-            ];
+            return [createGraphQLError("Must provide operation name if query contains multiple operations.")];
           }
           operation = definition;
         } else if (definition.name?.value === operationName) {
@@ -40580,8 +40845,7 @@ function buildExecutionContext(args) {
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: /* @__PURE__ */ new Set(),
-    errors: [],
-    signal
+    errors: []
   };
 }
 function buildPerEventExecutionContext(exeContext, payload) {
@@ -40615,26 +40879,13 @@ function executeOperation(exeContext) {
   return result;
 }
 function executeFieldsSerially(exeContext, parentType, sourceValue, path, fields) {
-  let abortErrorThrown = false;
   return promiseReduce(fields, (results, [responseName, fieldNodes]) => {
     const fieldPath = addPath(path, responseName, parentType.name);
-    if (exeContext.signal?.aborted) {
-      results[responseName] = null;
-      return results;
-    }
     return new import_value_or_promise.ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath)).then((result) => {
       if (result === void 0) {
         return results;
       }
       results[responseName] = result;
-      if (exeContext.signal?.aborted && !abortErrorThrown) {
-        exeContext.errors.push(createGraphQLError("Execution aborted", {
-          nodes: fieldNodes,
-          path: pathToArray(fieldPath),
-          originalError: exeContext.signal?.reason
-        }));
-        abortErrorThrown = true;
-      }
       return results;
     });
   }, /* @__PURE__ */ Object.create(null)).resolve();
@@ -40642,13 +40893,8 @@ function executeFieldsSerially(exeContext, parentType, sourceValue, path, fields
 function executeFields(exeContext, parentType, sourceValue, path, fields, asyncPayloadRecord) {
   const results = /* @__PURE__ */ Object.create(null);
   let containsPromise = false;
-  let abortErrorThrown = false;
   try {
     for (const [responseName, fieldNodes] of fields) {
-      if (exeContext.signal?.aborted) {
-        results[responseName] = null;
-        continue;
-      }
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath, asyncPayloadRecord);
       if (result !== void 0) {
@@ -40657,18 +40903,10 @@ function executeFields(exeContext, parentType, sourceValue, path, fields, asyncP
           containsPromise = true;
         }
       }
-      if (exeContext.signal?.aborted && !abortErrorThrown) {
-        exeContext.errors.push(createGraphQLError("Execution aborted", {
-          nodes: fieldNodes,
-          path: pathToArray(fieldPath),
-          originalError: exeContext.signal?.reason
-        }));
-        abortErrorThrown = true;
-      }
     }
   } catch (error) {
     if (containsPromise) {
-      return promiseForObject(results, exeContext.signal).finally(() => {
+      return promiseForObject(results).finally(() => {
         throw error;
       });
     }
@@ -40677,7 +40915,7 @@ function executeFields(exeContext, parentType, sourceValue, path, fields, asyncP
   if (!containsPromise) {
     return results;
   }
-  return promiseForObject(results, exeContext.signal);
+  return promiseForObject(results);
 }
 function executeField(exeContext, parentType, source, fieldNodes, path, asyncPayloadRecord) {
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
@@ -40782,14 +41020,6 @@ function getStreamValues(exeContext, fieldNodes, path) {
   };
 }
 async function completeAsyncIteratorValue(exeContext, itemType, fieldNodes, info, path, iterator, asyncPayloadRecord) {
-  exeContext.signal?.addEventListener("abort", () => {
-    iterator.return?.();
-    exeContext.errors.push(createGraphQLError("Execution aborted", {
-      nodes: fieldNodes,
-      path: pathToArray(path),
-      originalError: exeContext.signal?.reason
-    }));
-  });
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
   let containsPromise = false;
@@ -41011,24 +41241,20 @@ function subscribe(args) {
   }
   return mapSourceToResponse(exeContext, resultOrStream);
 }
-function flattenIncrementalResults(incrementalResults, signal) {
+function flattenIncrementalResults(incrementalResults) {
   const subsequentIterator = incrementalResults.subsequentResults;
   let initialResultSent = false;
   let done = false;
-  signal?.addEventListener("abort", () => {
-    done = true;
-    subsequentIterator.throw?.(signal?.reason);
-  });
   return {
     [Symbol.asyncIterator]() {
       return this;
     },
-    next() {
+    async next() {
       if (done) {
-        return Promise.resolve({
+        return {
           value: void 0,
           done
-        });
+        };
       }
       if (initialResultSent) {
         return subsequentIterator.next();
@@ -41049,9 +41275,9 @@ function flattenIncrementalResults(incrementalResults, signal) {
     }
   };
 }
-async function* ensureAsyncIterable(someExecutionResult, signal) {
+async function* ensureAsyncIterable(someExecutionResult) {
   if ("initialResult" in someExecutionResult) {
-    yield* flattenIncrementalResults(someExecutionResult, signal);
+    yield* flattenIncrementalResults(someExecutionResult);
   } else {
     yield someExecutionResult;
   }
@@ -41060,7 +41286,7 @@ function mapSourceToResponse(exeContext, resultOrStream) {
   if (!isAsyncIterable(resultOrStream)) {
     return resultOrStream;
   }
-  return flattenAsyncIterable(mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), async (payload) => ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload)), exeContext.signal), async function* (error) {
+  return flattenAsyncIterable(mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), async (payload) => ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))), async function* (error) {
     const wrappedError = createGraphQLError(error.message, {
       originalError: error,
       nodes: [exeContext.operation]
@@ -41085,18 +41311,14 @@ function executeSubscription(exeContext) {
   const { schema: schema2, fragments, operation, variableValues, rootValue } = exeContext;
   const rootType = schema2.getSubscriptionType();
   if (rootType == null) {
-    throw createGraphQLError("Schema is not configured to execute subscription operation.", {
-      nodes: operation
-    });
+    throw createGraphQLError("Schema is not configured to execute subscription operation.", { nodes: operation });
   }
   const { fields: rootFields } = collectFields(schema2, fragments, variableValues, rootType, operation.selectionSet);
   const [responseName, fieldNodes] = [...rootFields.entries()][0];
   const fieldName = fieldNodes[0].name.value;
   const fieldDef = getFieldDef(schema2, rootType, fieldNodes[0]);
   if (!fieldDef) {
-    throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, {
-      nodes: fieldNodes
-    });
+    throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, { nodes: fieldNodes });
   }
   const path = addPath(void 0, responseName, rootType.name);
   const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, rootType, path);
@@ -41110,27 +41332,19 @@ function executeSubscription(exeContext) {
         throw (0, import_graphql37.locatedError)(error, fieldNodes, pathToArray(path));
       });
     }
-    return assertEventStream(result, exeContext.signal);
+    return assertEventStream(result);
   } catch (error) {
     throw (0, import_graphql37.locatedError)(error, fieldNodes, pathToArray(path));
   }
 }
-function assertEventStream(result, signal) {
+function assertEventStream(result) {
   if (result instanceof Error) {
     throw result;
   }
   if (!isAsyncIterable(result)) {
     throw createGraphQLError(`Subscription field must return Async Iterable. Received: ${inspect(result)}.`);
   }
-  return {
-    [Symbol.asyncIterator]() {
-      const asyncIterator = result[Symbol.asyncIterator]();
-      signal?.addEventListener("abort", () => {
-        asyncIterator.return?.();
-      });
-      return asyncIterator;
-    }
-  };
+  return result;
 }
 function executeDeferredFragment(exeContext, parentType, sourceValue, fields, label, path, parentContext) {
   const asyncPayloadRecord = new DeferredFragmentRecord({
@@ -41465,7 +41679,7 @@ function normalizedExecutor(args) {
   }
   return new import_value_or_promise2.ValueOrPromise(() => execute(args)).then((result) => {
     if ("initialResult" in result) {
-      return flattenIncrementalResults(result, args.signal);
+      return flattenIncrementalResults(result);
     }
     return result;
   }).resolve();
@@ -41523,33 +41737,6 @@ function isRequestBody(body) {
   }
   return false;
 }
-var ServerAdapterRequestAbortSignal = class extends EventTarget {
-  constructor() {
-    super(...arguments);
-    this.aborted = false;
-    this._onabort = null;
-  }
-  throwIfAborted() {
-    if (this.aborted) {
-      throw new DOMException("Aborted", "AbortError");
-    }
-  }
-  sendAbort() {
-    this.aborted = true;
-    this.dispatchEvent(new Event("abort"));
-  }
-  get onabort() {
-    return this._onabort;
-  }
-  set onabort(value) {
-    this._onabort = value;
-    if (value) {
-      this.addEventListener("abort", value);
-    } else {
-      this.removeEventListener("abort", value);
-    }
-  }
-};
 function normalizeNodeRequest(nodeRequest, RequestCtor) {
   const rawRequest = nodeRequest.raw || nodeRequest.req || nodeRequest;
   let fullUrl = buildFullUrl(rawRequest);
@@ -41560,16 +41747,10 @@ function normalizeNodeRequest(nodeRequest, RequestCtor) {
     }
     fullUrl = url.toString();
   }
-  const signal = new ServerAdapterRequestAbortSignal();
-  if (rawRequest.once) {
-    rawRequest.once("end", () => signal.sendAbort());
-    rawRequest.once("close", () => signal.sendAbort());
-  }
   if (nodeRequest.method === "GET" || nodeRequest.method === "HEAD") {
     return new RequestCtor(fullUrl, {
       method: nodeRequest.method,
-      headers: nodeRequest.headers,
-      signal
+      headers: nodeRequest.headers
     });
   }
   const maybeParsedBody = nodeRequest.body;
@@ -41578,14 +41759,12 @@ function normalizeNodeRequest(nodeRequest, RequestCtor) {
       return new RequestCtor(fullUrl, {
         method: nodeRequest.method,
         headers: nodeRequest.headers,
-        body: maybeParsedBody,
-        signal
+        body: maybeParsedBody
       });
     }
     const request = new RequestCtor(fullUrl, {
       method: nodeRequest.method,
-      headers: nodeRequest.headers,
-      signal
+      headers: nodeRequest.headers
     });
     if (!request.headers.get("content-type")?.includes("json")) {
       request.headers.set("content-type", "application/json; charset=utf-8");
@@ -41606,8 +41785,7 @@ function normalizeNodeRequest(nodeRequest, RequestCtor) {
   return new RequestCtor(fullUrl, {
     method: nodeRequest.method,
     headers: nodeRequest.headers,
-    body: rawRequest,
-    signal
+    body: rawRequest
   });
 }
 function isReadable(stream) {
@@ -41639,14 +41817,6 @@ async function sendAsyncIterable(serverResponse, asyncIterable) {
   endResponse(serverResponse);
 }
 function sendNodeResponse(fetchResponse, serverResponse, nodeRequest) {
-  if (serverResponse.closed || serverResponse.destroyed) {
-    return;
-  }
-  if (!fetchResponse) {
-    serverResponse.statusCode = 404;
-    serverResponse.end();
-    return;
-  }
   serverResponse.statusCode = fetchResponse.status;
   serverResponse.statusMessage = fetchResponse.statusText;
   fetchResponse.headers.forEach((value, key) => {
@@ -41659,9 +41829,8 @@ function sendNodeResponse(fetchResponse, serverResponse, nodeRequest) {
     }
     serverResponse.setHeader(key, value);
   });
-  const bufOfRes = fetchResponse._buffer;
-  if (bufOfRes) {
-    serverResponse.write(bufOfRes);
+  if (fetchResponse.bodyType === "Buffer" || fetchResponse.bodyType === "String" || fetchResponse.bodyType === "Uint8Array") {
+    serverResponse.write(fetchResponse.bodyInit);
     endResponse(serverResponse);
     return;
   }
@@ -41707,46 +41876,38 @@ function completeAssign(...args) {
   });
   return target;
 }
-function isPromise2(val) {
-  return val?.then != null;
-}
-function iterateAsyncVoid(iterable, callback) {
-  const iterator = iterable[Symbol.iterator]();
-  let stopEarlyFlag = false;
-  function stopEarlyFn() {
-    stopEarlyFlag = true;
-  }
-  function iterate() {
-    const { done: endOfIterator, value } = iterator.next();
-    if (endOfIterator) {
-      return;
-    }
-    const result$ = callback(value, stopEarlyFn);
-    if (isPromise2(result$)) {
-      return result$.then(() => {
-        if (stopEarlyFlag) {
-          return;
-        }
-        return iterate();
-      });
-    }
-    if (stopEarlyFlag) {
-      return;
-    }
-    return iterate();
-  }
-  return iterate();
-}
-function handleErrorFromRequestHandler(error, ResponseCtor) {
-  return new ResponseCtor(error.stack || error.message || error.toString(), {
-    status: error.status || 500
-  });
-}
 
 // node_modules/@whatwg-node/server/esm/uwebsockets.js
 function isUWSResponse(res) {
   return !!res.onData;
 }
+var UWSAbortSignal = class extends EventTarget {
+  throwIfAborted() {
+    if (this.aborted) {
+      throw new DOMException("Aborted", "AbortError");
+    }
+  }
+  constructor(res) {
+    super();
+    this.aborted = false;
+    this._onabort = null;
+    res.onAborted(() => {
+      this.aborted = true;
+      this.dispatchEvent(new Event("request aborted"));
+    });
+  }
+  get onabort() {
+    return this._onabort;
+  }
+  set onabort(value) {
+    this._onabort = value;
+    if (value) {
+      this.addEventListener("request aborted", value);
+    } else {
+      this.removeEventListener("request aborted", value);
+    }
+  }
+};
 function getRequestFromUWSRequest({ req, res, fetchAPI }) {
   let body;
   const method = req.getMethod();
@@ -41762,7 +41923,7 @@ function getRequestFromUWSRequest({ req, res, fetchAPI }) {
       if (!multipleChunks && isLast) {
         readable.push(chunk);
       } else {
-        readable.push(Buffer.from(chunk));
+        readable.push(Buffer.concat([chunk]));
       }
       if (isLast) {
         readable.push(null);
@@ -41774,70 +41935,58 @@ function getRequestFromUWSRequest({ req, res, fetchAPI }) {
   req.forEach((key, value) => {
     headers.set(key, value);
   });
-  let url = `http://localhost${req.getUrl()}`;
-  const query = req.getQuery();
-  if (query) {
-    url += `?${query}`;
-  }
+  const url = `http://localhost${req.getUrl()}`;
   return new fetchAPI.Request(url, {
     method,
     headers,
     body,
-    signal: new ServerAdapterRequestAbortSignal()
+    signal: new UWSAbortSignal(res)
   });
 }
-async function forwardResponseBodyToUWSResponse(uwsResponse, fetchResponse) {
+async function sendResponseToUwsOpts({ res, response }) {
   let resAborted = false;
-  uwsResponse.onAborted(function() {
+  res.onAborted(function() {
     resAborted = true;
   });
-  for await (const chunk of fetchResponse.body) {
-    if (resAborted) {
-      return;
-    }
-    uwsResponse.cork(() => {
-      uwsResponse.write(chunk);
-    });
-  }
-  uwsResponse.cork(() => {
-    uwsResponse.end();
-  });
-}
-function sendResponseToUwsOpts(uwsResponse, fetchResponse) {
-  if (!fetchResponse) {
-    uwsResponse.writeStatus("404 Not Found");
-    uwsResponse.end();
-    return;
-  }
-  const bufferOfRes = fetchResponse._buffer;
-  uwsResponse.cork(() => {
-    uwsResponse.writeStatus(`${fetchResponse.status} ${fetchResponse.statusText}`);
-    for (const [key, value] of fetchResponse.headers) {
+  const isStringOrBuffer = response.bodyType === "String" || response.bodyType === "Uint8Array";
+  res.cork(() => {
+    res.writeStatus(`${response.status} ${response.statusText}`);
+    for (const [key, value] of response.headers) {
       if (key !== "content-length") {
         if (key === "set-cookie") {
-          const setCookies = fetchResponse.headers.getSetCookie?.();
+          const setCookies = response.headers.getSetCookie?.();
           if (setCookies) {
             for (const setCookie of setCookies) {
-              uwsResponse.writeHeader(key, setCookie);
+              res.writeHeader(key, setCookie);
             }
             continue;
           }
         }
-        uwsResponse.writeHeader(key, value);
+        res.writeHeader(key, value);
       }
     }
-    if (bufferOfRes) {
-      uwsResponse.end(bufferOfRes);
+    if (isStringOrBuffer) {
+      res.end(response.bodyInit);
     }
   });
-  if (bufferOfRes) {
+  if (isStringOrBuffer) {
     return;
   }
-  if (!fetchResponse.body) {
-    uwsResponse.end();
+  if (!response.body) {
+    res.end();
     return;
   }
-  return forwardResponseBodyToUWSResponse(uwsResponse, fetchResponse);
+  for await (const chunk of response.body) {
+    if (resAborted) {
+      return;
+    }
+    res.cork(() => {
+      res.write(chunk);
+    });
+  }
+  res.cork(() => {
+    res.end();
+  });
 }
 
 // node_modules/@whatwg-node/server/esm/createServerAdapter.js
@@ -41882,64 +42031,45 @@ function createServerAdapter(serverAdapterBaseObject, options) {
       }
     }
   }
-  const handleRequest = onRequestHooks.length > 0 || onResponseHooks.length > 0 ? function handleRequest2(request, serverContext) {
-    let requestHandler = givenHandleRequest;
-    let response;
-    if (onRequestHooks.length === 0) {
-      return handleEarlyResponse();
-    }
+  async function handleRequest(request, serverContext) {
     let url = new Proxy(EMPTY_OBJECT, {
       get(_target, prop, _receiver) {
         url = new fetchAPI.URL(request.url, "http://localhost");
         return Reflect.get(url, prop, url);
       }
     });
-    const onRequestHooksIteration$ = iterateAsyncVoid(onRequestHooks, (onRequestHook, stopEarly) => onRequestHook({
-      request,
-      serverContext,
-      fetchAPI,
-      url,
-      requestHandler,
-      setRequestHandler(newRequestHandler) {
-        requestHandler = newRequestHandler;
-      },
-      endResponse(newResponse) {
-        response = newResponse;
-        if (newResponse) {
-          stopEarly();
-        }
-      }
-    }));
-    function handleResponse(response2) {
-      if (onRequestHooks.length === 0) {
-        return response2;
-      }
-      const onResponseHookPayload = {
+    let requestHandler = givenHandleRequest;
+    let response;
+    for (const onRequestHook of onRequestHooks) {
+      await onRequestHook({
         request,
-        response: response2,
-        serverContext
-      };
-      const onResponseHooksIteration$ = iterateAsyncVoid(onResponseHooks, (onResponseHook) => onResponseHook(onResponseHookPayload));
-      if (isPromise2(onResponseHooksIteration$)) {
-        return onResponseHooksIteration$.then(() => response2);
-      }
-      return response2;
-    }
-    function handleEarlyResponse() {
-      if (!response) {
-        const response$ = requestHandler(request, serverContext);
-        if (isPromise2(response$)) {
-          return response$.then(handleResponse);
+        serverContext,
+        fetchAPI,
+        url,
+        requestHandler,
+        setRequestHandler(newRequestHandler) {
+          requestHandler = newRequestHandler;
+        },
+        endResponse(newResponse) {
+          response = newResponse;
         }
-        return handleResponse(response$);
+      });
+      if (response) {
+        break;
       }
-      return handleResponse(response);
     }
-    if (isPromise2(onRequestHooksIteration$)) {
-      return onRequestHooksIteration$.then(handleEarlyResponse);
+    if (!response) {
+      response = await requestHandler(request, serverContext);
     }
-    return handleEarlyResponse();
-  } : givenHandleRequest;
+    for (const onResponseHook of onResponseHooks) {
+      await onResponseHook({
+        request,
+        response,
+        serverContext
+      });
+    }
+    return response;
+  }
   function handleNodeRequest(nodeRequest, ...ctx) {
     const serverContext = ctx.length > 1 ? completeAssign(...ctx) : ctx[0] || {};
     const request = normalizeNodeRequest(nodeRequest, fetchAPI.Request);
@@ -41952,22 +42082,20 @@ function createServerAdapter(serverAdapterBaseObject, options) {
       res: serverResponse
     };
     addWaitUntil(defaultServerContext, waitUntilPromises);
-    let response$;
-    try {
-      response$ = handleNodeRequest(nodeRequest, defaultServerContext, ...ctx);
-    } catch (err) {
-      response$ = handleErrorFromRequestHandler(err, fetchAPI.Response);
-    }
-    if (isPromise2(response$)) {
-      return response$.catch((e) => handleErrorFromRequestHandler(e, fetchAPI.Response)).then((response) => sendNodeResponse(response, serverResponse, nodeRequest)).catch((err) => {
-        console.error(`Unexpected error while handling request: ${err.message || err}`);
+    return handleNodeRequest(nodeRequest, defaultServerContext, ...ctx).then((response) => {
+      if (response) {
+        return sendNodeResponse(response, serverResponse, nodeRequest);
+      }
+      return new Promise((resolve) => {
+        serverResponse.statusCode = 404;
+        serverResponse.once("end", resolve);
+        serverResponse.end();
       });
-    }
-    try {
-      return sendNodeResponse(response$, serverResponse, nodeRequest);
-    } catch (err) {
-      console.error(`Unexpected error while handling request: ${err.message || err}`);
-    }
+    }).finally(() => {
+      if (waitUntilPromises.length > 0) {
+        return handleWaitUntils(waitUntilPromises);
+      }
+    });
   }
   function handleUWS(res, req, ...ctx) {
     const waitUntilPromises = [];
@@ -41982,31 +42110,17 @@ function createServerAdapter(serverAdapterBaseObject, options) {
       res,
       fetchAPI
     });
-    let resAborted = false;
-    res.onAborted(() => {
-      resAborted = true;
-      request.signal.sendAbort();
-    });
-    let response$;
-    try {
-      response$ = handleRequest(request, serverContext);
-    } catch (err) {
-      response$ = handleErrorFromRequestHandler(err, fetchAPI.Response);
-    }
-    if (isPromise2(response$)) {
-      return response$.catch((e) => handleErrorFromRequestHandler(e, fetchAPI.Response)).then((response) => {
-        if (!resAborted) {
-          return sendResponseToUwsOpts(res, response);
-        }
-      }).catch((err) => {
-        console.error(`Unexpected error while handling request: ${err.message || err}`);
+    return handleRequest(request, serverContext).then((response) => {
+      if (!response) {
+        res.writeStatus("404 Not Found");
+        res.end();
+        return;
+      }
+      return sendResponseToUwsOpts({
+        response,
+        res
       });
-    }
-    try {
-      return sendResponseToUwsOpts(res, response$);
-    } catch (err) {
-      console.error(`Unexpected error while handling request: ${err.message || err}`);
-    }
+    });
   }
   function handleEvent(event, ...ctx) {
     if (!event.respondWith || !event.request) {
@@ -42218,40 +42332,31 @@ function useCORS(options) {
 var import_fetch2 = __toESM(require_node_ponyfill2(), 1);
 function createDefaultErrorHandler(ResponseCtor = import_fetch2.Response) {
   return function defaultErrorHandler(e) {
-    if (e.details || e.status || e.headers || e.name === "HTTPError") {
-      return new ResponseCtor(typeof e.details === "object" ? JSON.stringify(e.details) : e.message, {
-        status: e.status,
-        headers: e.headers || {}
-      });
-    }
-    console.error(e);
-    if (ResponseCtor.error) {
-      return ResponseCtor.error();
-    }
-    return new ResponseCtor(null, { status: 500 });
+    return new ResponseCtor(typeof e.details === "object" ? JSON.stringify(e.details) : e.stack || e.message || e.toString(), {
+      status: e.statusCode || e.status || 500,
+      headers: e.headers || {}
+    });
   };
 }
 function useErrorHandling(onError) {
   return {
     onRequest({ requestHandler, setRequestHandler, fetchAPI }) {
       const errorHandler = onError || createDefaultErrorHandler(fetchAPI.Response);
-      setRequestHandler(function handlerWithErrorHandling(request, serverContext) {
+      setRequestHandler(async function handlerWithErrorHandling(request, serverContext) {
         try {
-          const response$ = requestHandler(request, serverContext);
-          if (isPromise2(response$)) {
-            return response$.catch((e) => errorHandler(e, request, serverContext));
-          }
-          return response$;
+          const response = await requestHandler(request, serverContext);
+          return response;
         } catch (e) {
-          return errorHandler(e, request, serverContext);
+          const response = await errorHandler(e, request, serverContext);
+          return response;
         }
       });
     }
   };
 }
 
-// node_modules/graphql-yoga/esm/plugins/request-parser/get.js
-var import_fetch4 = __toESM(require_node_ponyfill(), 1);
+// node_modules/graphql-yoga/esm/server.js
+var import_graphql41 = __toESM(require_graphql2(), 1);
 
 // node_modules/graphql-yoga/esm/plugins/request-parser/utils.js
 var import_fetch3 = __toESM(require_node_ponyfill(), 1);
@@ -42278,6 +42383,7 @@ function isContentTypeMatch(request, expectedContentType) {
 }
 
 // node_modules/graphql-yoga/esm/plugins/request-parser/get.js
+var import_fetch4 = __toESM(require_node_ponyfill(), 1);
 function isGETRequest(request) {
   return request.method === "GET";
 }
@@ -42422,7 +42528,12 @@ async function parsePOSTMultipartRequest(request) {
 }
 
 // node_modules/graphql-yoga/esm/plugins/request-validation/use-check-graphql-query-params.js
-var expectedParameters = /* @__PURE__ */ new Set(["query", "variables", "operationName", "extensions"]);
+var expectedParameters = /* @__PURE__ */ new Set([
+  "query",
+  "variables",
+  "operationName",
+  "extensions"
+]);
 function assertInvalidParams(params) {
   if (params == null || typeof params !== "object") {
     throw createGraphQLError('Invalid "params" in the request body', {
@@ -42682,7 +42793,7 @@ function useHealthCheck({ id: id2 = Date.now().toString(), logger = console, end
   };
 }
 
-// node_modules/lru-cache/dist/mjs/index.js
+// node_modules/graphql-yoga/node_modules/lru-cache/dist/mjs/index.js
 var perf = typeof performance === "object" && performance && typeof performance.now === "function" ? performance : Date;
 var warned = /* @__PURE__ */ new Set();
 var PROCESS = typeof process === "object" && !!process ? process : {};
@@ -43407,15 +43518,6 @@ var LRUCache = class _LRUCache {
       if (v2 !== oldVal) {
         if (this.#hasFetchMethod && this.#isBackgroundFetch(oldVal)) {
           oldVal.__abortController.abort(new Error("replaced"));
-          const { __staleWhileFetching: s } = oldVal;
-          if (s !== void 0 && !noDisposeOnSet) {
-            if (this.#hasDispose) {
-              this.#dispose?.(s, k2, "set");
-            }
-            if (this.#hasDisposeAfter) {
-              this.#disposed?.push([s, k2, "set"]);
-            }
-          }
         } else if (!noDisposeOnSet) {
           if (this.#hasDispose) {
             this.#dispose?.(oldVal, k2, "set");
@@ -44022,16 +44124,7 @@ function isMatchingMediaType(askedMediaType, processorMediaType) {
 
 // node_modules/graphql-yoga/esm/plugins/result-processor/stringify.js
 function jsonStringifyResultWithoutInternals(result) {
-  if (Array.isArray(result)) {
-    return `[${result.map((r) => {
-      const sanitizedResult2 = omitInternalsFromResultErrors(r);
-      const stringifier2 = r.stringify || JSON.stringify;
-      return stringifier2(sanitizedResult2);
-    }).join(",")}]`;
-  }
-  const sanitizedResult = omitInternalsFromResultErrors(result);
-  const stringifier = result.stringify || JSON.stringify;
-  return stringifier(sanitizedResult);
+  return JSON.stringify(Array.isArray(result) ? result.map(omitInternalsFromResultErrors) : omitInternalsFromResultErrors(result));
 }
 function omitInternalsFromResultErrors(result) {
   if (result.errors?.length || result.extensions?.http) {
@@ -44116,30 +44209,6 @@ function processMultipartResult(result, fetchAPI) {
   return new fetchAPI.Response(readableStream, responseInit);
 }
 
-// node_modules/graphql-yoga/esm/plugins/result-processor/regular.js
-function processRegularResult(executionResult, fetchAPI, acceptedHeader) {
-  if (isAsyncIterable(executionResult)) {
-    return new fetchAPI.Response(null, {
-      status: 406,
-      statusText: "Not Acceptable",
-      headers: {
-        accept: "application/json; charset=utf-8, application/graphql-response+json; charset=utf-8"
-      }
-    });
-  }
-  const headersInit = {
-    "Content-Type": acceptedHeader + "; charset=utf-8"
-  };
-  const responseInit = getResponseInitByRespectingErrors(
-    executionResult,
-    headersInit,
-    // prefer 200 only if accepting application/json and all errors are exclusively GraphQL errors
-    acceptedHeader === "application/json" && !Array.isArray(executionResult) && areGraphQLErrors(executionResult.errors) && executionResult.errors.some((err) => !err.extensions.originalError || isGraphQLError(err.extensions.originalError))
-  );
-  const responseBody = jsonStringifyResultWithoutInternals(executionResult);
-  return new fetchAPI.Response(responseBody, responseInit);
-}
-
 // node_modules/graphql-yoga/esm/plugins/result-processor/sse.js
 function getSSEProcessor() {
   return function processSSEResult(result, fetchAPI) {
@@ -44159,7 +44228,6 @@ function getSSEProcessor() {
     const textEncoder = new fetchAPI.TextEncoder();
     const readableStream = new fetchAPI.ReadableStream({
       start(controller) {
-        controller.enqueue(textEncoder.encode(":\n\n"));
         pingInterval = setInterval(() => {
           if (!controller.desiredSize) {
             clearInterval(pingInterval);
@@ -44207,6 +44275,30 @@ function getSSEProcessor() {
     });
     return new fetchAPI.Response(readableStream, responseInit);
   };
+}
+
+// node_modules/graphql-yoga/esm/plugins/result-processor/regular.js
+function processRegularResult(executionResult, fetchAPI, acceptedHeader) {
+  if (isAsyncIterable(executionResult)) {
+    return new fetchAPI.Response(null, {
+      status: 406,
+      statusText: "Not Acceptable",
+      headers: {
+        accept: "application/json; charset=utf-8, application/graphql-response+json; charset=utf-8"
+      }
+    });
+  }
+  const headersInit = {
+    "Content-Type": acceptedHeader + "; charset=utf-8"
+  };
+  const responseInit = getResponseInitByRespectingErrors(
+    executionResult,
+    headersInit,
+    // prefer 200 only if accepting application/json and all errors are exclusively GraphQL errors
+    acceptedHeader === "application/json" && !Array.isArray(executionResult) && areGraphQLErrors(executionResult.errors) && executionResult.errors.some((err) => !err.extensions.originalError || isGraphQLError(err.extensions.originalError))
+  );
+  const responseBody = jsonStringifyResultWithoutInternals(executionResult);
+  return new fetchAPI.Response(responseBody, responseInit);
 }
 
 // node_modules/graphql-yoga/esm/plugins/use-result-processor.js
@@ -44261,7 +44353,7 @@ function useResultProcessors() {
 }
 
 // node_modules/graphql-yoga/esm/landing-page-html.js
-var landing_page_html_default = `<!doctype html><html lang=en><head><meta charset=utf-8><title>Welcome to GraphQL Yoga</title><link rel=icon href=https://raw.githubusercontent.com/dotansimha/graphql-yoga/main/website/public/favicon.ico><style>body,html{padding:0;margin:0;height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif;color:#fff;background-color:#000}main>section.hero{display:flex;height:90vh;justify-content:center;align-items:center;flex-direction:column}.logo{display:flex;align-items:center}.buttons{margin-top:24px}h1{font-size:80px}h2{color:#888;max-width:50%;margin-top:0;text-align:center}a{color:#fff;text-decoration:none;margin-left:10px;margin-right:10px;font-weight:700;transition:color .3s ease;padding:4px;overflow:visible}a.graphiql:hover{color:rgba(255,0,255,.7)}a.docs:hover{color:rgba(28,200,238,.7)}a.tutorial:hover{color:rgba(125,85,245,.7)}svg{margin-right:24px}.not-what-your-looking-for{margin-top:5vh}.not-what-your-looking-for>*{margin-left:auto;margin-right:auto}.not-what-your-looking-for>p{text-align:center}.not-what-your-looking-for>h2{color:#464646}.not-what-your-looking-for>p{max-width:600px;line-height:1.3em}.not-what-your-looking-for>pre{max-width:300px}</style></head><body id=body><main><section class=hero><div class=logo><div><svg xmlns=http://www.w3.org/2000/svg viewBox="-0.41 0.445 472.812 499.811" height=150><defs><linearGradient id=paint0_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint1_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint2_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint3_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint4_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint5_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><filter id=filter0_f_1677_11483 x=23 y=-25 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter><filter id=filter1_f_1677_11483 x=-24 y=19 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter><linearGradient id=paint6_linear_1677_11483 x1=30 y1=28 x2=66.1645 y2=44.4363 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><filter id=filter2_f_1677_11483 x=-12 y=-44 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter><filter id=filter3_f_1677_11483 x=13 y=19 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter></defs><mask id=mask0_1677_11483 style=mask-type:alpha maskUnits=userSpaceOnUse x=16 y=14 width=58 height=62><path d="M21 25.3501C21.7279 25.3501 22.4195 25.5056 23.0433 25.7853L42.1439 14.8C43.0439 14.3 44.1439 14 45.1439 14C46.2439 14 47.2439 14.3 48.1439 14.8L64.5439 24.3C63.3439 25.1 62.4439 26.3 61.8439 27.7L45.9438 18.5C45.6439 18.3 45.344 18.3 45.0441 18.3C44.7441 18.3 44.4439 18.4 44.1439 18.5L25.8225 29.0251C25.9382 29.4471 26 29.8914 26 30.3501C26 33.1115 23.7614 35.3501 21 35.3501C18.2386 35.3501 16 33.1115 16 30.3501C16 27.5887 18.2386 25.3501 21 25.3501Z" fill=url(#paint3_linear_1677_11483) /><path d="M67.2438 35.0329C65.3487 34.3219 64 32.4934 64 30.35C64 27.5886 66.2386 25.35 69 25.35C71.7614 25.35 74 27.5886 74 30.35C74 32.1825 73.0142 33.7848 71.5439 34.6554V55.2C71.5439 57.4 70.3439 59.4 68.5439 60.5L52.1439 69.9C52.1439 68.4 51.6438 66.9 50.7438 65.8L66.3439 56.8C66.9439 56.5 67.2438 55.9 67.2438 55.2V35.0329Z" fill=url(#paint4_linear_1677_11483) /><path d="M49.8439 69.1055C49.9458 69.5034 50 69.9204 50 70.3501C50 73.1115 47.7614 75.3501 45 75.3501C42.5102 75.3501 40.4454 73.5302 40.0633 71.1481L21.8439 60.6C19.9439 59.5 18.8439 57.5 18.8439 55.3V36.8C19.5439 37 20.3439 37.2 21.0439 37.2C21.7439 37.2 22.4439 37.1 23.0439 36.9V55.3C23.0439 56 23.4438 56.6 23.9438 56.9L41.3263 66.9583C42.2398 65.9694 43.5476 65.3501 45 65.3501C47.3291 65.3501 49.2862 66.9426 49.8419 69.0981L49.8436 69.0997L49.8439 69.1055Z" fill=url(#paint5_linear_1677_11483) /></mask><mask id=mask1_1677_11483 style=mask-type:alpha maskUnits=userSpaceOnUse x=30 y=28 width=30 height=30><path fill-rule=evenodd clip-rule=evenodd d="M49.3945 32.3945C49.3945 34.7088 47.5796 38.5469 45 38.5469C42.4271 38.5469 40.6055 34.7112 40.6055 32.3945C40.6055 29.9714 42.5769 28 45 28C47.4231 28 49.3945 29.9714 49.3945 32.3945ZM35.332 49.0433V48.2148C35.332 42.8117 37.8535 41.0004 39.8796 39.545L39.8801 39.5447C40.3928 39.1767 40.8604 38.8404 41.2488 38.4742C42.3293 39.6642 43.626 40.3047 45 40.3047C46.3752 40.3047 47.6725 39.6642 48.7529 38.4754C49.1408 38.841 49.6078 39.1773 50.1199 39.5447L50.1204 39.545C52.1465 41.0004 54.668 42.8117 54.668 48.2148V49.0433L53.8406 49.092C49.9848 49.3185 46.8646 46.9002 45 43.5777C43.1159 46.935 39.9847 49.318 36.1594 49.092L35.332 49.0433ZM58.1463 51.0747L58.1463 51.0746C57.0179 50.891 50.0128 49.7507 45.0007 55.693C40.0116 49.7553 33.1965 50.8592 31.9095 51.0677L31.9095 51.0677C31.7906 51.087 31.7189 51.0986 31.7002 51.0963C31.7005 51.0969 31.7011 51.1045 31.7023 51.1187C31.726 51.4003 31.9682 54.2745 34.0566 56.2422L30 58H60L55.8956 56.2422C57.8537 54.4764 58.1396 52.2685 58.2508 51.4092V51.4091C58.2697 51.2628 58.2836 51.1556 58.2998 51.0963C58.2881 51.0977 58.2356 51.0892 58.1463 51.0747ZM40.4836 50.104C42.3956 49.3212 43.6746 48.1737 45 46.61C46.332 48.1841 47.6159 49.3259 49.5164 50.104C49.5356 50.1425 49.5557 50.1805 49.5756 50.2182C49.5793 50.2253 49.583 50.2323 49.5867 50.2393C48.0911 50.8127 46.4264 51.825 45.0047 53.1444C43.5906 51.8221 41.9673 50.8196 40.4256 50.2153C40.4455 50.1784 40.4648 50.1415 40.4836 50.104Z" fill=black /></mask><path d="M 40.59 93.095 C 46.517 93.095 52.14 94.365 57.22 96.635 L 212.7 7.22 C 220.025 3.149 228.978 0.706 237.12 0.706 C 246.073 0.706 254.213 3.149 261.54 7.22 L 395.032 84.547 C 385.264 91.059 377.939 100.827 373.055 112.224 L 243.631 37.338 C 241.19 35.71 238.747 35.71 236.305 35.71 C 233.863 35.71 231.42 36.523 228.978 37.338 L 79.84 123.009 C 80.786 126.443 81.29 130.058 81.29 133.793 C 81.29 156.269 63.065 174.493 40.59 174.493 C 18.116 174.493 -0.109 156.269 -0.109 133.793 C -0.109 111.32 18.116 93.095 40.59 93.095 Z" fill=url(#paint0_linear_1677_11483) /><path d="M 417.01 171.913 C 401.585 166.126 390.603 151.238 390.603 133.793 C 390.603 111.32 408.83 93.095 431.303 93.095 C 453.777 93.095 472.001 111.32 472.001 133.793 C 472.001 148.706 463.976 161.755 452.011 168.835 L 452.011 336.07 C 452.011 353.977 442.243 370.258 427.591 379.21 L 294.098 455.726 C 294.098 443.516 290.029 431.306 282.703 422.353 L 409.683 349.093 C 414.568 346.651 417.01 341.767 417.01 336.07 L 417.01 171.913 Z" fill=url(#paint1_linear_1677_11483) /><path d="M 275.376 449.253 C 276.206 452.495 276.646 455.889 276.646 459.389 C 276.646 481.863 258.422 500.087 235.947 500.087 C 215.679 500.087 198.87 485.272 195.761 465.883 L 47.46 380.025 C 31.995 371.071 23.041 354.792 23.041 336.884 L 23.041 186.296 C 28.738 187.923 35.25 189.553 40.948 189.553 C 46.646 189.553 52.345 188.738 57.228 187.111 L 57.228 336.884 C 57.228 342.582 60.485 347.465 64.554 349.908 L 206.042 431.777 C 213.481 423.728 224.127 418.689 235.947 418.689 C 254.905 418.689 270.833 431.656 275.36 449.196 L 275.376 449.214 L 275.376 449.253 Z" fill=url(#paint2_linear_1677_11483) /><g mask=url(#mask0_1677_11483) transform="matrix(8.139854, 0, 0, 8.139854, -130.346375, -113.251038)"><g filter=url(#filter0_f_1677_11483)><circle cx=73 cy=25 r=26 fill=#ED2E7E /></g><g filter=url(#filter1_f_1677_11483)><circle cx=26 cy=69 r=26 fill=#1CC8EE /></g></g><path fill-rule=evenodd clip-rule=evenodd d="M 271.713 150.431 C 271.713 169.275 256.948 200.517 235.947 200.517 C 215.003 200.517 200.172 169.292 200.172 150.431 C 200.172 130.708 216.225 114.666 235.947 114.666 C 255.67 114.666 271.713 130.708 271.713 150.431 Z M 157.251 285.952 L 157.251 279.212 C 157.251 235.233 177.771 220.485 194.27 208.641 C 198.447 205.644 202.247 202.901 205.414 199.923 C 214.204 209.608 224.763 214.826 235.947 214.826 C 247.138 214.826 257.697 209.608 266.496 199.931 C 269.653 202.911 273.456 205.644 277.622 208.641 C 294.114 220.485 314.642 235.233 314.642 279.212 L 314.642 285.952 L 307.912 286.351 C 276.525 288.191 251.128 268.509 235.947 241.468 C 220.611 268.795 195.126 288.191 163.981 286.351 L 157.251 285.952 Z M 342.953 302.492 C 333.771 300.994 276.751 291.715 235.955 340.082 C 195.345 291.749 139.865 300.734 129.389 302.436 C 128.428 302.59 127.841 302.688 127.687 302.665 C 127.687 302.673 127.695 302.729 127.702 302.85 C 127.897 305.138 129.867 328.532 146.872 344.55 L 113.849 358.862 L 358.044 358.862 L 324.639 344.55 C 340.576 330.177 342.905 312.202 343.807 305.212 C 343.962 304.022 344.077 303.153 344.206 302.665 C 344.108 302.68 343.686 302.606 342.953 302.492 Z M 199.188 294.59 C 214.751 288.215 225.161 278.879 235.947 266.15 C 246.788 278.96 257.241 288.255 272.707 294.59 C 272.869 294.898 273.031 295.207 273.196 295.518 C 273.219 295.574 273.252 295.631 273.285 295.688 C 261.107 300.361 247.555 308.598 235.989 319.334 C 224.477 308.573 211.258 300.417 198.715 295.493 C 198.87 295.191 199.033 294.891 199.188 294.59 Z" fill=url(#paint6_linear_1677_11483) /><g mask=url(#mask1_1677_11483) transform="matrix(8.139854, 0, 0, 8.139854, -130.346375, -113.251038)"><g filter=url(#filter2_f_1677_11483)><circle cx=38 cy=6 r=26 fill=#ED2E7E /></g><g filter=url(#filter3_f_1677_11483)><circle cx=63 cy=69 r=26 fill=#1CC8EE /></g></g></svg></div><h1>GraphQL Yoga</h1></div><h2>The batteries-included cross-platform GraphQL Server.</h2><div class=buttons><a href=https://www.the-guild.dev/graphql/yoga-server/docs class=docs>Read the Docs</a> <a href=https://www.the-guild.dev/graphql/yoga-server/tutorial/basic class=tutorial>Start the Tutorial </a><a href=__GRAPHIQL_LINK__ class=graphiql>Visit GraphiQL</a></div></section><section class=not-what-your-looking-for><h2>Not the page you are looking for? \u{1F440}</h2><p>This page is shown be default whenever a 404 is hit.<br>You can disable this by behavior via the <code>landingPage</code> option.</p><pre>
+var landing_page_html_default = `<!DOCTYPE html><html lang=en><head><meta charset=utf-8><title>Welcome to GraphQL Yoga</title><link rel=icon href=https://raw.githubusercontent.com/dotansimha/graphql-yoga/main/website/public/favicon.ico><style>body,html{padding:0;margin:0;height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif;color:#fff;background-color:#000}main>section.hero{display:flex;height:90vh;justify-content:center;align-items:center;flex-direction:column}.logo{display:flex;align-items:center}.buttons{margin-top:24px}h1{font-size:80px}h2{color:#888;max-width:50%;margin-top:0;text-align:center}a{color:#fff;text-decoration:none;margin-left:10px;margin-right:10px;font-weight:700;transition:color .3s ease;padding:4px;overflow:visible}a.graphiql:hover{color:rgba(255,0,255,.7)}a.docs:hover{color:rgba(28,200,238,.7)}a.tutorial:hover{color:rgba(125,85,245,.7)}svg{margin-right:24px}.not-what-your-looking-for{margin-top:5vh}.not-what-your-looking-for>*{margin-left:auto;margin-right:auto}.not-what-your-looking-for>p{text-align:center}.not-what-your-looking-for>h2{color:#464646}.not-what-your-looking-for>p{max-width:600px;line-height:1.3em}.not-what-your-looking-for>pre{max-width:300px}</style></head><body id=body><main><section class=hero><div class=logo><div><svg xmlns=http://www.w3.org/2000/svg viewBox="-0.41 0.445 472.812 499.811" height=150><defs><linearGradient id=paint0_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint1_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint2_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint3_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint4_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><linearGradient id=paint5_linear_1677_11483 x1=16 y1=14 x2=87.2132 y2=44.5982 gradientUnits=userSpaceOnUse><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><filter id=filter0_f_1677_11483 x=23 y=-25 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter><filter id=filter1_f_1677_11483 x=-24 y=19 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter><linearGradient id=paint6_linear_1677_11483 x1=30 y1=28 x2=66.1645 y2=44.4363 gradientUnits=userSpaceOnUse gradientTransform="matrix(8.139854, 0, 0, 8.139854, -130.346407, -113.25101)"><stop stop-color=#7433FF /><stop offset=1 stop-color=#FFA3FD /></linearGradient><filter id=filter2_f_1677_11483 x=-12 y=-44 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter><filter id=filter3_f_1677_11483 x=13 y=19 width=100 height=100 filterUnits=userSpaceOnUse color-interpolation-filters=sRGB><feFlood flood-opacity=0 result=BackgroundImageFix /><feBlend mode=normal in=SourceGraphic in2=BackgroundImageFix result=shape /><feGaussianBlur stdDeviation=12 result=effect1_foregroundBlur_1677_11483 /></filter></defs><mask id=mask0_1677_11483 style=mask-type:alpha maskUnits=userSpaceOnUse x=16 y=14 width=58 height=62><path d="M21 25.3501C21.7279 25.3501 22.4195 25.5056 23.0433 25.7853L42.1439 14.8C43.0439 14.3 44.1439 14 45.1439 14C46.2439 14 47.2439 14.3 48.1439 14.8L64.5439 24.3C63.3439 25.1 62.4439 26.3 61.8439 27.7L45.9438 18.5C45.6439 18.3 45.344 18.3 45.0441 18.3C44.7441 18.3 44.4439 18.4 44.1439 18.5L25.8225 29.0251C25.9382 29.4471 26 29.8914 26 30.3501C26 33.1115 23.7614 35.3501 21 35.3501C18.2386 35.3501 16 33.1115 16 30.3501C16 27.5887 18.2386 25.3501 21 25.3501Z" fill=url(#paint3_linear_1677_11483) /><path d="M67.2438 35.0329C65.3487 34.3219 64 32.4934 64 30.35C64 27.5886 66.2386 25.35 69 25.35C71.7614 25.35 74 27.5886 74 30.35C74 32.1825 73.0142 33.7848 71.5439 34.6554V55.2C71.5439 57.4 70.3439 59.4 68.5439 60.5L52.1439 69.9C52.1439 68.4 51.6438 66.9 50.7438 65.8L66.3439 56.8C66.9439 56.5 67.2438 55.9 67.2438 55.2V35.0329Z" fill=url(#paint4_linear_1677_11483) /><path d="M49.8439 69.1055C49.9458 69.5034 50 69.9204 50 70.3501C50 73.1115 47.7614 75.3501 45 75.3501C42.5102 75.3501 40.4454 73.5302 40.0633 71.1481L21.8439 60.6C19.9439 59.5 18.8439 57.5 18.8439 55.3V36.8C19.5439 37 20.3439 37.2 21.0439 37.2C21.7439 37.2 22.4439 37.1 23.0439 36.9V55.3C23.0439 56 23.4438 56.6 23.9438 56.9L41.3263 66.9583C42.2398 65.9694 43.5476 65.3501 45 65.3501C47.3291 65.3501 49.2862 66.9426 49.8419 69.0981L49.8436 69.0997L49.8439 69.1055Z" fill=url(#paint5_linear_1677_11483) /></mask><mask id=mask1_1677_11483 style=mask-type:alpha maskUnits=userSpaceOnUse x=30 y=28 width=30 height=30><path fill-rule=evenodd clip-rule=evenodd d="M49.3945 32.3945C49.3945 34.7088 47.5796 38.5469 45 38.5469C42.4271 38.5469 40.6055 34.7112 40.6055 32.3945C40.6055 29.9714 42.5769 28 45 28C47.4231 28 49.3945 29.9714 49.3945 32.3945ZM35.332 49.0433V48.2148C35.332 42.8117 37.8535 41.0004 39.8796 39.545L39.8801 39.5447C40.3928 39.1767 40.8604 38.8404 41.2488 38.4742C42.3293 39.6642 43.626 40.3047 45 40.3047C46.3752 40.3047 47.6725 39.6642 48.7529 38.4754C49.1408 38.841 49.6078 39.1773 50.1199 39.5447L50.1204 39.545C52.1465 41.0004 54.668 42.8117 54.668 48.2148V49.0433L53.8406 49.092C49.9848 49.3185 46.8646 46.9002 45 43.5777C43.1159 46.935 39.9847 49.318 36.1594 49.092L35.332 49.0433ZM58.1463 51.0747L58.1463 51.0746C57.0179 50.891 50.0128 49.7507 45.0007 55.693C40.0116 49.7553 33.1965 50.8592 31.9095 51.0677L31.9095 51.0677C31.7906 51.087 31.7189 51.0986 31.7002 51.0963C31.7005 51.0969 31.7011 51.1045 31.7023 51.1187C31.726 51.4003 31.9682 54.2745 34.0566 56.2422L30 58H60L55.8956 56.2422C57.8537 54.4764 58.1396 52.2685 58.2508 51.4092V51.4091C58.2697 51.2628 58.2836 51.1556 58.2998 51.0963C58.2881 51.0977 58.2356 51.0892 58.1463 51.0747ZM40.4836 50.104C42.3956 49.3212 43.6746 48.1737 45 46.61C46.332 48.1841 47.6159 49.3259 49.5164 50.104C49.5356 50.1425 49.5557 50.1805 49.5756 50.2182C49.5793 50.2253 49.583 50.2323 49.5867 50.2393C48.0911 50.8127 46.4264 51.825 45.0047 53.1444C43.5906 51.8221 41.9673 50.8196 40.4256 50.2153C40.4455 50.1784 40.4648 50.1415 40.4836 50.104Z" fill=black /></mask><path d="M 40.59 93.095 C 46.517 93.095 52.14 94.365 57.22 96.635 L 212.7 7.22 C 220.025 3.149 228.978 0.706 237.12 0.706 C 246.073 0.706 254.213 3.149 261.54 7.22 L 395.032 84.547 C 385.264 91.059 377.939 100.827 373.055 112.224 L 243.631 37.338 C 241.19 35.71 238.747 35.71 236.305 35.71 C 233.863 35.71 231.42 36.523 228.978 37.338 L 79.84 123.009 C 80.786 126.443 81.29 130.058 81.29 133.793 C 81.29 156.269 63.065 174.493 40.59 174.493 C 18.116 174.493 -0.109 156.269 -0.109 133.793 C -0.109 111.32 18.116 93.095 40.59 93.095 Z" fill=url(#paint0_linear_1677_11483) /><path d="M 417.01 171.913 C 401.585 166.126 390.603 151.238 390.603 133.793 C 390.603 111.32 408.83 93.095 431.303 93.095 C 453.777 93.095 472.001 111.32 472.001 133.793 C 472.001 148.706 463.976 161.755 452.011 168.835 L 452.011 336.07 C 452.011 353.977 442.243 370.258 427.591 379.21 L 294.098 455.726 C 294.098 443.516 290.029 431.306 282.703 422.353 L 409.683 349.093 C 414.568 346.651 417.01 341.767 417.01 336.07 L 417.01 171.913 Z" fill=url(#paint1_linear_1677_11483) /><path d="M 275.376 449.253 C 276.206 452.495 276.646 455.889 276.646 459.389 C 276.646 481.863 258.422 500.087 235.947 500.087 C 215.679 500.087 198.87 485.272 195.761 465.883 L 47.46 380.025 C 31.995 371.071 23.041 354.792 23.041 336.884 L 23.041 186.296 C 28.738 187.923 35.25 189.553 40.948 189.553 C 46.646 189.553 52.345 188.738 57.228 187.111 L 57.228 336.884 C 57.228 342.582 60.485 347.465 64.554 349.908 L 206.042 431.777 C 213.481 423.728 224.127 418.689 235.947 418.689 C 254.905 418.689 270.833 431.656 275.36 449.196 L 275.376 449.214 L 275.376 449.253 Z" fill=url(#paint2_linear_1677_11483) /><g mask=url(#mask0_1677_11483) transform="matrix(8.139854, 0, 0, 8.139854, -130.346375, -113.251038)"><g filter=url(#filter0_f_1677_11483)><circle cx=73 cy=25 r=26 fill=#ED2E7E /></g><g filter=url(#filter1_f_1677_11483)><circle cx=26 cy=69 r=26 fill=#1CC8EE /></g></g><path fill-rule=evenodd clip-rule=evenodd d="M 271.713 150.431 C 271.713 169.275 256.948 200.517 235.947 200.517 C 215.003 200.517 200.172 169.292 200.172 150.431 C 200.172 130.708 216.225 114.666 235.947 114.666 C 255.67 114.666 271.713 130.708 271.713 150.431 Z M 157.251 285.952 L 157.251 279.212 C 157.251 235.233 177.771 220.485 194.27 208.641 C 198.447 205.644 202.247 202.901 205.414 199.923 C 214.204 209.608 224.763 214.826 235.947 214.826 C 247.138 214.826 257.697 209.608 266.496 199.931 C 269.653 202.911 273.456 205.644 277.622 208.641 C 294.114 220.485 314.642 235.233 314.642 279.212 L 314.642 285.952 L 307.912 286.351 C 276.525 288.191 251.128 268.509 235.947 241.468 C 220.611 268.795 195.126 288.191 163.981 286.351 L 157.251 285.952 Z M 342.953 302.492 C 333.771 300.994 276.751 291.715 235.955 340.082 C 195.345 291.749 139.865 300.734 129.389 302.436 C 128.428 302.59 127.841 302.688 127.687 302.665 C 127.687 302.673 127.695 302.729 127.702 302.85 C 127.897 305.138 129.867 328.532 146.872 344.55 L 113.849 358.862 L 358.044 358.862 L 324.639 344.55 C 340.576 330.177 342.905 312.202 343.807 305.212 C 343.962 304.022 344.077 303.153 344.206 302.665 C 344.108 302.68 343.686 302.606 342.953 302.492 Z M 199.188 294.59 C 214.751 288.215 225.161 278.879 235.947 266.15 C 246.788 278.96 257.241 288.255 272.707 294.59 C 272.869 294.898 273.031 295.207 273.196 295.518 C 273.219 295.574 273.252 295.631 273.285 295.688 C 261.107 300.361 247.555 308.598 235.989 319.334 C 224.477 308.573 211.258 300.417 198.715 295.493 C 198.87 295.191 199.033 294.891 199.188 294.59 Z" fill=url(#paint6_linear_1677_11483) /><g mask=url(#mask1_1677_11483) transform="matrix(8.139854, 0, 0, 8.139854, -130.346375, -113.251038)"><g filter=url(#filter2_f_1677_11483)><circle cx=38 cy=6 r=26 fill=#ED2E7E /></g><g filter=url(#filter3_f_1677_11483)><circle cx=63 cy=69 r=26 fill=#1CC8EE /></g></g></svg></div><h1>GraphQL Yoga</h1></div><h2>The batteries-included cross-platform GraphQL Server.</h2><div class=buttons><a href=https://www.the-guild.dev/graphql/yoga-server/docs class=docs>Read the Docs</a> <a href=https://www.the-guild.dev/graphql/yoga-server/tutorial/basic class=tutorial>Start the Tutorial </a><a href=__GRAPHIQL_LINK__ class=graphiql>Visit GraphiQL</a></div></section><section class=not-what-your-looking-for><h2>Not the page you are looking for? \u{1F440}</h2><p>This page is shown be default whenever a 404 is hit.<br>You can disable this by behavior via the <code>landingPage</code> option.</p><pre>
           <code>
 import { createYoga } from 'graphql-yoga';
 
@@ -45618,8 +45710,8 @@ var Company = {
     }
     return company;
   },
-  savedApplicants: async (parent, args, context) => {
-    return await context.service.Company.getSavedApplicants({
+  savedApplicants: (parent, args, context) => {
+    return context.service.Company.getSavedApplicants({
       companyId: parent.id
     });
   }
@@ -45721,9 +45813,7 @@ var sayHi = async (_parent, _arg, _ctx) => {
 
 // src/graphql/schema/company/resolvers/Mutation/sendInterviewRequest.ts
 var sendInterviewRequest = async (_parent, _arg, _ctx) => {
-  return await _ctx.service.Company.acceptApplicationAndCreateInterview(
-    _arg.input
-  );
+  return await _ctx.service.Company.acceptApplicationAndCreateInterview(_arg.input);
 };
 
 // src/graphql/schema/auth/resolvers/Mutation/signUp.ts
