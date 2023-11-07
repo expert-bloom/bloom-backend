@@ -1,39 +1,32 @@
-import { createSchema, createYoga } from 'graphql-yoga';
-import { createServer } from 'node:http';
-import type { GraphqlContext } from './graphql/context';
-import { createContext } from './graphql/context';
-import { typeDefs } from '@/graphql/schema/typeDefs.generated';
-import { resolvers } from '@/graphql/schema/resolvers.generated';
-import { applyMiddleware } from 'graphql-middleware';
-import prisma from '@/lib/prisma';
+import express from 'express';
+import logger from 'morgan';
 
-export const schema = createSchema<GraphqlContext>({
-  typeDefs,
-  resolvers,
-});
+import authRouter from '@/routes/auth';
+import { yoga } from '@/routes/graphql';
 
-const schemaWithMiddleWare = applyMiddleware<any, GraphqlContext>(schema);
+import cookieParser from 'cookie-parser';
+import process from 'process';
 
-prisma
-  .$connect()
-  .then(() => {
-    console.log('  🥁 prisma connected');
-  })
-  .catch((err) => {
-    console.log('  🔻 prisma error', err);
-    process.exit(1);
-    throw err;
-  });
+const signingKey = process.env.JWT_SECRET as string;
 
-const yoga = createYoga({
-  graphqlEndpoint: '/graphql',
-  schema: schemaWithMiddleWare,
-  context: async (initialContext) => createContext(initialContext),
-});
+export const app = express();
 
-const server = createServer(yoga as any);
+app.use(logger('dev'));
+app.use(cookieParser(signingKey));
 
-server.listen(4000, () => {
-  console.log(`
-  🚀 Server ready at: http://localhost:4000`);
+// app.use(
+//   cookieSession({
+//     name: 'session',
+//     keys: [signingKey],
+//     maxAge: 24 * 60 * 60 * 1000, // 24 hours
+//   }),
+// );
+
+app.use('/auth', authRouter);
+
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+app.use(yoga.graphqlEndpoint, yoga);
+
+app.listen(4000, () => {
+  console.log('Running a GraphQL API server at http://localhost:4000/graphql');
 });

@@ -1,8 +1,8 @@
 import type { QueryResolvers } from './../../../types.generated';
 
-export const getJobApplications: NonNullable<
-  QueryResolvers['getJobApplications']
-> = async (_parent, _arg, _ctx) => {
+export const getJobApplications: NonNullable<QueryResolvers['getJobApplications']> = async (_parent, _arg, _ctx) => {
+  const signingKey = process.env.JWT_SECRET as string;
+
   const jobApplications = await _ctx.service.Applicant.getJobApplications(
     _arg.input,
   );

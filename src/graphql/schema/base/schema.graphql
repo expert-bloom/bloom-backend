@@ -23,3 +23,10 @@ enum OrderDirection {
   "Specifies a descending sort order."
   DESC
 }
+
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
+}
+
+directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT

@@ -2,6 +2,7 @@ extend type Mutation {
     signUp(input: SignUpInput!) : AuthPayload!
     logIn(input: LoginInput!) : AuthPayload!
 
+    logOut : Boolean!
     signUpOAuth(input: OAuthSignUpInput!) : AuthPayload!
 }
 

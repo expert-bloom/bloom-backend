@@ -7,5 +7,7 @@ export const sayHi: NonNullable<QueryResolvers['sayHi']> = async (
 ) => {
   /* Implement Query.sayHi resolver logic here */
 
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return 'this is a test';
 };

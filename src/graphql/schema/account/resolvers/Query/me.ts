@@ -5,5 +5,11 @@ export const me: NonNullable<QueryResolvers['me']> = async (
   _arg,
   _ctx,
 ) => {
-  return await _ctx.service.Account.getMe(_arg.input);
+  console.log('me query invoked ---- > ', _ctx?.jwt);
+
+  if (!_ctx.jwt?.id) {
+    return null;
+  }
+
+  return await _ctx.service.Account.getMe({ accountId: _ctx.jwt?.id });
 };

@@ -1,6 +1,8 @@
 #schema.graphql
+
 extend type Query{
-    me (input: MeInput!): AccountPayload
+    me : AccountPayload @cacheControl(scope: PRIVATE)
+    getCurrentUser : AccountPayload
     findAccount(input: FindAccountFilterInput!): FindOnePayload
 }
 

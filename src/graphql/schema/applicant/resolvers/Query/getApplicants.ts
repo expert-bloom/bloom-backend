@@ -1,13 +1,11 @@
 import type { QueryResolvers } from './../../../types.generated';
 
-export const getApplicants: NonNullable<
-  QueryResolvers['getApplicants']
-> = async (_parent, _arg, _ctx) => {
+export const getApplicants: NonNullable<QueryResolvers['getApplicants']> = async (_parent, _arg, _ctx) => {
   const applicants = await _ctx.service.Applicant.getAllApplicants(_arg.input);
 
   return {
     pageInfo: {
-      hasNextPage: !!applicants[0]._count,
+      hasNextPage: !!applicants[0]?._count,
       hasPreviousPage: false,
     },
 

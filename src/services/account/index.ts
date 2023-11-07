@@ -1,10 +1,11 @@
 import type {
-  FindAccountFilterInput,
   ApplicantProfileUpdateInput,
+  FindAccountFilterInput,
   MeInput,
 } from '@/graphql/schema/types.generated';
 import prisma from '@/lib/prisma';
 import { clearUndefined } from '@/util/helper';
+import { GraphQLError } from 'graphql/error';
 
 async function findOne(input: FindAccountFilterInput) {
   const filteredObj = clearUndefined(input?.accountFilter ?? {});
@@ -36,22 +37,27 @@ async function findOne(input: FindAccountFilterInput) {
 }
 
 async function getMe(input: MeInput) {
-  const account = await prisma.account.findUnique({
-    where: { id: input.accountId },
-    include: {
-      applicant: {
-        include: {
-          // savedJobs: true,
-          workExperience: true,
+  try {
+    const account = await prisma.account.findUnique({
+      where: { id: input.accountId },
+      include: {
+        applicant: {
+          include: {
+            // savedJobs: true,
+            workExperience: true,
+          },
         },
+        company: true,
+        affiliate: true,
+        oAuthClient: true,
       },
-      company: true,
-      affiliate: true,
-      oAuthClient: true,
-    },
-  });
+    });
 
-  return account;
+    return account;
+  } catch (err: any) {
+    console.log('err : ', err);
+    throw new GraphQLError(err.message);
+  }
 }
 
 async function updateProfile(input: ApplicantProfileUpdateInput) {

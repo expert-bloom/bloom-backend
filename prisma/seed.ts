@@ -64,8 +64,8 @@ async function main() {
 
   try {
     // loop through the postsData 5 times and create all of them
-    for (let i = 0; i < postsData.length * 4; i++) {
-      const pd = postsData[i % postsData.length];
+    for (let i = 0; i < postsData.length; i++) {
+      const pd = postsData[i];
 
       const company = await prisma.account.findUnique({
         where: {

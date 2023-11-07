@@ -171,7 +171,9 @@ async function logIn(input: LoginInput) {
     };
   }
 
-  const isMatch = await comparePassword(password, account.password);
+  // DONT-PUSH: Commented for testing
+  // const isMatch = await comparePassword(password, account.password);
+  const isMatch = password === account.password;
   if (!isMatch) {
     return {
       errors: [
@@ -183,7 +185,7 @@ async function logIn(input: LoginInput) {
     };
   }
 
-  console.log('login with ---> ', account);
+  // console.log('login with ---> ', account);
 
   return {
     errors: [],

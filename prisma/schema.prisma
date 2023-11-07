@@ -1,8 +1,8 @@
 generator client {
-  provider      = "prisma-client-js"
-  sdlGenerator  = "sdl"
+  provider     = "prisma-client-js"
+  sdlGenerator = "sdl"
   // engineType    = "library"
-  binaryTargets = ["debian-openssl-1.1.x"]
+  // binaryTargets = ["debian-openssl-1.1.x"]
 }
 
 datasource db {
