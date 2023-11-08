@@ -3,15 +3,14 @@ import {
   type Profile,
   Strategy as GoogleStrategy,
 } from 'passport-google-oauth20';
-import process from 'process';
 import express, { type Request } from 'express';
 import { type VerifyCallback } from 'passport-oauth2';
 import prisma from '@/lib/prisma';
 import { type AccountType } from '@/graphql/schema/types.generated';
 import jwt from 'jsonwebtoken';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET as string;
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
 type AuthType = 'login' | 'signup';
 
