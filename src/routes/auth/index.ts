@@ -16,6 +16,8 @@ type AuthType = 'login' | 'signup';
 
 const router = express.Router();
 
+router.use(passport.initialize());
+
 passport.use(
   new GoogleStrategy(
     {
@@ -183,28 +185,6 @@ passport.use(
   ),
 );
 
-/* passport.serializeUser(function (user, cb) {
-  process.nextTick(function () {
-    cb(null, { id: '123' });
-  });
-});
-
-passport.deserializeUser(function (user, cb: any) {
-  process.nextTick(function () {
-    return cb(null, user);
-  });
-}); */
-
-router.use(passport.initialize());
-
-router.get(
-  '/signup/github',
-  passport.authenticate('github', {
-    scope: ['user:email', 'user:profile'],
-    session: false,
-  }),
-);
-
 router.get(
   '/signup/google',
   passport.authenticate('google', {
@@ -249,27 +229,17 @@ router.get(
 
     const account = req.user;
     const signingKey = process.env.JWT_SECRET as string;
+    const url = process.env.WEB_APP_URL ?? '-';
+    const domain = process.env.DOMAIN ?? '-';
 
     const token = jwt.sign(account, signingKey, {
       subject: 'user-token',
       expiresIn: '24h',
-      issuer: 'localhost',
+      issuer: domain,
       algorithm: 'HS256',
     });
 
-    // await req.cookieStore?.set({
-    //   name: 'authorization',
-    //   sameSite: 'none',
-    //   secure: true,
-    //   httpOnly: true,
-    //   domain: 'localhost',
-    //   expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-    //   value: token,
-    // });
 
-    // set header with token like the above
-    const url = process.env.WEB_APP_URL ?? '-';
-    const domain = process.env.DOMAIN ?? '-';
 
     console.log('domain: -- ', url);
 

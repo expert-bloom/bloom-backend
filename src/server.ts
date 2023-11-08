@@ -27,5 +27,7 @@ app.use('/auth', authRouter);
 app.use(yoga.graphqlEndpoint, yoga);
 
 app.listen(4000, () => {
-  console.log('Running a GraphQL API server at http://localhost:4000/graphql');
+  console.log(
+    `Running a GraphQL API server at ${process.env.DOMAIN}:4000/graphql`,
+  );
 });

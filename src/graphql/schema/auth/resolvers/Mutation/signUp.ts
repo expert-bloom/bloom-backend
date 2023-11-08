@@ -17,7 +17,7 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (
     const token = jwt.sign(account.account, signingKey, {
       subject: 'user-token',
       expiresIn: '24h',
-      issuer: 'localhost',
+      issuer: domain,
       algorithm: 'HS256',
     });
     await request.cookieStore?.set({

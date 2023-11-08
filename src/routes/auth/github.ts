@@ -30,6 +30,15 @@ router.get(
   },
 );
 
+
+router.get(
+  '/signup/github',
+  passport.authenticate('github', {
+    scope: ['user:email', 'user:profile'],
+    session: false,
+  }),
+);
+
 passport.use(
   new GitHubStrategy(
     {
