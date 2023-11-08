@@ -81,8 +81,10 @@ export type AccountUpdate = PayloadError & {
 
 export type AccountUpdateInput = {
   email?: InputMaybe<Scalars['String']['input']>;
+  emailVerified?: InputMaybe<Scalars['DateTime']['input']>;
   firstName?: InputMaybe<Scalars['String']['input']>;
   image?: InputMaybe<Scalars['String']['input']>;
+  isVerified?: InputMaybe<Scalars['Boolean']['input']>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
 };
@@ -537,9 +539,11 @@ export type Mutation = {
   saveApplicant?: Maybe<Scalars['Boolean']['output']>;
   saveJobPost?: Maybe<JobPost>;
   sayHi: Scalars['String']['output'];
+  sendEmail?: Maybe<Scalars['Boolean']['output']>;
   sendInterviewRequest?: Maybe<Interview>;
   signUp: AuthPayload;
   signUpOAuth: AuthPayload;
+  verifyAccount: VerifyAccountPayload;
 };
 
 
@@ -610,6 +614,11 @@ export type MutationsignUpArgs = {
 
 export type MutationsignUpOAuthArgs = {
   input: OAuthSignUpInput;
+};
+
+
+export type MutationverifyAccountArgs = {
+  input: VerifyAccountInput;
 };
 
 /** An object with an ID */
@@ -825,6 +834,15 @@ export type UpdateProfileInput = {
   applicant?: InputMaybe<ApplicantUpdateInput>;
 };
 
+export type VerifyAccountInput = {
+  token: Scalars['String']['input'];
+};
+
+export type VerifyAccountPayload = PayloadError & {
+  account?: Maybe<Account>;
+  errors: Array<Error>;
+};
+
 export type WorkExperience = {
   accomplishment: Scalars['String']['output'];
   companyName: Scalars['String']['output'];
@@ -919,7 +937,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
   IAccount: ( Account & { __typename: 'Account' } ) | ( Affiliate & { __typename: 'Affiliate' } );
   Node: ( ApplicantMapper & { __typename: 'Applicant' } ) | ( ApplicationMapper & { __typename: 'Application' } ) | ( CompanyMapper & { __typename: 'Company' } ) | ( Interview & { __typename: 'Interview' } ) | ( JobPost & { __typename: 'JobPost' } ) | ( Offer & { __typename: 'Offer' } );
-  PayloadError: ( Omit<AccountUpdate, 'account'> & { account: Maybe<RefType['AccountPayload']> } & { __typename: 'AccountUpdate' } ) | ( AuthPayload & { __typename: 'AuthPayload' } ) | ( Omit<CreateApplicationPayload, 'application'> & { application: Maybe<RefType['Application']> } & { __typename: 'CreateApplicationPayload' } ) | ( Omit<FindOnePayload, 'account'> & { account: Maybe<RefType['AccountPayload']> } & { __typename: 'FindOnePayload' } );
+  PayloadError: ( Omit<AccountUpdate, 'account'> & { account: Maybe<RefType['AccountPayload']> } & { __typename: 'AccountUpdate' } ) | ( AuthPayload & { __typename: 'AuthPayload' } ) | ( Omit<CreateApplicationPayload, 'application'> & { application: Maybe<RefType['Application']> } & { __typename: 'CreateApplicationPayload' } ) | ( Omit<FindOnePayload, 'account'> & { account: Maybe<RefType['AccountPayload']> } & { __typename: 'FindOnePayload' } ) | ( VerifyAccountPayload & { __typename: 'VerifyAccountPayload' } );
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -933,6 +951,7 @@ export type ResolversTypes = {
   AccountType: AccountType;
   AccountUpdate: ResolverTypeWrapper<Omit<AccountUpdate, 'account'> & { account: Maybe<ResolversTypes['AccountPayload']> }>;
   AccountUpdateInput: AccountUpdateInput;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Affiliate: ResolverTypeWrapper<Affiliate>;
   AffiliateLight: ResolverTypeWrapper<AffiliateLight>;
   Applicant: ResolverTypeWrapper<ApplicantMapper>;
@@ -962,7 +981,6 @@ export type ResolversTypes = {
   CreateApplicationInput: CreateApplicationInput;
   CreateApplicationPayload: ResolverTypeWrapper<Omit<CreateApplicationPayload, 'application'> & { application: Maybe<ResolversTypes['Application']> }>;
   CreateJobPostInput: CreateJobPostInput;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   EditJobPostFilter: EditJobPostFilter;
   EditJobPostInput: EditJobPostInput;
@@ -1013,6 +1031,8 @@ export type ResolversTypes = {
   SendInterviewRequestInput: SendInterviewRequestInput;
   SignUpInput: SignUpInput;
   UpdateProfileInput: UpdateProfileInput;
+  VerifyAccountInput: VerifyAccountInput;
+  VerifyAccountPayload: ResolverTypeWrapper<VerifyAccountPayload>;
   WorkExperience: ResolverTypeWrapper<WorkExperience>;
   WorkExperienceInput: WorkExperienceInput;
 };
@@ -1026,6 +1046,7 @@ export type ResolversParentTypes = {
   AccountPayload: Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversParentTypes['Applicant']>, company: Maybe<ResolversParentTypes['Company']> };
   AccountUpdate: Omit<AccountUpdate, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
   AccountUpdateInput: AccountUpdateInput;
+  Boolean: Scalars['Boolean']['output'];
   Affiliate: Affiliate;
   AffiliateLight: AffiliateLight;
   Applicant: ApplicantMapper;
@@ -1053,7 +1074,6 @@ export type ResolversParentTypes = {
   CreateApplicationInput: CreateApplicationInput;
   CreateApplicationPayload: Omit<CreateApplicationPayload, 'application'> & { application: Maybe<ResolversParentTypes['Application']> };
   CreateJobPostInput: CreateJobPostInput;
-  Boolean: Scalars['Boolean']['output'];
   DateTime: Scalars['DateTime']['output'];
   EditJobPostFilter: EditJobPostFilter;
   EditJobPostInput: EditJobPostInput;
@@ -1095,6 +1115,8 @@ export type ResolversParentTypes = {
   SendInterviewRequestInput: SendInterviewRequestInput;
   SignUpInput: SignUpInput;
   UpdateProfileInput: UpdateProfileInput;
+  VerifyAccountInput: VerifyAccountInput;
+  VerifyAccountPayload: VerifyAccountPayload;
   WorkExperience: WorkExperience;
   WorkExperienceInput: WorkExperienceInput;
 };
@@ -1403,9 +1425,11 @@ export type MutationResolvers<ContextType = GraphqlContext, ParentType extends R
   saveApplicant?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationsaveApplicantArgs, 'input'>>;
   saveJobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<MutationsaveJobPostArgs, 'input'>>;
   sayHi?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  sendEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   sendInterviewRequest?: Resolver<Maybe<ResolversTypes['Interview']>, ParentType, ContextType, RequireFields<MutationsendInterviewRequestArgs, 'input'>>;
   signUp?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationsignUpArgs, 'input'>>;
   signUpOAuth?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationsignUpOAuthArgs, 'input'>>;
+  verifyAccount?: Resolver<ResolversTypes['VerifyAccountPayload'], ParentType, ContextType, RequireFields<MutationverifyAccountArgs, 'input'>>;
 };
 
 export type NodeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = {
@@ -1449,7 +1473,7 @@ export type PageInfoResolvers<ContextType = GraphqlContext, ParentType extends R
 };
 
 export type PayloadErrorResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['PayloadError'] = ResolversParentTypes['PayloadError']> = {
-  __resolveType?: TypeResolveFn<'AccountUpdate' | 'AuthPayload' | 'CreateApplicationPayload' | 'FindOnePayload', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'AccountUpdate' | 'AuthPayload' | 'CreateApplicationPayload' | 'FindOnePayload' | 'VerifyAccountPayload', ParentType, ContextType>;
   errors?: Resolver<Array<ResolversTypes['Error']>, ParentType, ContextType>;
 };
 
@@ -1467,6 +1491,12 @@ export type QueryResolvers<ContextType = GraphqlContext, ParentType extends Reso
   getSavedJobPosts?: Resolver<Array<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<QuerygetSavedJobPostsArgs, 'input'>>;
   me?: Resolver<Maybe<ResolversTypes['AccountPayload']>, ParentType, ContextType>;
   sayHi?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type VerifyAccountPayloadResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['VerifyAccountPayload'] = ResolversParentTypes['VerifyAccountPayload']> = {
+  account?: Resolver<Maybe<ResolversTypes['Account']>, ParentType, ContextType>;
+  errors?: Resolver<Array<ResolversTypes['Error']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type WorkExperienceResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['WorkExperience'] = ResolversParentTypes['WorkExperience']> = {
@@ -1518,6 +1548,7 @@ export type Resolvers<ContextType = GraphqlContext> = {
   PageInfo?: PageInfoResolvers<ContextType>;
   PayloadError?: PayloadErrorResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  VerifyAccountPayload?: VerifyAccountPayloadResolvers<ContextType>;
   WorkExperience?: WorkExperienceResolvers<ContextType>;
 };
 

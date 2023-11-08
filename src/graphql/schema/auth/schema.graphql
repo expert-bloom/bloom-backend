@@ -2,6 +2,8 @@ extend type Mutation {
     signUp(input: SignUpInput!) : AuthPayload!
     logIn(input: LoginInput!) : AuthPayload!
 
+    verifyAccount(input: VerifyAccountInput!) : VerifyAccountPayload!
+
     logOut : Boolean!
     signUpOAuth(input: OAuthSignUpInput!) : AuthPayload!
 }
@@ -10,6 +12,11 @@ extend type Mutation {
 type AuthPayload implements PayloadError {
     errors: [Error!]!
     account: AuthAccountPayload
+}
+
+type VerifyAccountPayload implements PayloadError {
+    errors: [Error!]!
+    account: Account
 }
 
 type FindOnePayload implements PayloadError {
@@ -53,6 +60,10 @@ type OAuth {
 input LoginInput {
     email: String!
     password: String!
+}
+
+input VerifyAccountInput {
+    token: String!
 }
 
 

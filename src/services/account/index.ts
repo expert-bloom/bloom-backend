@@ -14,11 +14,6 @@ async function findOne(input: FindAccountFilterInput) {
   const account = await prisma.account.findUnique({
     where: {
       ...filteredObj,
-      oAuthClient: {
-        every: {
-          ...aAuthInputObj,
-        },
-      },
     },
     include: {
       affiliate: true,

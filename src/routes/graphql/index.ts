@@ -1,7 +1,6 @@
 import express from 'express';
 import prisma from '@/lib/prisma';
-import process from 'process';
-import { createSchema, createYoga } from 'graphql-yoga';
+import { createSchema, createYoga, useLogger } from 'graphql-yoga';
 import { createContext, type GraphqlContext } from '@/graphql/context';
 import { useCookies } from '@whatwg-node/server-plugin-cookies';
 import { useJWT } from '@graphql-yoga/plugin-jwt';
@@ -12,7 +11,7 @@ import { useResponseCache } from '@graphql-yoga/plugin-response-cache';
 
 const router = express.Router();
 
-const signingKey = process.env.JWT_SECRET as string;
+const signingKey = process.env.JWT_SECRET;
 const domain = process.env.DOMAIN ?? '-';
 
 prisma
@@ -44,6 +43,16 @@ export const yoga = createYoga({
   //   credentials: true,
   // },
   plugins: [
+    useLogger({
+      logFn: (eventName, args) => {
+        // Event could be execute-start / execute-end / subscribe-start / subscribe-end / etc.
+        // args will include the arguments passed to execute/subscribe (in case of "start" event) and additional result in case of "end" event.
+        // console.log(eventName, 'Args : ', args?.result?.data ?? {});
+        console.log(eventName, 'operationName : ', args?.args?.operationName);
+        console.log(eventName, 'variableValues : ', args?.args?.variableValues);
+        console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
+      },
+    }),
     useResponseCache({
       // global cache
       session: (request) => request.headers.get('authentication'), // ttl: 60,
@@ -58,7 +67,7 @@ export const yoga = createYoga({
           ?.get('authorization')
           .then((res) => res?.value ?? undefined);
         // console.log('jwtToken: ',  token);
-        console.log('jwtToken --- : ', jwtToken);
+        console.log('jwtToken ------ : ', jwtToken);
 
         return jwtToken;
       },

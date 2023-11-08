@@ -124,8 +124,8 @@ passport.use(
             firstName: profile._json.given_name ?? '',
             lastName: profile._json.family_name ?? '',
             password: '-',
-            isVerified: !!profile._json.email_verified,
-            emailVerified: profile._json.email_verified ? null : new Date(),
+            isVerified: true,
+            emailVerified: new Date(),
             oAuthClient: {
               create: {
                 provider: profile.provider,

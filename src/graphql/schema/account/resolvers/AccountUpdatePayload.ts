@@ -1,4 +1,5 @@
-import type { AccountUpdatePayloadResolvers } from './../../types.generated';
-export const AccountUpdatePayload: AccountUpdatePayloadResolvers = {
+import type { AccountPayloadResolvers } from './../../types.generated';
+
+export const AccountUpdatePayload: AccountPayloadResolvers = {
   /* Implement AccountUpdatePayload resolver logic here */
 };

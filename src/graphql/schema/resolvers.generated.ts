@@ -40,9 +40,11 @@ import    { respondToOffer as Mutation_respondToOffer } from './applicant/resolv
 import    { saveApplicant as Mutation_saveApplicant } from './company/resolvers/Mutation/saveApplicant';
 import    { saveJobPost as Mutation_saveJobPost } from './job/resolvers/Mutation/saveJobPost';
 import    { sayHi as Mutation_sayHi } from './job/resolvers/Mutation/sayHi';
+import    { sendEmail as Mutation_sendEmail } from './account/resolvers/Mutation/sendEmail';
 import    { sendInterviewRequest as Mutation_sendInterviewRequest } from './company/resolvers/Mutation/sendInterviewRequest';
 import    { signUp as Mutation_signUp } from './auth/resolvers/Mutation/signUp';
 import    { signUpOAuth as Mutation_signUpOAuth } from './auth/resolvers/Mutation/signUpOAuth';
+import    { verifyAccount as Mutation_verifyAccount } from './auth/resolvers/Mutation/verifyAccount';
 import    { OAuth } from './auth/resolvers/OAuth';
 import    { Offer } from './job/resolvers/Offer';
 import    { PageInfo } from './applicant/resolvers/PageInfo';
@@ -59,11 +61,12 @@ import    { getSavedApplicant as Query_getSavedApplicant } from './company/resol
 import    { getSavedJobPosts as Query_getSavedJobPosts } from './job/resolvers/Query/getSavedJobPosts';
 import    { me as Query_me } from './account/resolvers/Query/me';
 import    { sayHi as Query_sayHi } from './job/resolvers/Query/sayHi';
+import    { VerifyAccountPayload } from './auth/resolvers/VerifyAccountPayload';
 import    { WorkExperience } from './applicant/resolvers/WorkExperience';
 import    { DateTimeResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
       Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getCompanyJobPosts: Query_getCompanyJobPosts,getCurrentUser: Query_getCurrentUser,getJobApplications: Query_getJobApplications,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedApplicant: Query_getSavedApplicant,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
-      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createApplication: Mutation_createApplication,createJobPost: Mutation_createJobPost,editJobPost: Mutation_editJobPost,logIn: Mutation_logIn,logOut: Mutation_logOut,offerApplicant: Mutation_offerApplicant,profileUpdate: Mutation_profileUpdate,respondInterview: Mutation_respondInterview,respondToOffer: Mutation_respondToOffer,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,sendInterviewRequest: Mutation_sendInterviewRequest,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth },
+      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createApplication: Mutation_createApplication,createJobPost: Mutation_createJobPost,editJobPost: Mutation_editJobPost,logIn: Mutation_logIn,logOut: Mutation_logOut,offerApplicant: Mutation_offerApplicant,profileUpdate: Mutation_profileUpdate,respondInterview: Mutation_respondInterview,respondToOffer: Mutation_respondToOffer,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,sendEmail: Mutation_sendEmail,sendInterviewRequest: Mutation_sendInterviewRequest,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth,verifyAccount: Mutation_verifyAccount },
       
       Account: Account,
 AccountPayload: AccountPayload,
@@ -95,6 +98,7 @@ JobPostResponse: JobPostResponse,
 OAuth: OAuth,
 Offer: Offer,
 PageInfo: PageInfo,
+VerifyAccountPayload: VerifyAccountPayload,
 WorkExperience: WorkExperience,
 DateTime: DateTimeResolver
     }

@@ -2971,6 +2971,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/nodemailer@npm:^6":
+  version: 6.4.13
+  resolution: "@types/nodemailer@npm:6.4.13"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 1e176df3f3cf13564055d1c76744df8950a2429c4d1a0b8e41e5ffd3d1ffadd5d32f840aaffcc41e994c2fcffceccb47655a0d867733256bb47dd5695ee62774
+  languageName: node
+  linkType: hard
+
 "@types/normalize-package-data@npm:^2.4.0":
   version: 2.4.1
   resolution: "@types/normalize-package-data@npm:2.4.1"
@@ -3839,6 +3848,7 @@ __metadata:
     "@types/express": "npm:^4"
     "@types/express-session": "npm:^1"
     "@types/morgan": "npm:^1"
+    "@types/nodemailer": "npm:^6"
     "@types/passport": "npm:^0"
     "@types/passport-github2": "npm:^1.2.8"
     "@types/passport-google-oauth20": "npm:^2"
@@ -3870,6 +3880,7 @@ __metadata:
     install: "npm:^0.13.0"
     moment: "npm:^2.29.4"
     morgan: "npm:^1.10.0"
+    nodemailer: "npm:^6.9.7"
     passport: "npm:^0.6.0"
     passport-github2: "npm:^0.1.12"
     passport-google-oauth20: "npm:^2.0.0"
@@ -8065,6 +8076,13 @@ __metadata:
   version: 2.0.10
   resolution: "node-releases@npm:2.0.10"
   checksum: 90947653e8e3d85bda4bcbf28d019693ccfb5d5947838ca64e91208b51d7bfc13ba930b8216389a4faffbad8145b2c616bf1f7a09c97a1a9ac57fd6ef6d01c5c
+  languageName: node
+  linkType: hard
+
+"nodemailer@npm:^6.9.7":
+  version: 6.9.7
+  resolution: "nodemailer@npm:6.9.7"
+  checksum: 5ea7f781782361890d4492dc2412496e89fb04c498814e6c4fe7b168a27d7491a00f725cf90c26768907506e8afb76e8cfe6f6300def9940bc7f7e323405eaa6
   languageName: node
   linkType: hard
 

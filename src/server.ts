@@ -5,9 +5,8 @@ import authRouter from '@/routes/auth';
 import { yoga } from '@/routes/graphql';
 
 import cookieParser from 'cookie-parser';
-import process from 'process';
 
-const signingKey = process.env.JWT_SECRET as string;
+const signingKey = process.env.JWT_SECRET;
 
 export const app = express();
 

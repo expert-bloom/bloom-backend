@@ -8,6 +8,7 @@ extend type Query{
 
 extend type Mutation {
     profileUpdate(input: UpdateProfileInput!): AccountUpdate!
+    sendEmail: Boolean
 }
 
 type AccountUpdate implements PayloadError{
@@ -27,6 +28,8 @@ input AccountUpdateInput {
     phone: String
     image: String
     email: String
+    emailVerified: DateTime
+    isVerified: Boolean
 }
 
 input WorkExperienceInput {
