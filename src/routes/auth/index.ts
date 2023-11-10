@@ -24,6 +24,7 @@ passport.use(
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: '/auth/google/callback',
+
       scope: ['email', 'profile'],
       passReqToCallback: true,
     },
@@ -39,7 +40,7 @@ passport.use(
       const clientType = req.cookies?.clientType as AccountType;
 
       // const authType = req.query?.authType as AuthType;
-      console.log('coookiie > ----> : ', authType, clientType);
+      console.log('coookiie > ----> : ', authType, clientType, req.query);
 
       if (!authType) {
         verified(null, {
@@ -179,7 +180,7 @@ passport.use(
       }
 
       verified(null, {
-        error: 'Unknown Operation',
+        error: 'Something Wrong!',
       });
     },
   ),
@@ -187,9 +188,34 @@ passport.use(
 
 router.get(
   '/signup/google',
+  (req, res, next) => {
+    console.log('req.query ---------------------- : ', req.query);
+    // set authType cookie
+
+    if (req.query?.clientType) {
+      res.cookie('clientType', req.query?.clientType, {
+        // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
+        sameSite: 'lax',
+        path: '/',
+        expires: new Date(Date.now() + 2000000),
+      });
+    }
+
+    if (req.query?.authType) {
+      res.cookie('authType', req.query?.authType, {
+        // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
+        sameSite: 'lax',
+        path: '/',
+        expires: new Date(Date.now() + 2000000),
+      });
+    }
+
+    next();
+  },
   passport.authenticate('google', {
     session: false,
     scope: ['email', 'profile'],
+    passReqToCallback: true,
   }),
 );
 
@@ -228,7 +254,7 @@ router.get(
     }
 
     const account = req.user;
-    const signingKey = process.env.JWT_SECRET as string;
+    const signingKey = process.env.JWT_SECRET;
     const url = process.env.WEB_APP_URL ?? '-';
     const domain = process.env.DOMAIN ?? '-';
 
@@ -238,8 +264,6 @@ router.get(
       issuer: domain,
       algorithm: 'HS256',
     });
-
-
 
     console.log('domain: -- ', url);
 

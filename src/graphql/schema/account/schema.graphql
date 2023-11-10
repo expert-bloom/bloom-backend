@@ -2,7 +2,6 @@
 
 extend type Query{
     me : AccountPayload @cacheControl(scope: PRIVATE)
-    getCurrentUser : AccountPayload
     findAccount(input: FindAccountFilterInput!): FindOnePayload
 }
 

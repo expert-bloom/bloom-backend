@@ -38,19 +38,21 @@ export const yoga = createYoga({
   graphqlEndpoint: '/graphql', // schema: schemaWithMiddleWare,
   // logging: true,
   schema: schemaWithMiddleWare,
-  graphiql: process.env.NODE_ENV === 'development', // cors: {
-  //   origin: ['http://localhost:3000', 'https://studio.apollographql.com'], // allowedHeaders: ['Content-Type', 'x-graphql-yoga-csrf'],
-  //   credentials: true,
-  // },
+  graphiql: process.env.NODE_ENV === 'development',
+  cors: {
+    // origin: ['http://localhost:3000', 'https://studio.apollographql.com'],
+    // allowedHeaders: ['Content-Type', 'x-graphql-yoga-csrf'],
+    credentials: true,
+  },
   plugins: [
     useLogger({
       logFn: (eventName, args) => {
         // Event could be execute-start / execute-end / subscribe-start / subscribe-end / etc.
         // args will include the arguments passed to execute/subscribe (in case of "start" event) and additional result in case of "end" event.
         // console.log(eventName, 'Args : ', args?.result?.data ?? {});
-        console.log(eventName, 'operationName : ', args?.args?.operationName);
-        console.log(eventName, 'variableValues : ', args?.args?.variableValues);
-        console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
+        // console.log(eventName, 'operationName : ', args?.args?.operationName);
+        // console.log(eventName, 'variableValues : ', args?.args?.variableValues);
+        // console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
       },
     }),
     useResponseCache({

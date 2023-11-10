@@ -719,7 +719,6 @@ export type Query = {
   getApplicants?: Maybe<ApplicantConnection>;
   getCompanies: Array<Company>;
   getCompanyJobPosts: CompanyJobPostsResponse;
-  getCurrentUser?: Maybe<AccountPayload>;
   getJobApplications: ApplicationConnections;
   getJobPost?: Maybe<JobPost>;
   getJobPosts: Array<JobPost>;
@@ -1483,7 +1482,6 @@ export type QueryResolvers<ContextType = GraphqlContext, ParentType extends Reso
   getApplicants?: Resolver<Maybe<ResolversTypes['ApplicantConnection']>, ParentType, ContextType, RequireFields<QuerygetApplicantsArgs, 'input'>>;
   getCompanies?: Resolver<Array<ResolversTypes['Company']>, ParentType, ContextType>;
   getCompanyJobPosts?: Resolver<ResolversTypes['CompanyJobPostsResponse'], ParentType, ContextType, RequireFields<QuerygetCompanyJobPostsArgs, 'input'>>;
-  getCurrentUser?: Resolver<Maybe<ResolversTypes['AccountPayload']>, ParentType, ContextType>;
   getJobApplications?: Resolver<ResolversTypes['ApplicationConnections'], ParentType, ContextType, RequireFields<QuerygetJobApplicationsArgs, 'input'>>;
   getJobPost?: Resolver<Maybe<ResolversTypes['JobPost']>, ParentType, ContextType, RequireFields<QuerygetJobPostArgs, 'input'>>;
   getJobPosts?: Resolver<Array<ResolversTypes['JobPost']>, ParentType, ContextType, Partial<QuerygetJobPostsArgs>>;

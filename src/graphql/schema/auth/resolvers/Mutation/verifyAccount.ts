@@ -1,9 +1,7 @@
 import type { MutationResolvers } from './../../../types.generated';
 import jwt from 'jsonwebtoken';
 
-export const verifyAccount: NonNullable<
-  MutationResolvers['verifyAccount']
-> = async (_parent, _arg, _ctx) => {
+export const verifyAccount: NonNullable<MutationResolvers['verifyAccount']> = async (_parent, _arg, _ctx) => {
   /* Implement Mutation.verifyAccount resolver logic here */
 
   console.log('decoded token --> ', _ctx.jwt);
