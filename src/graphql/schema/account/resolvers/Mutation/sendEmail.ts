@@ -1,6 +1,5 @@
 import type { MutationResolvers } from './../../../types.generated';
 import transporter from '@/lib/transporter';
-import process from 'process';
 import jwt from 'jsonwebtoken';
 
 export const sendEmail: NonNullable<MutationResolvers['sendEmail']> = async (
@@ -29,7 +28,7 @@ export const sendEmail: NonNullable<MutationResolvers['sendEmail']> = async (
   const token = jwt.sign(account.account, signingKey, {
     subject: 'magic-link',
     expiresIn: '1h',
-    issuer: host,
+    issuer: process.env.ISSUER,
     algorithm: 'HS256',
   });
 

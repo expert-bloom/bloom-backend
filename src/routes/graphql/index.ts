@@ -58,7 +58,7 @@ export const yoga = createYoga({
     // }),
     useCookies(),
     useJWT({
-      issuer: domain,
+      issuer: process.env.ISSUER ?? 'bloom-experts',
       algorithms: ['HS256'],
       signingKey,
       getToken: async ({ request, serverContext }) => {

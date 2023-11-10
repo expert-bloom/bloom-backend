@@ -23,7 +23,7 @@ export const verifyAccount: NonNullable<MutationResolvers['verifyAccount']> = as
   try {
     const decoded: any = jwt.verify(token, signingKey, {
       subject: 'magic-link',
-      issuer: host,
+      issuer: process.env.ISSUER,
       algorithms: ['HS256'],
       ignoreExpiration: false,
     });
@@ -98,7 +98,7 @@ export const verifyAccount: NonNullable<MutationResolvers['verifyAccount']> = as
       const token = jwt.sign(account.account, signingKey, {
         subject: 'user-token',
         expiresIn: '24h',
-        issuer: domain,
+        issuer: process.env.ISSUER,
         algorithm: 'HS256',
       });
 

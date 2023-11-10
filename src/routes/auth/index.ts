@@ -258,12 +258,11 @@ router.get(
     const account = req.user;
     const signingKey = process.env.JWT_SECRET;
     const url = process.env.WEB_APP_URL ?? '-';
-    const domain = process.env.DOMAIN ?? '-';
 
     const token = jwt.sign(account, signingKey, {
       subject: 'user-token',
       expiresIn: '24h',
-      issuer: domain,
+      issuer: process.env.ISSUER,
       algorithm: 'HS256',
     });
 
@@ -271,7 +270,7 @@ router.get(
     // res.cookie('authorization', token, {})
 
     // set autorization header
-    res.setHeader('authorization', token);
+    res.setHeader('Authorization', token);
 
     res.setHeader(
       'Set-Cookie',
