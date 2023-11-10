@@ -50,9 +50,9 @@ export const yoga = createYoga({
         // Event could be execute-start / execute-end / subscribe-start / subscribe-end / etc.
         // args will include the arguments passed to execute/subscribe (in case of "start" event) and additional result in case of "end" event.
         // console.log(eventName, 'Args : ', args?.result?.data ?? {});
-        // console.log(eventName, 'operationName : ', args?.args?.operationName);
-        // console.log(eventName, 'variableValues : ', args?.args?.variableValues);
-        // console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
+        console.log(eventName, 'operationName : ', args?.args?.operationName);
+        console.log(eventName, 'variableValues : ', args?.args?.variableValues);
+        console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
       },
     }),
     useResponseCache({

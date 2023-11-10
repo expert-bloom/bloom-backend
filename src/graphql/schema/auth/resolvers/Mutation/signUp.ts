@@ -1,5 +1,4 @@
 import type { MutationResolvers } from './../../../types.generated';
-import process from 'process';
 import jwt from 'jsonwebtoken';
 
 export const signUp: NonNullable<MutationResolvers['signUp']> = async (
@@ -10,9 +9,8 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (
   const account = await service.Auth.signUp(_arg.input);
 
   if (account.account?.id) {
-    const signingKey = process.env.JWT_SECRET as string;
+    const signingKey = process.env.JWT_SECRET;
     const domain = process.env.DOMAIN ?? '-';
-
 
     const token = jwt.sign(account.account, signingKey, {
       subject: 'user-token',
@@ -20,12 +18,13 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (
       issuer: domain,
       algorithm: 'HS256',
     });
+
     await request.cookieStore?.set({
       name: 'authorization',
-      sameSite: 'none',
+      sameSite: 'lax',
       secure: true,
       httpOnly: true,
-      domain,
+      domain: null,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
       value: token,
     });

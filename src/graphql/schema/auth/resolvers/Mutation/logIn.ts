@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 export const logIn: NonNullable<MutationResolvers['logIn']> = async (
   _parent,
   { input },
-  { service, request },
+  { service, request, params },
 ) => {
   const account = await service.Auth.logIn(input);
 
@@ -22,10 +22,10 @@ export const logIn: NonNullable<MutationResolvers['logIn']> = async (
 
     await request.cookieStore?.set({
       name: 'authorization',
-      sameSite: 'none',
+      sameSite: 'lax',
       secure: true,
       httpOnly: true,
-      domain,
+      domain: null,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
       value: token,
     });

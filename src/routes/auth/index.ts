@@ -268,6 +268,9 @@ router.get(
     console.log('domain: -- ', url);
     // res.cookie('authorization', token, {})
 
+    // set autorization header
+    res.setHeader('authorization', token);
+
     res.setHeader(
       'Set-Cookie',
       `authorization=${token}; Path=/; HttpOnly; SameSite=lax; Secure; Expires=${new Date(
