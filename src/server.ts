@@ -12,11 +12,11 @@ const signingKey = process.env.JWT_SECRET;
 export const app = express();
 
 app.use(logger('dev'));
-// app.use(
-//   cors({
-//     credentials: true,
-//   }),
-// );
+app.use(
+  cors({
+    credentials: true,
+  }),
+);
 app.use(cookieParser(signingKey));
 
 // app.use(
