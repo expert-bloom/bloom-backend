@@ -3,6 +3,7 @@ import logger from 'morgan';
 
 import authRouter from '@/routes/auth';
 import { yoga } from '@/routes/graphql';
+import cors from 'cors';
 
 import cookieParser from 'cookie-parser';
 
@@ -11,6 +12,11 @@ const signingKey = process.env.JWT_SECRET;
 export const app = express();
 
 app.use(logger('dev'));
+// app.use(
+//   cors({
+//     credentials: true,
+//   }),
+// );
 app.use(cookieParser(signingKey));
 
 // app.use(

@@ -10,7 +10,6 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (
 
   if (account.account?.id) {
     const signingKey = process.env.JWT_SECRET;
-    const domain = process.env.DOMAIN ?? '-';
 
     const token = jwt.sign(account.account, signingKey, {
       subject: 'user-token',
@@ -23,7 +22,6 @@ export const signUp: NonNullable<MutationResolvers['signUp']> = async (
       name: 'authorization',
       sameSite: 'none',
       secure: true,
-      httpOnly: true,
       domain: null,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
       value: token,

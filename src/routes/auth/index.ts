@@ -196,7 +196,6 @@ router.get(
       res.cookie('clientType', req.query?.clientType, {
         // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
         sameSite: 'none',
-        secure: true,
         path: '/',
         expires: new Date(Date.now() + 2000000),
       });
@@ -206,7 +205,6 @@ router.get(
       res.cookie('authType', req.query?.authType, {
         // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
         sameSite: 'none',
-        secure: true,
         path: '/',
         expires: new Date(Date.now() + 2000000),
       });
@@ -270,11 +268,11 @@ router.get(
     // res.cookie('authorization', token, {})
 
     // set autorization header
-    res.setHeader('Authorization', token);
+    res.setHeader('Authorization', `Bearer ${token}`);
 
     res.setHeader(
       'Set-Cookie',
-      `authorization=${token}; Path=/; HttpOnly; SameSite=None; Secure; Expires=${new Date(
+      `authorization=${token}; Path=/; SameSite=None; Secure; Expires=${new Date(
         Date.now() + 1000 * 60 * 60 * 24,
       ).toUTCString()}`,
     );

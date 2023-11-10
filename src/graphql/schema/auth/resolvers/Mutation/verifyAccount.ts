@@ -106,7 +106,6 @@ export const verifyAccount: NonNullable<MutationResolvers['verifyAccount']> = as
         name: 'authorization',
         sameSite: 'none',
         secure: true,
-        httpOnly: true,
         domain,
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
         value: token,
