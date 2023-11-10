@@ -7,7 +7,6 @@ import { useJWT } from '@graphql-yoga/plugin-jwt';
 import { applyMiddleware } from 'graphql-middleware';
 import { typeDefs } from '@/graphql/schema/typeDefs.generated';
 import { resolvers } from '@/graphql/schema/resolvers.generated';
-import { useResponseCache } from '@graphql-yoga/plugin-response-cache';
 
 const router = express.Router();
 
@@ -54,11 +53,9 @@ export const yoga = createYoga({
         console.log(eventName, 'variableValues : ', args?.args?.variableValues);
         console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
       },
-    }),
-    useResponseCache({
-      // global cache
-      session: (request) => request.headers.get('authentication'), // ttl: 60,
-    }),
+    }), // useResponseCache({
+    // session: (request) => request.headers.get('authorization'), // ttl: 60,
+    // }),
     useCookies(),
     useJWT({
       issuer: domain,
@@ -69,7 +66,7 @@ export const yoga = createYoga({
           ?.get('authorization')
           .then((res) => res?.value ?? undefined);
         // console.log('jwtToken: ',  token);
-        console.log('jwtToken ------ : ', jwtToken);
+        console.log('jwtToken ------ : ', jwtToken, request.headers.keys());
 
         return jwtToken;
       },

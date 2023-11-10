@@ -22,7 +22,7 @@ export const logIn: NonNullable<MutationResolvers['logIn']> = async (
 
     await request.cookieStore?.set({
       name: 'authorization',
-      sameSite: 'lax',
+      sameSite: 'none',
       secure: true,
       httpOnly: true,
       domain: null,
