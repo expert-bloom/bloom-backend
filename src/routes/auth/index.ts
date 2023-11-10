@@ -266,10 +266,11 @@ router.get(
     });
 
     console.log('domain: -- ', url);
+    // res.cookie('authorization', token, {})
 
     res.setHeader(
       'Set-Cookie',
-      `authorization=${token}; Path=/; HttpOnly; SameSite=None; Secure; Domain=${domain}; Expires=${new Date(
+      `authorization=${token}; Path=/; HttpOnly; SameSite=lax; Secure; Expires=${new Date(
         Date.now() + 1000 * 60 * 60 * 24,
       ).toUTCString()}`,
     );
