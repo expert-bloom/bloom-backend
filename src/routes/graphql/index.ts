@@ -7,11 +7,11 @@ import { useJWT } from '@graphql-yoga/plugin-jwt';
 import { applyMiddleware } from 'graphql-middleware';
 import { typeDefs } from '@/graphql/schema/typeDefs.generated';
 import { resolvers } from '@/graphql/schema/resolvers.generated';
+import { useResponseCache } from '@graphql-yoga/plugin-response-cache';
 
 const router = express.Router();
 
 const signingKey = process.env.JWT_SECRET;
-const domain = process.env.DOMAIN ?? '-';
 
 prisma
   .$connect()
@@ -53,9 +53,10 @@ export const yoga = createYoga({
         // console.log(eventName, 'variableValues : ', args?.args?.variableValues);
         // console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
       },
-    }), // useResponseCache({
-    // session: (request) => request.headers.get('authorization'), // ttl: 60,
-    // }),
+    }),
+    useResponseCache({
+      session: (request) => request.headers.get('authorization'), // ttl: 60,
+    }),
     useCookies(),
     useJWT({
       issuer: process.env.ISSUER ?? 'bloom-experts',

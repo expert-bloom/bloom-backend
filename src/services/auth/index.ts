@@ -172,8 +172,8 @@ async function logIn(input: LoginInput) {
   }
 
   // DONT-PUSH: Commented for testing
-  // const isMatch = await comparePassword(password, account.password);
-  const isMatch = password === account.password;
+  const isMatch = await comparePassword(password, account.password);
+  // const isMatch = password === account.password;
   if (!isMatch) {
     return {
       errors: [
