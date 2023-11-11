@@ -197,6 +197,7 @@ router.get(
         // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
         sameSite: 'none',
         path: '/',
+        secure: true,
         expires: new Date(Date.now() + 2000000),
       });
     }
@@ -206,6 +207,7 @@ router.get(
         // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
         sameSite: 'none',
         path: '/',
+        secure: true,
         expires: new Date(Date.now() + 2000000),
       });
     }
