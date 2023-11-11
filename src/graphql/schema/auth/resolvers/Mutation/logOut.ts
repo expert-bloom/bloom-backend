@@ -5,11 +5,19 @@ export const logOut: NonNullable<MutationResolvers['logOut']> = async (
   _arg,
   _ctx,
 ) => {
-  const res =  await _ctx.request.cookieStore?.delete({
+  const res = await _ctx.request.cookieStore?.delete({
     name: 'authorization',
+    path: '/',
   });
 
-  console.log('logout : ', res);
+
+  _ctx.request.headers.set(
+    'Set-Cookie',
+    `authorization=''; Path=/; SameSite=None; Secure; Expires=${new Date(
+      0,
+    ).toUTCString()}`,
+  );
+
 
   return true;
 };
