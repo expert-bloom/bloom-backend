@@ -9,17 +9,18 @@ export const logOut: NonNullable<MutationResolvers['logOut']> = async (
   const res = await _ctx.request.cookieStore?.delete({
     name: 'authorization',
     path: '/',
-    domain: 'expert-bloom-obinasbaba.koyeb.app',
+    // domain: 'localhost',
   });
 
-  console.log('headers : ', Object.keys(_ctx));
+  // console.log('headers : ', _ctx.request.headers);
 
-  // _ctx.request.headers.set(
-  //   'Set-Cookie',
-  //   `authorization=''; Path=/; SameSite=None; Secure; Expires=${new Date(
-  //     0,
-  //   ).toUTCString()}`,
-  // );
+
+  _ctx.request.headers.set(
+    'Set-Cookie',
+    `authorization=''; Path=/; SameSite=None; Secure; Expires=${new Date(
+      0,
+    ).toUTCString()}`,
+  );
 
   return true;
 };

@@ -225,21 +225,13 @@ router.get(
 
 router.get('/logout', (req, res, next) => {
   console.log('logout -----> ', req.cookies?.authorization);
-  // set authType cookie
 
-  if (req.cookies?.authorization) {
-    return res
-      .clearCookie('authorization', {
-        // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
-        sameSite: 'none',
-        path: '/',
-        secure: true,
-      })
-      .status(200)
-      .send({});
-  }
-
-  return res.status(400).send({});
+  res.clearCookie('authorization', {
+    sameSite: 'none',
+    path: '/',
+    secure: true,
+  });
+  res.sendStatus(200);
 });
 
 router.get(
