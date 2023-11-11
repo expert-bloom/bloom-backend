@@ -50,7 +50,9 @@ passport.use(
       }
 
       if (!profile) {
-        verified(new Error('Auth-Profile not found!'));
+        verified(null, {
+          error: 'Auth-Profile not found!',
+        });
         return;
       }
 
@@ -221,6 +223,25 @@ router.get(
   }),
 );
 
+router.get('/logout', (req, res, next) => {
+  console.log('logout -----> ', req.cookies?.authorization);
+  // set authType cookie
+
+  if (req.cookies?.authorization) {
+    return res
+      .clearCookie('authorization', {
+        // domain: process.env.NEXT_PUBLIC_DOMAIN ?? 'localhost',
+        sameSite: 'none',
+        path: '/',
+        secure: true,
+      })
+      .status(200)
+      .send({});
+  }
+
+  return res.status(400).send({});
+});
+
 router.get(
   '/google/callback',
   passport.authenticate('google', {
@@ -270,7 +291,7 @@ router.get(
     // res.cookie('authorization', token, {})
 
     // set autorization header
-    res.setHeader('Authorization', `Bearer ${token}`);
+    // res.setHeader('Authorization', `Bearer ${token}`);
 
     res.setHeader(
       'Set-Cookie',
