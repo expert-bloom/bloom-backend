@@ -40,7 +40,7 @@ passport.use(
       const clientType = req.cookies?.clientType as AccountType;
 
       // const authType = req.query?.authType as AuthType;
-      console.log('coookiie > ----> : ', authType, clientType, req.query);
+      console.log('coookiie > ----> : ', authType, clientType);
 
       if (!authType) {
         verified(null, {

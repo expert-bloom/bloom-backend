@@ -15,17 +15,10 @@ app.use(logger('dev'));
 app.use(
   cors({
     credentials: true,
+    origin: false,
   }),
 );
 app.use(cookieParser(signingKey));
-
-// app.use(
-//   cookieSession({
-//     name: 'session',
-//     keys: [signingKey],
-//     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-//   }),
-// );
 
 app.use('/auth', authRouter);
 
