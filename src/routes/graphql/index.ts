@@ -48,8 +48,8 @@ export const yoga = createYoga({
       logFn: (eventName, args) => {
         // Event could be execute-start / execute-end / subscribe-start / subscribe-end / etc.
         // args will include the arguments passed to execute/subscribe (in case of "start" event) and additional result in case of "end" event.
-        // console.log(eventName, 'Args : ', args?.result?.data ?? {});
-        // console.log(eventName, 'operationName : ', args?.args?.operationName);
+
+        console.log(eventName, 'operationName : ', args?.args?.operationName);
         // console.log(eventName, 'variableValues : ', args?.args?.variableValues);
         // console.log(eventName, 'Results Data : ', args?.result?.data ?? {});
       },
@@ -66,8 +66,7 @@ export const yoga = createYoga({
         const jwtToken = await request.cookieStore
           ?.get('authorization')
           .then((res) => res?.value ?? undefined);
-        // console.log('jwtToken: ',  token);
-        console.log('jwtToken ------ : ', jwtToken, request.headers.keys());
+        console.log('jwtToken ------ : ', jwtToken);
 
         return jwtToken;
       },

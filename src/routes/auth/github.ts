@@ -6,7 +6,7 @@ import { type VerifyCallback } from 'passport-oauth2';
 
 const router = express.Router();
 
-const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ;
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
 router.get(
@@ -24,11 +24,10 @@ router.get(
 
     // Successful authentication, redirect home.
     res.redirect(
-      `${process.env.WEB_APP_URL}/auth/social-sign-in/?social=google`,
+      `${process.env.WEB_APP_URL}/auth/social-sign-in/?success=true`,
     );
   },
 );
-
 
 router.get(
   '/signup/github',

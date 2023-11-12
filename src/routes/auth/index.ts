@@ -12,8 +12,6 @@ import jwt from 'jsonwebtoken';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
-type AuthType = 'login' | 'signup';
-
 const router = express.Router();
 
 router.use(passport.initialize());
@@ -35,24 +33,16 @@ passport.use(
       profile: Profile,
       verified: VerifyCallback,
     ) {
-      // check if this is a login or signup from the cookie and set the authType
-      const authType = req.cookies?.authType as AuthType;
-      const clientType = req.cookies?.clientType as AccountType;
-
-      // const authType = req.query?.authType as AuthType;
-      console.log('coookiie > ----> : ', authType, clientType);
-
-      if (!authType) {
-        verified(null, {
-          error: 'Unknown Operation',
-        });
-        return;
-      }
-
       if (!profile) {
         verified(null, {
           error: 'Auth-Profile not found!',
         });
+        return;
+      }
+
+      const clientType = req.cookies?.clientType as AccountType;
+      if (!clientType) {
+        verified(new Error('Unknown Account Type'));
         return;
       }
 
@@ -66,30 +56,21 @@ passport.use(
         },
       });
 
-      // console.log('findAccountPayload : ', findAccountPayload);
-      // verified(new Error('error'));
-      // return;
-
-      // for login
-      if (authType === 'login') {
-        // check if account exist with oAuthClient
-        if (
-          !findAccountPayload ||
-          findAccountPayload?.oAuthClient.length === 0
-        ) {
+      if (findAccountPayload?.id) {
+        if (findAccountPayload.accountType !== clientType) {
           verified(null, {
-            error: 'Account Not Found! Please Sign-up!',
+            error: 'Account Already Exist!',
           });
           return;
         }
 
-        // check if account is linked with another login method
-
-        console.log(
-          'findAccountPayload : ',
-          findAccountPayload.oAuthClient,
-          profile.provider,
-        );
+        if (findAccountPayload?.oAuthClient.length === 0) {
+          verified(null, {
+            error:
+              'Account is not associated with any social account, Login with credentials.',
+          });
+          return;
+        }
 
         const isGoogleProvider = findAccountPayload.oAuthClient?.find(
           (o) => o.provider === profile.provider,
@@ -97,7 +78,7 @@ passport.use(
 
         if (!isGoogleProvider) {
           verified(null, {
-            error: 'This Account is linked with another login method!',
+            error: 'This Account is linked with another social account!',
           });
           return;
         }
@@ -107,17 +88,10 @@ passport.use(
         verified(null, {
           ...account,
         });
-      }
-
-      if (authType === 'signup') {
-        if (findAccountPayload?.id) {
-          verified(null, {
-            error: 'Account Already Exist, Please login!',
-          });
-          return;
-        }
-
+      } else {
         // signup with social
+        console.log('clientType  ', clientType);
+
         const newUser = await prisma.account.create({
           data: {
             email: profile._json.email ?? '',
@@ -163,9 +137,6 @@ passport.use(
                 }
               : {}),
           },
-          include: {
-            company: true,
-          },
         });
 
         if (!newUser) {
@@ -173,17 +144,12 @@ passport.use(
           return;
         }
 
-        const { company, password, ...account } = newUser;
+        const { password, ...account } = newUser;
 
         verified(null, {
           ...account,
         });
-        return;
       }
-
-      verified(null, {
-        error: 'Something Wrong!',
-      });
     },
   ),
 );
@@ -292,7 +258,7 @@ router.get(
       ).toUTCString()}`,
     );
 
-    res.status(200).redirect(`${url}/auth/social-sign-in/?social=google`);
+    res.status(200).redirect(`${url}/auth/social-sign-in/?success=true`);
   },
 );
 
