@@ -40,7 +40,7 @@ async function signUp(input: SignUpInput): Promise<AuthPayload> {
       accountType,
       isVerified: false,
       userName: firstName,
-      image: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/logo.png`,
+      image: `${process.env.NEXT_PUBLIC_S3_CLOUD_FRONT_URL}/next-s3-uploads/bloom/startup.png`,
 
       ...(accountType === 'COMPANY'
         ? {

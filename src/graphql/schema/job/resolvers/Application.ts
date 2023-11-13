@@ -21,5 +21,12 @@ export const Application: ApplicationResolvers = {
     return await context.service.Applicant.getApplicant({
       id: parent.applicantId,
     });
-  }
+  },
+  company: async (parent, args, context) => {
+    console.log('get company resolver parent : ', parent.companyId);
+
+    return context.service.Company.getCompany({
+      id: parent.companyId,
+    });
+  },
 };

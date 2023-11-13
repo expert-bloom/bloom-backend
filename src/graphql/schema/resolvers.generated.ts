@@ -24,6 +24,7 @@ import    { CompanyJobPostsResponse } from './company/resolvers/CompanyJobPostsR
 import    { CreateApplicationPayload } from './applicant/resolvers/CreateApplicationPayload';
 import    { Error } from './base/resolvers/Error';
 import    { FindOnePayload } from './auth/resolvers/FindOnePayload';
+import    { GetApplicationPayload } from './applicant/resolvers/GetApplicationPayload';
 import    { Interview } from './job/resolvers/Interview';
 import    { JobPost } from './job/resolvers/JobPost';
 import    { JobPostResponse } from './company/resolvers/JobPostResponse';
@@ -39,7 +40,6 @@ import    { respondInterview as Mutation_respondInterview } from './applicant/re
 import    { respondToOffer as Mutation_respondToOffer } from './applicant/resolvers/Mutation/respondToOffer';
 import    { saveApplicant as Mutation_saveApplicant } from './company/resolvers/Mutation/saveApplicant';
 import    { saveJobPost as Mutation_saveJobPost } from './job/resolvers/Mutation/saveJobPost';
-import    { sayHi as Mutation_sayHi } from './job/resolvers/Mutation/sayHi';
 import    { sendEmail as Mutation_sendEmail } from './account/resolvers/Mutation/sendEmail';
 import    { sendInterviewRequest as Mutation_sendInterviewRequest } from './company/resolvers/Mutation/sendInterviewRequest';
 import    { signUp as Mutation_signUp } from './auth/resolvers/Mutation/signUp';
@@ -53,6 +53,7 @@ import    { getApplicant as Query_getApplicant } from './applicant/resolvers/Que
 import    { getApplicants as Query_getApplicants } from './applicant/resolvers/Query/getApplicants';
 import    { getCompanies as Query_getCompanies } from './company/resolvers/Query/getCompanies';
 import    { getCompanyJobPosts as Query_getCompanyJobPosts } from './company/resolvers/Query/getCompanyJobPosts';
+import    { getJobApplication as Query_getJobApplication } from './applicant/resolvers/Query/getJobApplication';
 import    { getJobApplications as Query_getJobApplications } from './applicant/resolvers/Query/getJobApplications';
 import    { getJobPost as Query_getJobPost } from './job/resolvers/Query/getJobPost';
 import    { getJobPosts as Query_getJobPosts } from './job/resolvers/Query/getJobPosts';
@@ -64,8 +65,8 @@ import    { VerifyAccountPayload } from './auth/resolvers/VerifyAccountPayload';
 import    { WorkExperience } from './applicant/resolvers/WorkExperience';
 import    { DateTimeResolver } from 'graphql-scalars';
     export const resolvers: Resolvers = {
-      Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getCompanyJobPosts: Query_getCompanyJobPosts,getJobApplications: Query_getJobApplications,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedApplicant: Query_getSavedApplicant,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
-      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createApplication: Mutation_createApplication,createJobPost: Mutation_createJobPost,editJobPost: Mutation_editJobPost,logIn: Mutation_logIn,logOut: Mutation_logOut,offerApplicant: Mutation_offerApplicant,profileUpdate: Mutation_profileUpdate,respondInterview: Mutation_respondInterview,respondToOffer: Mutation_respondToOffer,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sayHi: Mutation_sayHi,sendEmail: Mutation_sendEmail,sendInterviewRequest: Mutation_sendInterviewRequest,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth,verifyAccount: Mutation_verifyAccount },
+      Query: { findAccount: Query_findAccount,getApplicant: Query_getApplicant,getApplicants: Query_getApplicants,getCompanies: Query_getCompanies,getCompanyJobPosts: Query_getCompanyJobPosts,getJobApplication: Query_getJobApplication,getJobApplications: Query_getJobApplications,getJobPost: Query_getJobPost,getJobPosts: Query_getJobPosts,getSavedApplicant: Query_getSavedApplicant,getSavedJobPosts: Query_getSavedJobPosts,me: Query_me,sayHi: Query_sayHi },
+      Mutation: { applicantProfileUpdate: Mutation_applicantProfileUpdate,createApplication: Mutation_createApplication,createJobPost: Mutation_createJobPost,editJobPost: Mutation_editJobPost,logIn: Mutation_logIn,logOut: Mutation_logOut,offerApplicant: Mutation_offerApplicant,profileUpdate: Mutation_profileUpdate,respondInterview: Mutation_respondInterview,respondToOffer: Mutation_respondToOffer,saveApplicant: Mutation_saveApplicant,saveJobPost: Mutation_saveJobPost,sendEmail: Mutation_sendEmail,sendInterviewRequest: Mutation_sendInterviewRequest,signUp: Mutation_signUp,signUpOAuth: Mutation_signUpOAuth,verifyAccount: Mutation_verifyAccount },
       
       Account: Account,
 AccountPayload: AccountPayload,
@@ -91,6 +92,7 @@ CompanyJobPostsResponse: CompanyJobPostsResponse,
 CreateApplicationPayload: CreateApplicationPayload,
 Error: Error,
 FindOnePayload: FindOnePayload,
+GetApplicationPayload: GetApplicationPayload,
 Interview: Interview,
 JobPost: JobPost,
 JobPostResponse: JobPostResponse,

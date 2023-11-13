@@ -1,11 +1,17 @@
 import type { QueryResolvers } from './../../../types.generated';
+import { GraphQLError } from 'graphql/error';
 
 export const getJobApplications: NonNullable<QueryResolvers['getJobApplications']> = async (_parent, _arg, _ctx) => {
-  const signingKey = process.env.JWT_SECRET as string;
+  if (!_ctx.jwt?.id) {
+    throw new GraphQLError('Unauthorized');
+  }
 
-  const jobApplications = await _ctx.service.Applicant.getJobApplications(
-    _arg.input,
-  );
+  const jobApplications = await _ctx.service.Applicant.getJobApplications({
+    ..._arg.input,
+    filter: {
+      ..._arg.input.filter,
+    },
+  });
 
   return {
     pageInfo: {

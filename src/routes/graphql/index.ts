@@ -66,7 +66,7 @@ export const yoga = createYoga({
         const jwtToken = await request.cookieStore
           ?.get('authorization')
           .then((res) => res?.value ?? undefined);
-        console.log('jwtToken ------ : ', jwtToken);
+        // console.log('jwtToken ------ : ', jwtToken);
 
         return jwtToken;
       },

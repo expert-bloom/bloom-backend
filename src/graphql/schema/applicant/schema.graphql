@@ -2,6 +2,7 @@ extend type Query{
     getApplicants(input: GetApplicantsInput!): ApplicantConnection
     getApplicant(input: GetApplicantInput!): Applicant
     getJobApplications(input: GetJobApplicationsInput!): ApplicationConnections!
+    getJobApplication(input: GetApplicationFilter!): Application
 }
 
 extend type Mutation {
@@ -31,6 +32,12 @@ input ApplicationFilter {
     applicantId: String
     jobPostId: String
     ids: [String!]
+}
+
+input GetApplicationFilter {
+    status: ApplicationStatus
+    jobPostId: String
+    id: String!
 }
 
 input GetJobApplicationsInput {
@@ -161,6 +168,11 @@ type ApplicantSavedJobPostEdge {
 type ApplicantAppliedJobPostEdge {
     cursor: String!
     node: JobPost!
+}
+
+type GetApplicationPayload implements PayloadError{
+    errors: [Error!]!
+    application: Application
 }
 
 type ApplicationEdge {

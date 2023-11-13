@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import prisma from '@/lib/prisma';
+import prisma from "@/lib/prisma";
 import {
   type GetApplicantInput,
   type GetSavedApplicantInput,
   type OfferApplicantInput,
   type SaveApplicantInput,
-  type SendInterviewRequestInput,
-} from '@/graphql/schema/types.generated';
-import { GraphQLError } from 'graphql/error';
+  type SendInterviewRequestInput
+} from "@/graphql/schema/types.generated";
+import { GraphQLError } from "graphql/error";
 
 async function getCompanies() {
   const companies = await prisma.company.findMany({
@@ -84,6 +84,21 @@ async function getCompanyAccount(input: GetApplicantInput) {
   });
 
   return applicant?.account ?? null;
+}
+
+async function getCompany(input: GetApplicantInput) {
+  const company = await prisma.company.findUnique({
+    where: {
+      id: input.id,
+    },
+    include: {
+      account: true,
+    },
+  });
+
+  console.log('company : ', company);
+
+  return company ?? null;
 }
 
 async function acceptApplicationAndCreateInterview(
@@ -275,6 +290,7 @@ const account = {
   getSavedApplicants,
   saveApplicant,
   getCompanyAccount,
+  getCompany,
   acceptApplicationAndCreateInterview,
   acceptInterviewAndCreateOffer,
 };

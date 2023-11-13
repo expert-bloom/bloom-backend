@@ -1,16 +1,17 @@
 /* eslint-disable */
-import prisma from '@/lib/prisma';
+import prisma from "@/lib/prisma";
 import type {
   CreateApplicationInput,
   GetApplicantInput,
   GetApplicantsInput,
+  GetApplicationFilter,
   GetJobApplicationsInput,
   RespondInterviewInput,
-  RespondOfferInput,
-} from '@/graphql/schema/types.generated';
-import { ApplicationStatus } from '.prisma/client';
-import { GraphQLError } from 'graphql/error';
-import { clearUndefined } from '@/util/helper';
+  RespondOfferInput
+} from "@/graphql/schema/types.generated";
+import { ApplicationStatus } from ".prisma/client";
+import { GraphQLError } from "graphql/error";
+import { clearUndefined } from "@/util/helper";
 
 async function getAllApplicants(input: GetApplicantsInput) {
   const applicant = await prisma.applicant.findMany({
@@ -77,14 +78,18 @@ async function getSavedJobs(input: GetApplicantInput) {
 }
 
 async function getJobApplications(input: GetJobApplicationsInput) {
-  const filter = clearUndefined(input.filter ?? {});
+  const nonNullFilter = clearUndefined(input.filter ?? {});
 
-  console.log('getJobApplications filter : ', filter);
+  let ids: string[] | undefined = undefined;
+  if (nonNullFilter?.ids) {
+    ids = nonNullFilter?.ids;
+    delete nonNullFilter.ids;
+  }
 
   const applications = await prisma.jobApplication.findMany({
     where: {
-      ...filter,
-      ...(filter?.ids ? { id: { in: filter?.ids } } : {}),
+      ...nonNullFilter,
+      ...(ids ? { id: { in: ids } } : {}),
     },
     include: {
       interview: true,
@@ -93,6 +98,29 @@ async function getJobApplications(input: GetJobApplicationsInput) {
   });
 
   return applications;
+}
+
+async function getJobApplication(
+  input: GetApplicationFilter & {
+    applicantId: string;
+  },
+) {
+  const filter = clearUndefined(input ?? {});
+
+  console.log('getJobApplications filter : ', filter);
+
+  const application = await prisma.jobApplication.findUnique({
+    where: {
+      applicantId: input.applicantId,
+      ...filter,
+    },
+    include: {
+      interview: true,
+      offer: true,
+    },
+  });
+
+  return application ?? null;
 }
 
 async function getWorkExperience(input: GetApplicantInput) {
@@ -215,6 +243,7 @@ const account = {
   createApplication,
   respondInterview,
   respondOffer,
+  getJobApplication,
 };
 
 export default account;
