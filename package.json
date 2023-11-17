@@ -3,7 +3,7 @@
   "scripts": {
     "predev_": "prisma migrate dev && prisma generate && prisma db seed",
     "prestart_": "prisma generate && prisma db seed",
-    "_prebuild": "prisma migrate dev && prisma generate && prisma db seed",
+    "prebuild": "prisma migrate dev && prisma generate && prisma db seed",
     "dev": "env-cmd -f .env ts-node-dev --debug --exit-child --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
     "codegen": "graphql-codegen  --config src/lib/codegen.ts",
     "codegen:watch": "graphql-codegen --profile true --watch --config src/lib/codegen.ts",
