@@ -12,21 +12,22 @@ datasource db {
 }
 
 model Account {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  firstName     String
-  lastName      String
-  userName      String?     @unique
-  fullName      String
-  password      String
-  phone         String?     @unique
-  isVerified    Boolean     @default(false)
-  accountType   AccountType
-  emailVerified DateTime?
-  image         String
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  country       String?
+  id                  String      @id @default(cuid())
+  email               String      @unique
+  firstName           String
+  lastName            String
+  userName            String?     @unique
+  fullName            String
+  password            String
+  phone               String?     @unique
+  isVerified          Boolean     @default(false)
+  profileCompleteness Int         @default(0)
+  accountType         AccountType
+  emailVerified       DateTime?
+  image               String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  country             String?
 
   oAuthClient   OAuthClient[]
   Notifications Notification[]

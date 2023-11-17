@@ -28,5 +28,5 @@ export const Application: ApplicationResolvers = {
     return context.service.Company.getCompany({
       id: parent.companyId,
     });
-  },
+  }
 };

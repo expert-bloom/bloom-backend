@@ -43,6 +43,8 @@ input WorkExperienceInput {
 }
 
 
+
+
 type AccountPayload {
     id: String!
     email: String!
@@ -53,6 +55,7 @@ type AccountPayload {
     accountType: AccountType!
     phone: String
     image: String
+    profileCompleteness: Int!
 
     oAuthClient: [OAuth!]!
     company: Company

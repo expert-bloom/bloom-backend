@@ -48,9 +48,11 @@ async function getMe(input: MeInput) {
       },
     });
 
+    console.log('account : ', account);
+
     return account;
   } catch (err: any) {
-    console.log('err : ', err);
+    console.log('getMe error : ', err);
     throw new GraphQLError(err.message);
   }
 }

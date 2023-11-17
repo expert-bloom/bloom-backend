@@ -55,6 +55,7 @@ export type AccountPayload = {
   lastName: Scalars['String']['output'];
   oAuthClient: Array<OAuth>;
   phone?: Maybe<Scalars['String']['output']>;
+  profileCompleteness: Scalars['Int']['output'];
 };
 
 export type AccountSortField =
@@ -969,6 +970,7 @@ export type ResolversTypes = {
   AccountFilterInput: AccountFilterInput;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   AccountPayload: ResolverTypeWrapper<Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversTypes['Applicant']>, company: Maybe<ResolversTypes['Company']> }>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   AccountSortField: AccountSortField;
   AccountType: AccountType;
   AccountUpdate: ResolverTypeWrapper<Omit<AccountUpdate, 'account'> & { account: Maybe<ResolversTypes['AccountPayload']> }>;
@@ -977,7 +979,6 @@ export type ResolversTypes = {
   Affiliate: ResolverTypeWrapper<Affiliate>;
   AffiliateLight: ResolverTypeWrapper<AffiliateLight>;
   Applicant: ResolverTypeWrapper<ApplicantMapper>;
-  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   ApplicantAccountConnections: ResolverTypeWrapper<ApplicantAccountConnections>;
   ApplicantAccountEdge: ResolverTypeWrapper<ApplicantAccountEdge>;
   ApplicantAppliedJobPostEdge: ResolverTypeWrapper<ApplicantAppliedJobPostEdge>;
@@ -1068,13 +1069,13 @@ export type ResolversParentTypes = {
   AccountFilterInput: AccountFilterInput;
   ID: Scalars['ID']['output'];
   AccountPayload: Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversParentTypes['Applicant']>, company: Maybe<ResolversParentTypes['Company']> };
+  Int: Scalars['Int']['output'];
   AccountUpdate: Omit<AccountUpdate, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
   AccountUpdateInput: AccountUpdateInput;
   Boolean: Scalars['Boolean']['output'];
   Affiliate: Affiliate;
   AffiliateLight: AffiliateLight;
   Applicant: ApplicantMapper;
-  Int: Scalars['Int']['output'];
   ApplicantAccountConnections: ApplicantAccountConnections;
   ApplicantAccountEdge: ApplicantAccountEdge;
   ApplicantAppliedJobPostEdge: ApplicantAppliedJobPostEdge;
@@ -1182,6 +1183,7 @@ export type AccountPayloadResolvers<ContextType = GraphqlContext, ParentType ext
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   oAuthClient?: Resolver<Array<ResolversTypes['OAuth']>, ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  profileCompleteness?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
