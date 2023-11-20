@@ -114,7 +114,7 @@ type CompanyJobPostsResponse{
 }
 
 
-type Company implements Node{
+type Company {
     id: ID!
 
     companyName: String

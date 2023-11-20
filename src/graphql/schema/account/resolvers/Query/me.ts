@@ -5,8 +5,6 @@ export const me: NonNullable<QueryResolvers['me']> = async (
   _arg,
   _ctx,
 ) => {
-  // console.log('me query invoked ---- > ', _ctx?.jwt);
-
   if (!_ctx.jwt?.id) {
     return null;
   }

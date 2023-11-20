@@ -7,7 +7,7 @@ function getRandomAmountOfHourToAdd() {
   return Math.floor(Math.random() * 5) + 1;
 }
 
-const email = 'henokgetachew500@gmail.com';
+const email = 'henokgetachew50@gmail.com';
 
 const postsData = [
   {

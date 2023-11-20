@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql/error';
 export const Applicant: ApplicantResolvers = {
   savedJobs: async (parent, args, context) => {
     const saved = await context.service.Applicant.getSavedJobs({
-      id: parent.id,
+      id: parent.id.toString(),
     });
 
     return {
@@ -18,7 +18,7 @@ export const Applicant: ApplicantResolvers = {
 
   workExperience: async (parent, args, context) => {
     const experience = await context.service.Applicant.getWorkExperience({
-      id: parent.id ?? '',
+      id: parent.id.toString() ?? '',
     });
 
     return experience;
@@ -28,7 +28,7 @@ export const Applicant: ApplicantResolvers = {
     // console.log('account resolver parent : ', parent);
 
     const applicant = await context.service.Applicant.getApplicantAccount({
-      id: parent.id,
+      id: parent.id?.toString() ?? '',
     });
 
     if (applicant === null) {

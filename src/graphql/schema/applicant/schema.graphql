@@ -191,7 +191,7 @@ type ApplicantSavedJobPostConnections {
 }
 
 
-type Applicant implements Node{
+type Applicant {
     id: ID!
     experienceYear: Int
     resume: String

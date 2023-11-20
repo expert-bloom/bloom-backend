@@ -15,7 +15,8 @@ const config: CodegenConfig = {
       typesPluginsConfig: {
         contextType: 'src/graphql/context#GraphqlContext',
         skipTypename: true, // nonOptionalTypename: true,
-        maybeValue: 'T | null | undefined', // maybeValue: 'T extends PromiseLike<infer U> ? Promise<U | null> : T | null | undefined',
+        // maybeValue: 'T | null | undefined',
+        // maybeValue: 'T extends PromiseLike<infer U> ? Promise<U | null> : T | null | undefined',
 
         avoidOptionals: {
           // field: true,
@@ -23,6 +24,7 @@ const config: CodegenConfig = {
           // object: true,
           // defaultValue: true,
         }, // defaultMapper: 'any',
+
         // defaultMapper: 'Partial<{T}>',
       },
 

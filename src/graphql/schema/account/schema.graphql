@@ -2,7 +2,7 @@
 
 extend type Query{
     me : AccountPayload @cacheControl(scope: PRIVATE)
-    findAccount(input: FindAccountFilterInput!): FindOnePayload
+    findAccount (input: FindAccountFilterInput!): FindOnePayload
 }
 
 extend type Mutation {
@@ -60,7 +60,7 @@ type AccountPayload {
     oAuthClient: [OAuth!]!
     company: Company
     applicant: Applicant
-    affiliate: AffiliateLight
+#    affiliate: AffiliateLight
 }
 
 input MeInput {

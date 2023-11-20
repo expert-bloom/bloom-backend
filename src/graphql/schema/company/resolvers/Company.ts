@@ -25,5 +25,7 @@ export const Company: CompanyResolvers = {
     return await context.service.Company.getSavedApplicants({
       companyId: parent.id as string,
     });
-  }
+  },
+    companyName: () => { /* Company.companyName resolver is required because Company.companyName exists but CompanyMapper.companyName does not */ },
+    logo: () => { /* Company.logo resolver is required because Company.logo exists but CompanyMapper.logo does not */ }
 };

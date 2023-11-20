@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import { AccountPayloadMapper } from './account/schema.mappers';
 import { ApplicantMapper } from './applicant/schema.mappers';
 import { ApplicationMapper } from './job/schema.mappers';
 import { CompanyMapper } from './company/schema.mappers';
@@ -43,7 +44,6 @@ export type AccountFilterInput = {
 
 export type AccountPayload = {
   accountType: AccountType;
-  affiliate?: Maybe<AffiliateLight>;
   applicant?: Maybe<Applicant>;
   company?: Maybe<Company>;
   createdAt: Scalars['DateTime']['output'];
@@ -106,7 +106,7 @@ export type AffiliateLight = {
   id: Scalars['String']['output'];
 };
 
-export type Applicant = Node & {
+export type Applicant = {
   WorkExperienceYears?: Maybe<Scalars['Int']['output']>;
   about?: Maybe<Scalars['String']['output']>;
   accomplishment?: Maybe<Scalars['String']['output']>;
@@ -286,7 +286,7 @@ export type CacheControlScope =
   | 'PRIVATE'
   | 'PUBLIC';
 
-export type Company = Node & {
+export type Company = {
   account: Account;
   companyName?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -959,7 +959,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
   IAccount: ( Account & { __typename: 'Account' } ) | ( Affiliate & { __typename: 'Affiliate' } );
-  Node: ( ApplicantMapper & { __typename: 'Applicant' } ) | ( CompanyMapper & { __typename: 'Company' } ) | ( Interview & { __typename: 'Interview' } ) | ( JobPost & { __typename: 'JobPost' } ) | ( Offer & { __typename: 'Offer' } );
+  Node: ( Interview & { __typename: 'Interview' } ) | ( JobPost & { __typename: 'JobPost' } ) | ( Offer & { __typename: 'Offer' } );
   PayloadError: ( Omit<AccountUpdate, 'account'> & { account: Maybe<RefType['AccountPayload']> } & { __typename: 'AccountUpdate' } ) | ( AuthPayload & { __typename: 'AuthPayload' } ) | ( Omit<CreateApplicationPayload, 'application'> & { application: Maybe<RefType['Application']> } & { __typename: 'CreateApplicationPayload' } ) | ( Omit<FindOnePayload, 'account'> & { account: Maybe<RefType['AccountPayload']> } & { __typename: 'FindOnePayload' } ) | ( Omit<GetApplicationPayload, 'application'> & { application: Maybe<RefType['Application']> } & { __typename: 'GetApplicationPayload' } ) | ( VerifyAccountPayload & { __typename: 'VerifyAccountPayload' } );
 };
 
@@ -969,7 +969,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   AccountFilterInput: AccountFilterInput;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
-  AccountPayload: ResolverTypeWrapper<Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversTypes['Applicant']>, company: Maybe<ResolversTypes['Company']> }>;
+  AccountPayload: ResolverTypeWrapper<AccountPayloadMapper>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   AccountSortField: AccountSortField;
   AccountType: AccountType;
@@ -1068,7 +1068,7 @@ export type ResolversParentTypes = {
   String: Scalars['String']['output'];
   AccountFilterInput: AccountFilterInput;
   ID: Scalars['ID']['output'];
-  AccountPayload: Omit<AccountPayload, 'applicant' | 'company'> & { applicant: Maybe<ResolversParentTypes['Applicant']>, company: Maybe<ResolversParentTypes['Company']> };
+  AccountPayload: AccountPayloadMapper;
   Int: Scalars['Int']['output'];
   AccountUpdate: Omit<AccountUpdate, 'account'> & { account: Maybe<ResolversParentTypes['AccountPayload']> };
   AccountUpdateInput: AccountUpdateInput;
@@ -1171,7 +1171,6 @@ export type AccountResolvers<ContextType = GraphqlContext, ParentType extends Re
 
 export type AccountPayloadResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['AccountPayload'] = ResolversParentTypes['AccountPayload']> = {
   accountType?: Resolver<ResolversTypes['AccountType'], ParentType, ContextType>;
-  affiliate?: Resolver<Maybe<ResolversTypes['AffiliateLight']>, ParentType, ContextType>;
   applicant?: Resolver<Maybe<ResolversTypes['Applicant']>, ParentType, ContextType>;
   company?: Resolver<Maybe<ResolversTypes['Company']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -1468,7 +1467,7 @@ export type MutationResolvers<ContextType = GraphqlContext, ParentType extends R
 };
 
 export type NodeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = {
-  __resolveType?: TypeResolveFn<'Applicant' | 'Company' | 'Interview' | 'JobPost' | 'Offer', ParentType, ContextType>;
+  __resolveType?: TypeResolveFn<'Interview' | 'JobPost' | 'Offer', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 };
 
