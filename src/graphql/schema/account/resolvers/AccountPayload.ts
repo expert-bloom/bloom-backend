@@ -45,6 +45,5 @@ export const AccountPayload: AccountPayloadResolvers = {
     }
 
     return completeness;
-  }, // applicant: () => { /* AccountPayload.applicant resolver is required because AccountPayload.applicant exists but AccountPayloadMapper.applicant does not */ },
-  // company: () => { /* AccountPayload.company resolver is required because AccountPayload.company exists but AccountPayloadMapper.company does not */ }
+  },
 };

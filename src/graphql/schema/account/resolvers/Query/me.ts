@@ -15,6 +15,8 @@ export const me: NonNullable<QueryResolvers['me']> = async (
 
   if (mePayload === null) {
     // todo : block this request (fake jwt)
+    console.log('mePayload is null and fake JWT -----');
+
     await _ctx.request.cookieStore?.delete({
       name: 'authorization',
       path: '/', // domain: 'localhost',
