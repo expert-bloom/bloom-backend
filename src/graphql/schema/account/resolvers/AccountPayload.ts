@@ -45,5 +45,5 @@ export const AccountPayload: AccountPayloadResolvers = {
     }
 
     return completeness;
-  },
+  }
 };
