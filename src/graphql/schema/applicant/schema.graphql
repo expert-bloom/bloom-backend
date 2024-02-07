@@ -5,6 +5,15 @@ extend type Query{
     getJobApplication(input: GetApplicationFilter!): Application
 }
 
+input SayHelloInput {
+    name: String
+    dummy: Int
+}
+
+type SayHelloType {
+    hello: String
+}
+
 extend type Mutation {
     applicantProfileUpdate(input: ApplicantProfileUpdateInput!): AccountUpdate!
     createApplication(input: CreateApplicationInput!): CreateApplicationPayload!

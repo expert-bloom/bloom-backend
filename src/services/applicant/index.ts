@@ -137,6 +137,9 @@ async function getWorkExperience(input: GetApplicantInput) {
 }
 
 async function createApplication(input: CreateApplicationInput) {
+
+  console.log('createApplication input : ', input);
+
   const application = await prisma.jobApplication.create({
     data: {
       applicantId: input.applicantId,

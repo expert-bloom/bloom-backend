@@ -833,6 +833,15 @@ export type SavedJobPostsInput = {
   accountId: Scalars['String']['input'];
 };
 
+export type SayHelloInput = {
+  dummy?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SayHelloType = {
+  hello?: Maybe<Scalars['String']['output']>;
+};
+
 export type SendInterviewRequestInput = {
   applicationId: Scalars['String']['input'];
   date?: InputMaybe<Scalars['DateTime']['input']>;
@@ -1053,6 +1062,8 @@ export type ResolversTypes = {
   SaveApplicantInput: SaveApplicantInput;
   SaveJobPostInput: SaveJobPostInput;
   SavedJobPostsInput: SavedJobPostsInput;
+  SayHelloInput: SayHelloInput;
+  SayHelloType: ResolverTypeWrapper<SayHelloType>;
   SendInterviewRequestInput: SendInterviewRequestInput;
   SignUpInput: SignUpInput;
   UpdateProfileInput: UpdateProfileInput;
@@ -1139,6 +1150,8 @@ export type ResolversParentTypes = {
   SaveApplicantInput: SaveApplicantInput;
   SaveJobPostInput: SaveJobPostInput;
   SavedJobPostsInput: SavedJobPostsInput;
+  SayHelloInput: SayHelloInput;
+  SayHelloType: SayHelloType;
   SendInterviewRequestInput: SendInterviewRequestInput;
   SignUpInput: SignUpInput;
   UpdateProfileInput: UpdateProfileInput;
@@ -1527,6 +1540,11 @@ export type QueryResolvers<ContextType = GraphqlContext, ParentType extends Reso
   sayHi?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<QuerysayHiArgs>>;
 };
 
+export type SayHelloTypeResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['SayHelloType'] = ResolversParentTypes['SayHelloType']> = {
+  hello?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type VerifyAccountPayloadResolvers<ContextType = GraphqlContext, ParentType extends ResolversParentTypes['VerifyAccountPayload'] = ResolversParentTypes['VerifyAccountPayload']> = {
   account?: Resolver<Maybe<ResolversTypes['Account']>, ParentType, ContextType>;
   errors?: Resolver<Array<ResolversTypes['Error']>, ParentType, ContextType>;
@@ -1583,6 +1601,7 @@ export type Resolvers<ContextType = GraphqlContext> = {
   PageInfo?: PageInfoResolvers<ContextType>;
   PayloadError?: PayloadErrorResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  SayHelloType?: SayHelloTypeResolvers<ContextType>;
   VerifyAccountPayload?: VerifyAccountPayloadResolvers<ContextType>;
   WorkExperience?: WorkExperienceResolvers<ContextType>;
 };

@@ -61,6 +61,7 @@ import    { getSavedApplicant as Query_getSavedApplicant } from './company/resol
 import    { getSavedJobPosts as Query_getSavedJobPosts } from './job/resolvers/Query/getSavedJobPosts';
 import    { me as Query_me } from './account/resolvers/Query/me';
 import    { sayHi as Query_sayHi } from './job/resolvers/Query/sayHi';
+import    { SayHelloType } from './applicant/resolvers/SayHelloType';
 import    { VerifyAccountPayload } from './auth/resolvers/VerifyAccountPayload';
 import    { WorkExperience } from './applicant/resolvers/WorkExperience';
 import    { DateTimeResolver } from 'graphql-scalars';
@@ -99,6 +100,7 @@ JobPostResponse: JobPostResponse,
 OAuth: OAuth,
 Offer: Offer,
 PageInfo: PageInfo,
+SayHelloType: SayHelloType,
 VerifyAccountPayload: VerifyAccountPayload,
 WorkExperience: WorkExperience,
 DateTime: DateTimeResolver
